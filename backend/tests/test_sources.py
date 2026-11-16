@@ -53,6 +53,3 @@ def test_unknown_record_kind_is_rejected(tmp_path: Path) -> None:
 
 def test_settings_choose_the_source() -> None:
     assert isinstance(build_source(Settings(_env_file=None, event_source="file")), FileEventSource)
-
-    with pytest.raises(NotImplementedError, match="Phase 5"):
-        build_source(Settings(_env_file=None, event_source="mixpanel"))

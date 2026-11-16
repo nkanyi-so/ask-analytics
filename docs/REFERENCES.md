@@ -20,6 +20,8 @@ Started from `../ytscribe/docs/REFERENCES.md`. Kept what applies to a small Fast
 - SQLAlchemy Core: https://docs.sqlalchemy.org/en/21/core/
 - pydantic-settings: https://docs.pydantic.dev/latest/concepts/pydantic_settings/
 - Anthropic Python SDK: https://github.com/anthropics/anthropic-sdk-python
+- Mixpanel import API: https://docs.mixpanel.com/reference/import-events · raw export API: https://docs.mixpanel.com/reference/raw-event-export · service accounts: https://docs.mixpanel.com/reference/service-accounts
+- MCP Python SDK (2.x): https://py.sdk.modelcontextprotocol.io/ · Claude Desktop config: https://modelcontextprotocol.io/docs/develop/connect-local-servers
 - mypy: https://mypy.readthedocs.io/ · ruff: https://docs.astral.sh/ruff/
 - Vitest: https://vitest.dev/
 - gitleaks: https://github.com/gitleaks/gitleaks

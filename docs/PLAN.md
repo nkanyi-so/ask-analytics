@@ -599,13 +599,102 @@ For Phase 6: check on the real platforms that `x-real-ip` on Vercel and `X-Visit
 
 ## Phase 5: real source, MCP, summary (second session)
 
-- [ ] Mixpanel source: track via ingestion, read via raw export with a service account, one download per window, retry with backoff and a hard timeout.
-- [ ] MCP server (stdio) exposing the five lookups; Claude Desktop config in the README.
-- [ ] Monday summary endpoint.
+- [ ] Mixpanel source: track via ingestion, read via raw export with a service account, one download per window, retry with backoff and a hard timeout. *Built and tested against a fake Mixpanel; left unticked until it has run against the real one.*
+- [x] MCP server (stdio) exposing the five lookups; Claude Desktop config in the README. *The config is in `docs/mcp.md` until Phase 6 writes the README.*
+- [x] Monday summary endpoint.
 
 **Gate:** with Mixpanel keys set locally, lookups over the Mixpanel source equal ground truth. An MCP client lists five tools and one call returns the same result as the API.
 
 **Log:**
+
+16 Nov 2026. Branch `phase-5-sources-mcp-summary`. **The gate is not passed: its Mixpanel half needs keys that do not exist yet.** The MCP half is shown below.
+
+*What was built.* `backend/app/sources/mixpanel.py` (the source, the wire format, the push), `backend/app/sources/mixpanel_push.py` (`make mixpanel-push`), `backend/app/mcp_server.py` (`make mcp`), `backend/app/summary.py` and `GET /api/summary`, `docs/mcp.md` (Claude Desktop config). New settings: `MIXPANEL_PROJECT_ID`, `MIXPANEL_SERVICE_ACCOUNT_USERNAME`, `MIXPANEL_SERVICE_ACCOUNT_SECRET`, `MIXPANEL_REGION`, `MIXPANEL_AS_OF`. ARCHITECTURE has new sections for the Mixpanel source and the MCP server.
+
+*Where the libraries differ from the docs, and what was decided.*
+
+- **"One download per window" is one download per load.** Every window is answered from one in-memory database, so a load is a single export request for the 30-day window and the 30 days before it. No lookup triggers a download.
+- **Mixpanel's export is not deduplicated** and older projects shift times into the project's timezone. Events carry their own id and timestamp as properties, duplicates are dropped by id, and the date range is padded by a day each side.
+- **The roster travels as events** (`workspace_user`, `workspace_client`, `workspace_tool`, `workspace_meta`), because people who never logged in have no events.
+- **The export needs a date range before anything is read**, so `MIXPANEL_AS_OF` is a setting. The data carries the same day, and a mismatch stops the load.
+- **The MCP SDK is 2.x.** The low-level server takes handlers as constructor arguments, and passing a server object to `Client` is the in-memory test transport. The server reuses the assistant's `TOOL_SPECS` and `run_lookup`, so the two cannot drift.
+- **The MCP server has no token and no number check.** It is a local child process of its client, and the client's model words its own answers. `docs/mcp.md` says so.
+- **Summary sending is not built.** SPEC calls it optional. The endpoint returns HTML; nothing emails it.
+- **The Claude Desktop config is in `docs/mcp.md`, not the README**, because the README is Phase 6 work. Phase 6 should lift it in.
+- `mcp` sits in its own dependency group (it brings about a dozen packages), so a deployed API image can leave it out. `httpx2` became a runtime dependency.
+
+*Gate evidence.*
+
+**Mixpanel half: not shown.** No Mixpanel project or service account exists, so nothing has been sent to or read from Mixpanel. What exists instead is a test against a fake Mixpanel (an in-process HTTP handler that stores what is imported and serves it back as an export, filtered by event name and date range as the real one is). Over that fake, the pushed workspace comes back identical and all five lookups in all three windows equal ground truth:
+
+```
+tests/test_mixpanel.py::test_a_workspace_pushed_to_mixpanel_comes_back_identical PASSED
+tests/test_mixpanel.py::test_every_lookup_over_the_mixpanel_source_equals_ground_truth PASSED
+tests/test_mixpanel.py::test_a_load_is_one_download_with_a_padded_date_range PASSED
+tests/test_mixpanel.py::test_duplicates_in_the_export_are_dropped PASSED
+tests/test_mixpanel.py::test_retries_and_waits_share_one_deadline PASSED
+```
+
+That proves the code on this side of the wire. It does not prove Mixpanel behaves as its documentation says. To close the gate: create a Mixpanel project that holds nothing else and a service account, fill the five `MIXPANEL_*` names in `.env`, run `make mixpanel-push`, set `EVENT_SOURCE=mixpanel`, then compare the lookups with ground truth.
+
+**MCP half: shown.** A real MCP client, talking to `python -m app.mcp_server` as a separate process over stdin and stdout:
+
+```
+tools: ['usage_by_tool', 'activity_by_person', 'activity_by_client', 'errors_seen', 'roster']
+invoice_generator via MCP: {"headline_count": 10, "headline_count_previous": 51, "headline_count_change": -41, "errors": 86}
+```
+
+Those are the numbers the dashboard shows for the last 7 days. The test that holds this in place compares the MCP result with `/api/overview` row for row:
+
+```
+tests/test_mcp_server.py::test_the_real_server_over_stdio_lists_five_tools_and_matches_the_api PASSED
+tests/test_mcp_server.py::test_a_call_in_process_returns_what_the_api_returns[usage_by_tool] PASSED
+tests/test_mcp_server.py::test_a_client_lists_the_five_lookups_with_the_assistants_schemas PASSED
+```
+
+Not done: the config has not been tried in Claude Desktop itself.
+
+**Summary.** `GET /api/summary` is 401 without the token and `text/html` with it. As text (first part):
+
+```
+Weekly summary
+The last 7 days, ending 2026-10-30, next to the 7 days before. Seeded demo data.
+People
+ | Last 7 days | 7 days before | Change |
+Active | 35 | 35 | no change |
+Went quiet | 2 | 2 | no change |
+Invited: 40. Never showed up: 3 (Yara Dunmore, Otto Thackeray, Sami Holt).
+Went quiet: Xena Jarrah, Yara Quill.
+Headline number per tool
+Tool | Last 7 days | 7 days before | Change | Active people | Errors |
+Call agenda | 46 | 54 | -8 | 26 | 1 |
+Contact enrichment | 0 | 0 | no change | 0 | 0 |
+Email drafter | 91 | 86 | +5 | 31 | 1 |
+Invoice generator | 10 | 51 | -41 | 22 | 86 |
+```
+
+`make check`:
+
+```
+$ make check
+All checks passed!
+Success: no issues found in 23 source files
+306 passed in 12.41s
+| all | 40 | 40 | 100% |
+ Test Files  3 passed (3)
+      Tests  30 passed (30)
+$ echo $?
+0
+```
+
+*Review.* The `reviewer` agent found two blocking problems. Both were real and are fixed:
+
+1. **A local `make check` could have called the real Mixpanel.** The fixture evals read `.env`, and this is the phase where `.env` gets pointed at Mixpanel. Fixture mode now ignores `.env` and always scores the seeded file. CI was never affected (it has no `.env`).
+2. **The hard timeout was not hard.** The 60-second limit was per attempt and a stalled read was retried, so a silent Mixpanel could block startup for about two minutes. A load now has one deadline covering every attempt and wait, no single wait may outlast what is left, and a timeout at the deadline is not retried.
+
+Non-blocking, all fixed: the person is read back from an explicit `user_id` property, since Mixpanel may rewrite `distinct_id`; the service-account secret is kept out of the config's `repr`; the fake Mixpanel now applies the date range, so a range that is too narrow fails the test; `anyio` has its line in the dependency record.
+
+**Gate: not passed.** MCP half shown; Mixpanel half waits for keys.
 
 ---
 

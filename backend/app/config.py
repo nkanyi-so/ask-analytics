@@ -1,10 +1,11 @@
 """Settings from the environment. Names match `.env.example` at the repo root."""
 
+from datetime import date
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import field_validator
+from pydantic import ValidationInfo, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -26,6 +27,19 @@ class Settings(BaseSettings):
     ask_rate_per_minute: int = 5
     ask_daily_budget_usd: float = 2.0
     frontend_origin: str = "http://localhost:3000"
+    # Only read when EVENT_SOURCE=mixpanel. The secret lives in the environment only.
+    mixpanel_project_id: str = ""
+    mixpanel_service_account_username: str = ""
+    mixpanel_service_account_secret: str = ""
+    mixpanel_region: Literal["us", "eu", "in"] = "us"
+    # The day the data in Mixpanel runs up to: the export needs a date range to ask for.
+    mixpanel_as_of: date | None = None
+
+    @field_validator("mixpanel_as_of", "mixpanel_region", mode="before")
+    @classmethod
+    def _empty_means_unset(cls, value: object, info: ValidationInfo) -> object:
+        # `.env.example` lists these names with no value.
+        return value or cls.model_fields[info.field_name or ""].default
 
     @field_validator("anthropic_model", mode="before")
     @classmethod

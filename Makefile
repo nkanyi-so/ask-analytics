@@ -1,4 +1,4 @@
-.PHONY: setup seed dev check evals
+.PHONY: setup seed dev check evals mixpanel-push mcp
 
 setup:
 	git config core.hooksPath .githooks
@@ -37,3 +37,12 @@ check:
 # runs another priced model, so two tables can sit side by side.
 evals:
 	cd backend && uv run python -m evals.run --live $(if $(MODEL),--model $(MODEL),)
+
+# Sends the seeded workspace to the Mixpanel project named in .env. Writes to an
+# outside service: only run it yourself, on a project that holds nothing else.
+mixpanel-push:
+	cd backend && uv run python -m app.sources.mixpanel_push
+
+# The MCP server over stdio, for a quick look. Claude Desktop starts it itself: docs/mcp.md.
+mcp:
+	cd backend && uv run python -m app.mcp_server

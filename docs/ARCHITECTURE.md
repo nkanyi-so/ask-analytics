@@ -6,7 +6,7 @@
 seed (scripts/seed.py)
    └─ data/events.jsonl + data/ground_truth.json
           │
-   EventSource (file now, Mixpanel later)
+   EventSource (file by default, Mixpanel locally)
           │  load once at startup
        SQLite (events, users, clients, tools)
           │
@@ -30,12 +30,16 @@ backend/
     sources/
       base.py        EventSource protocol
       file.py        reads data/events.jsonl
+      mixpanel.py    import API to write, raw export API to read
+      mixpanel_push.py  `make mixpanel-push`: sends the seeded workspace
     registry.py      tool catalog and typed headline registry
     lookups.py       the five lookups and the Window type
     cache.py         TTL cache keyed by (lookup, window, args)
     assistant.py     tool-use loop, refusal rule, cost and latency log
     llm.py           ModelClient protocol, Anthropic client, fixture client
     limits.py        per-visitor rate limit and daily budget
+    mcp_server.py    the five lookups as an MCP server over stdio
+    summary.py       the Monday summary as HTML
   tests/
   evals/
     questions.json   generated from ground truth (30 answerable, 10 refusals)
@@ -60,6 +64,17 @@ SQL is written to be portable to Postgres. See `docs/decisions/0001-sqlite-for-t
 ### The data file
 
 `data/events.jsonl` is one JSON object per line, each with a `kind`: one `meta` line (`as_of`, `seed`, `days`), then `client`, `tool`, `user` and `event` lines. People who never logged in have no events, so the roster has to travel with the events; this is how. An `EventSource` returns all of it as one `Workspace` (clients, tools, users, events, `as_of`).
+
+### The Mixpanel source
+
+Chosen with `EVENT_SOURCE=mixpanel`; meant for local use, never the hosted demo. `make mixpanel-push` sends the seeded workspace through the import API, and the source reads it back through the raw export API. Both use a service account (basic auth, plus `project_id`).
+
+- **One download per load.** SPEC says "one download per window". Here every window is answered from one in-memory database, so a load is a single export request covering the 30-day window and the 30 days before it. No lookup ever triggers a download, and the export API's limit of 60 queries an hour is never a concern.
+- **The roster travels as events.** People who never logged in have no events, and the lookups need clients and tools too. They are sent as `workspace_user`, `workspace_client`, `workspace_tool` and `workspace_meta` events, so one export returns the whole `Workspace`.
+- **The export can hold duplicates.** Mixpanel says so. Every record has a stable `$insert_id`, which makes a repeated push harmless, and the source drops duplicates by the event's own id.
+- **Timezones.** Projects created before 2023 shift `time` and the export's date range into the project's timezone. So each event carries its own timestamp as a property, which is what is read back, and the date range is padded by a day on each side.
+- **`MIXPANEL_AS_OF`.** The export needs a date range before anything is read, so the day the data runs to is a setting. The data carries it too (`workspace_meta`), and a mismatch stops the load.
+- **Failure.** 429, 502, 503 and dropped connections are retried twice, after 2 and 4 seconds, as Mixpanel asks. A 400 or 401 is not retried. A load has 60 seconds in total, retries and waits included: no single wait is allowed to outlast what is left, and once the time is up the load stops and is not retried. An event with one of our names that we did not send stops the load, so use a project that holds nothing else.
 
 ## Time
 
@@ -115,6 +130,11 @@ All `/api/*` routes require `Authorization: Bearer <ADMIN_TOKEN>`.
 - `GET /api/overview?window=` usage by tool, activity by person and client, roster counts, `as_of`
 - `GET /api/reliability?window=` errors seen
 - `POST /api/ask {question}` → `{answer, window, lookups_called, refused, latency_ms, cost_usd, demo_mode}`
+- `GET /api/summary` the Monday summary as HTML: the `7d` window next to the 7 days before, every number a field of a lookup result. Nothing sends it; sending is optional in SPEC and is not built.
+
+## MCP server
+
+`python -m app.mcp_server` serves the five lookups over stdio, using the assistant's own tool definitions and argument check (`TOOL_SPECS`, `run_lookup`), so the two cannot drift apart. It has no token, because a stdio server is a local child process of its client. It does not apply the assistant's number check: the client's model words its own answers. Setup for Claude Desktop is in `docs/mcp.md`.
 
 ## Assistant
 
@@ -161,7 +181,7 @@ Next.js app router. Pages: `/` (Overview), `/reliability`, plus the Ask box on O
 
 | Spine | Where it lives |
 |---|---|
-| Connect to an existing system securely | `EventSource` seam, Mixpanel service account (Phase 5), admin token, server-side proxy |
+| Connect to an existing system securely | `EventSource` seam, Mixpanel service account, MCP server, admin token, server-side proxy |
 | Rules where they suffice, model only for judgment | lookups do all numbers; the model only routes and words |
 | Human in the loop | every answer shows its lookup and window; refusals over guesses |
 | Evals with numbers | 30 exact-match plus 10 refusals, three runs, table in the README |
