@@ -1,0 +1,10 @@
+# Allow-list: nothing reaches the build context unless it is named here, so .env,
+# git history and local caches can never end up in an image layer.
+*
+!backend/pyproject.toml
+!backend/uv.lock
+!backend/.python-version
+!backend/app/**
+!data/events.jsonl
+**/__pycache__
+**/*.pyc

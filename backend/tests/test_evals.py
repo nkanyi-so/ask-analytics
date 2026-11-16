@@ -187,3 +187,56 @@ def test_fixture_mode_ignores_a_local_env_that_points_at_mixpanel(
 
     assert settings.event_source == "file"
     assert settings.demo_mode
+
+
+def test_the_scorer_reads_the_wordings_the_live_model_actually_used() -> None:
+    # Each of these was a correct answer marked wrong on the first live run.
+    assert says_direction(
+        "91 emails, up from 86 in the previous 7 days, a rise of 5.", "up", near=5
+    )
+    assert says_direction("10 this week against 51 before, a change of -41.", "down", near=41)
+    assert says_direction("6 logins, a change of +3.", "up", near=3)
+    # And a sign is not taken from a date or a range.
+    assert not says_direction("Between 2026-10-41 and then it was 41.", "down", near=41)
+    assert not says_direction("It was 10-41 either way.", "down", near=41)
+
+
+def test_direction_is_read_near_the_number_and_inside_its_own_clause() -> None:
+    # Correct answers from the third live run that a fixed word distance marked wrong.
+    rose_then_fell = (
+        "Over the last 7 days there were 86 errors, compared with 2 before. "
+        "That is an increase of 84.\n\nInvoices issued fell over the same period, from 51 to 10."
+    )
+    assert says_direction(rose_then_fell, "up", near=84)
+    assert says_direction(
+        "That is a change of -41.\n\nErrors also rose, from 2 to 86.", "down", near=41
+    )
+    assert says_direction(
+        "- Summaries saved: 245, up from 195 previously, a change of 50.", "up", near=50
+    )
+    # Still strict. Both directions next to the number is not an answer.
+    assert not says_direction("It went up, or maybe down, by 5.", "up", near=5)
+    # A sign is a direction word like any other: it cannot overrule a contradiction.
+    assert not says_direction("It rose, a change of -5.", "up", near=5)
+    assert not says_direction("It rose, a change of -5.", "down", near=5)
+    assert not says_direction("Invoices rose by 41, errors -41.", "down", near=41)
+    assert not says_direction("Invoices rose by 41 this week. Errors: -41.", "down", near=41)
+    # A direction that belongs to something else does not count.
+    assert not says_direction("It is 84. Something else rose.", "up", near=84)
+    assert not says_direction(
+        "Errors changed by 84 over the week, and the invoice generator saw more logins.",
+        "up",
+        near=84,
+    )
+
+
+def test_the_scorer_reads_digits_only() -> None:
+    # The assistant rewrites a checked "Three" to "3" before it answers, so the scorer
+    # never needs to read number words, and "all three windows" can never satisfy a 3.
+    assert whole_numbers("I checked all three windows; 5 people never logged in.") == {5}
+    assert whole_numbers("compared with the previous 30") == {30}
+    assert passes(
+        {"refuse": False, "expect": {"numbers": [50], "texts": [], "direction": "up"}},
+        "Up over the last 30 days compared with the previous 30, an increase of 50.",
+        False,
+    )

@@ -27,6 +27,11 @@ class Settings(BaseSettings):
     ask_rate_per_minute: int = 5
     ask_daily_budget_usd: float = 2.0
     frontend_origin: str = "http://localhost:3000"
+    # Set to 1 by the Docker image. A deployed build refuses to start half-configured.
+    deployed: bool = False
+    # Railway sets this in every container. Its presence also counts as deployed, so a
+    # service built without our Dockerfile still cannot start half-configured.
+    railway_environment_name: str = ""
     # Only read when EVENT_SOURCE=mixpanel. The secret lives in the environment only.
     mixpanel_project_id: str = ""
     mixpanel_service_account_username: str = ""
@@ -45,6 +50,10 @@ class Settings(BaseSettings):
     @classmethod
     def _empty_model_means_default(cls, value: object) -> object:
         return value or DEFAULT_MODEL
+
+    @property
+    def is_deployed(self) -> bool:
+        return self.deployed or bool(self.railway_environment_name)
 
     @property
     def demo_mode(self) -> bool:

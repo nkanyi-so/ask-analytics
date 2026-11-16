@@ -115,6 +115,16 @@ def window_span(as_of: date, window: Window, previous: bool = False) -> Span:
     return start, datetime.combine(last_day + timedelta(days=1), time.min)
 
 
+def window_dates(as_of: date, window: Window, previous: bool = False) -> tuple[date, date]:
+    """The first and last day of the window, or of the one before it.
+
+    Tool results carry these, so the assistant can name the days a window covers by
+    copying them instead of working them out.
+    """
+    start, after = window_span(as_of, window, previous)
+    return start.date(), (after - timedelta(days=1)).date()
+
+
 def in_span(span: Span) -> ColumnElement[bool]:
     return and_(events.c.ts >= span[0], events.c.ts < span[1])
 
@@ -458,6 +468,9 @@ class Lookups:
     def as_of(self) -> date:
         return self._db.as_of
 
+    def dates(self, window: Window, previous: bool = False) -> tuple[date, date]:
+        return window_dates(self._db.as_of, window, previous)
+
     def _cached[T](self, name: str, args: tuple[object, ...], compute: Callable[[], T]) -> T:
         return self._cache.get_or_compute((name, *args), compute)
 
@@ -499,3 +512,22 @@ class Lookups:
         return self._cached(
             "roster", (window, with_previous), lambda: roster(self._db, window, with_previous)
         )
+
+    def warm(self) -> None:
+        """Recompute what the dashboard and the summary ask for and store it fresh.
+
+        Run at startup and then on a schedule shorter than the cache lifetime, so a
+        visitor never pays for a cold read. The keys are the ones the methods above use.
+        """
+        for window in WINDOWS:
+            fresh: dict[tuple[object, ...], object] = {
+                ("usage_by_tool", window, True): usage_by_tool(self._db, window, True),
+                ("activity_by_person", window, None, True): activity_by_person(
+                    self._db, window, None, True
+                ),
+                ("activity_by_client", window, True): activity_by_client(self._db, window, True),
+                ("errors_seen", window, None, True): errors_seen(self._db, window, None, True),
+                ("roster", window, True): roster(self._db, window, True),
+            }
+            for key, value in fresh.items():
+                self._cache.put(key, value)

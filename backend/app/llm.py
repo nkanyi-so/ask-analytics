@@ -4,11 +4,14 @@
 """
 
 import json
+import logging
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Protocol
 
 import anthropic
+
+logger = logging.getLogger("ask_analytics.llm")
 
 MAX_TOKENS = 4096
 TIMEOUT_SECONDS = 30.0  # hard limit per request
@@ -112,6 +115,8 @@ class AnthropicClient:
                 output_config={"effort": "low"},  # routing and wording, not deep reasoning
             )
         except anthropic.APIError as error:
+            # The API's own message says what was wrong with the request; it holds no key.
+            logger.warning("model_call_failed model=%s error=%s", self.model, error)
             raise ModelUnavailable(type(error).__name__) from error
         text = "".join(block.text for block in response.content if block.type == "text")
         calls = tuple(

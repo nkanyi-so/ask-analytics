@@ -24,4 +24,11 @@ def truth() -> dict[str, Any]:
 @pytest.fixture
 def settings() -> Settings:
     # No .env and no key: tests never see real secrets and never reach the live model.
-    return Settings(_env_file=None, anthropic_api_key="", admin_token=TEST_TOKEN)
+    # Not deployed either, whatever the developer's shell has exported.
+    return Settings(
+        _env_file=None,
+        anthropic_api_key="",
+        admin_token=TEST_TOKEN,
+        deployed=False,
+        railway_environment_name="",
+    )

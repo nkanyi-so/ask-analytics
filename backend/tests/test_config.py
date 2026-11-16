@@ -36,4 +36,7 @@ def test_every_backend_name_in_env_example_is_a_setting() -> None:
     lines = (REPO_ROOT / ".env.example").read_text().splitlines()
     names = {line.split("=", 1)[0] for line in lines if "=" in line and not line.startswith("#")}
 
-    assert names - frontend_only == {field.upper() for field in Settings.model_fields}
+    # Set by the Docker image and by Railway, never by hand, so they have no place in .env.
+    image_only = {"DEPLOYED", "RAILWAY_ENVIRONMENT_NAME"}
+
+    assert names - frontend_only == {field.upper() for field in Settings.model_fields} - image_only

@@ -35,6 +35,12 @@ class TTLCache:
             self._entries[key] = (self._clock() + self._ttl, value)
             return value
 
+    def put(self, key: Hashable, value: object) -> None:
+        """Store a fresh value whether or not the old one has expired (the cache warm)."""
+        with self._lock:
+            self._make_room()
+            self._entries[key] = (self._clock() + self._ttl, value)
+
     def _make_room(self) -> None:
         # Part of a key (a person's id) can come from a question, so the key space is
         # not bounded by the data. Expired entries go first; then, if full, everything.

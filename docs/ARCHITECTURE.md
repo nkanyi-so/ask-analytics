@@ -116,6 +116,10 @@ Rows are complete and ordered: every tool, person and client appears even at zer
 
 Return types are frozen dataclasses or pydantic models. The same objects feed the API, the assistant's tool results and the ground-truth generator's checks.
 
+### Cache and the scheduled warm
+
+Results are cached for ten minutes, keyed by lookup, window and arguments. The backend warms the cache at startup and again every five minutes, in its own process: it recomputes the fifteen results the dashboard and the summary ask for (five lookups, three windows, with the previous window) and stores them fresh, replacing entries before they expire. So no visitor pays for a cold read, and no platform scheduler is involved. A warm that fails is logged and the next one still runs. Questions that ask for something else (one person, one tool's errors) are computed on first use and cached as before.
+
 ## Registry
 
 `ToolId` is a `Literal` of the eight tool ids and `HeadlineEvent` a `Literal` of the eight headline events. `catalog_entry(tool: ToolId) -> CatalogEntry` is a `match` over every id that ends in `assert_never`, and `CatalogEntry.headline_event` is a required field. So the type checker rejects a tool id with no case, a case with no headline event, and a headline event that is not one of the eight.
@@ -140,10 +144,10 @@ All `/api/*` routes require `Authorization: Bearer <ADMIN_TOKEN>`.
 
 ## Assistant
 
-1. System prompt: the five tools, the three windows, `AS_OF`, the rule that every number must come from a tool result, and the refusal rule.
+1. System prompt: the eight tools in the workspace and what each one counts (from the registry), the five lookups, the three windows, `AS_OF`, the rule that every number must come from a tool result, and the refusal rule.
 2. Loop: model picks a tool and arguments; backend runs the lookup; result goes back; at most three tool calls; then the model writes a short answer that names the window.
 3. Refusal: if the model answers with no tool call, or the question needs something no lookup returns, the reply is a refusal listing what it can answer.
-4. Check after generation: every number in the answer must appear verbatim in the tool results of that turn (counts, previous-window values and differences all come from the lookups). Dates and the window length are allowed. If any other number appears, the answer is replaced with a refusal and the miss is logged.
+4. Check after generation: every number in the answer must appear verbatim in the tool results of that turn (counts, previous-window values and differences all come from the lookups). Dates that appear in the results and the window length are allowed; the exact rule is under "What the API allows" below. If any other number appears, the answer is replaced with a refusal and the miss is logged.
 5. The question is untrusted input. The tools are read-only and scoped to the seeded data, so the worst a hostile question can do is get a refusal; the system prompt still tells the model to ignore instructions inside questions, and one eval covers it.
 6. Each call logs latency, tokens in and out, and cost.
 
@@ -157,11 +161,11 @@ All `/api/*` routes require `Authorization: Bearer <ADMIN_TOKEN>`.
 - Sampling parameters such as temperature are rejected too. There is no determinism knob; running each eval question three times is the only stability check.
 - A reply can stop with `stop_reason: "refusal"`. That is treated as a refusal like any other.
 - The model is told to answer with the single word `REFUSE` when no lookup covers the question. The refusal text itself is fixed in code, so a hostile question cannot shape it.
-- The number check: every number in the answer must be a number in a tool result of that turn (the sign aside). Digits are also allowed inside a date or an id that appears in the results, and in a window phrase such as "the last 7 days". A count that merely matches part of an id or a date is rejected, and so is any decimal, since lookups return counts. Two limits are known and accepted: a number written as a word passes unchecked, and a harmless count the model adds by itself ("the top 3") turns a good answer into a refusal.
+- The number check: every number in the answer must be a number in a tool result of that turn (the sign aside). Digits are also allowed inside a date or an id that appears in the results, and in a window phrase such as "the last 7 days". A count that merely matches part of an id or a date is rejected, and so is any decimal, since lookups return counts. Numbers written as words ("three", "twenty-two", "forty") are held to the same rule, because the live model writes "Three people" whatever the prompt says; "hundred" and larger are never accepted. Once an answer has passed, its number words are rewritten as digits before it is returned. A window may be named without its unit only as the thing compared with ("compared with the previous 30"), and only for a window that turn compared; "up from the previous 7" stays a count, because that is where an invented previous value would sit. Limits that are known and accepted: the word "one" passes unchecked, since "no one" and "the one tool" are not counts; an ordinary "two" or "three" ("the two windows") can turn a good answer into a refusal if that number is in no result; and so can a harmless count the model adds by itself ("the top 3").
 
 ### Demo mode
 
-With no `ANTHROPIC_API_KEY` the backend runs the `FixtureClient`. Every `/api/ask` reply then carries `demo_mode: true`, questions from the eval set get their recorded answer, and any other question gets a plain "the live model is not connected" reply. The Ask box shows a visible "Demo mode" label. Demo mode must never be on in a deployed build; Phase 6 adds the startup check.
+With no `ANTHROPIC_API_KEY` the backend runs the `FixtureClient`. Every `/api/ask` reply then carries `demo_mode: true`, questions from the eval set get their recorded answer, and any other question gets a plain "the live model is not connected" reply. The Ask box shows a visible "Demo mode" label. Demo mode must never be on in a deployed build. The Docker image sets `DEPLOYED=1`, and Railway sets `RAILWAY_ENVIRONMENT_NAME` in every container; with either, the app refuses to start without `ANTHROPIC_API_KEY`, without an admin token of at least 32 characters, or with any source but the file (`check_deployable` in `main.py`).
 
 ## Frontend
 
