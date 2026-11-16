@@ -1,6 +1,8 @@
 """The assistant loop, driven by the fixture client. No test here can reach a live model."""
 
+import json
 import logging
+from datetime import date
 from typing import Any
 
 import pytest
@@ -10,6 +12,8 @@ from app.assistant import (
     REFUSAL_TEXT,
     TOOL_SPECS,
     answer_question,
+    digits_for_words,
+    run_lookup,
     system_prompt,
     unsupported_numbers,
 )
@@ -17,6 +21,7 @@ from app.cache import TTLCache
 from app.db import Database
 from app.llm import Fixture, FixtureClient, ModelReply, ToolCall
 from app.lookups import Lookups
+from app.registry import CATALOG
 
 INVOICES_7D = {
     "call": 0,
@@ -366,3 +371,100 @@ def test_tools_are_the_five_lookups_with_strict_schemas() -> None:
         assert schema["additionalProperties"] is False
         assert set(schema["required"]) == set(schema["properties"])
         assert schema["properties"]["window"]["enum"] == ["today", "7d", "30d"]
+
+
+def test_tool_results_carry_the_days_each_window_covers(lookups: Lookups) -> None:
+    _, plain = run_lookup(lookups, "usage_by_tool", {"window": "7d"})
+    _, compared = run_lookup(lookups, "usage_by_tool", {"window": "7d", "with_previous": True})
+
+    assert json.loads(plain)["window_first_day"] == "2026-10-24"
+    assert json.loads(plain)["window_last_day"] == "2026-10-30"
+    assert "previous_first_day" not in json.loads(plain)
+    assert json.loads(compared)["previous_first_day"] == "2026-10-17"
+    assert json.loads(compared)["previous_last_day"] == "2026-10-23"
+
+
+def test_an_answer_may_name_the_windows_days_because_the_result_states_them(
+    lookups: Lookups,
+) -> None:
+    # On the first live run the model worked the start date out itself and was refused.
+    _, result = run_lookup(lookups, "activity_by_client", {"window": "7d"})
+
+    answer = "Alder & Finch produced 122 outputs in the last 7 days (2026-10-24 to 2026-10-30)."
+    assert unsupported_numbers(answer, [result]) == []
+    assert unsupported_numbers(answer.replace("10-24", "10-23"), [result]) != []
+
+
+def test_a_window_named_without_its_unit_is_allowed_only_as_the_thing_compared_with(
+    lookups: Lookups,
+) -> None:
+    # Refused three times out of three on the second live run: "the previous 30".
+    _, real_month = run_lookup(lookups, "usage_by_tool", {"window": "30d", "with_previous": True})
+    said = "Summaries went up over the last 30 days compared with the previous 30 (2026-09-01 to 2026-09-30), from 195 to 245, an increase of 50."
+    assert unsupported_numbers(said, [real_month]) == []
+
+    # Hand-made results, so the only numbers in them are the ones written here.
+    month = '{"window": "30d", "previous_first_day": "2026-09-01", "rows": [{"errors": 86}]}'
+    week = '{"window": "7d", "previous_first_day": "2026-10-17", "rows": [{"errors": 86}]}'
+    week_alone = '{"window": "7d", "rows": [{"errors": 86}]}'
+    assert unsupported_numbers("Up, compared with the previous 30.", [month]) == []
+    # Only for a window this turn really compared.
+    assert unsupported_numbers("Up, compared with the previous 30.", [week]) == ["30"]
+    assert unsupported_numbers("Up, compared with the previous 7.", [week_alone]) == ["7"]
+    # And never where a previous value would sit.
+    assert unsupported_numbers("86 errors, up from the prior 7.", [week]) == ["7"]
+    assert unsupported_numbers("Errors: 86, up from the previous 7.", [week]) == ["7"]
+    assert unsupported_numbers("86 errors compared with the previous 7 errors.", [week]) == ["7"]
+    assert unsupported_numbers("The last 30 invoices failed.", [month]) == ["30"]
+
+
+def test_the_prompt_names_every_tool_and_what_it_counts() -> None:
+    # Without this the live model refused "how many emails were sent" as unanswerable.
+    prompt = system_prompt(date(2026, 10, 30))
+
+    for entry in CATALOG:
+        assert f"{entry.name} (id {entry.id}): counts {entry.headline_event}" in prompt
+
+
+def test_a_number_written_as_a_word_is_held_to_the_same_rule() -> None:
+    # The live model writes "Three people" whatever the prompt says about digits.
+    roster_result = '{"never_showed_up_count": 3, "active_count": 35, "x": 20, "y": 2}'
+
+    assert unsupported_numbers("Three people never showed up.", [roster_result]) == []
+    assert unsupported_numbers("Twelve people never showed up.", [roster_result]) == ["Twelve"]
+    assert unsupported_numbers("No one else, and not one error.", [roster_result]) == []
+    # "twenty-two" is 22, not a 20 and a 2 that happen to be in the result.
+    assert unsupported_numbers("Twenty-two errors.", [roster_result]) == ["Twenty-two"]
+    assert unsupported_numbers("Thirty-five people are active.", [roster_result]) == []
+    assert unsupported_numbers("Forty people, hundreds of events.", [roster_result]) == ["Forty"]
+    assert unsupported_numbers("About a hundred errors.", [roster_result]) == ["hundred"]
+    # A window's length in words is a window, as it is in digits.
+    assert unsupported_numbers("In the last seven days, 35 were active.", [roster_result]) == []
+    assert unsupported_numbers("Over thirty days, 35 were active.", [roster_result]) == []
+
+
+def test_number_words_map_to_the_right_numbers() -> None:
+    spelled = (
+        "two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen "
+        "sixteen seventeen eighteen nineteen twenty"
+    )
+    assert digits_for_words(spelled) == " ".join(str(n) for n in range(2, 21))
+    assert digits_for_words("twenty-one, forty two and ninety-nine") == "21, 42 and 99"
+    assert digits_for_words("thirty, fifty, sixty, seventy, eighty") == "30, 50, 60, 70, 80"
+    assert digits_for_words("No one came; one of them left.") == "No one came; one of them left."
+
+
+def test_a_checked_number_word_reaches_the_reader_as_digits(lookups: Lookups) -> None:
+    client = FixtureClient(
+        {
+            "who never showed up?": Fixture(
+                calls=[{"name": "roster", "input": {"window": "7d"}}],
+                answer="Three people were invited but never logged in.",
+            )
+        }
+    )
+
+    result = answer_question("Who never showed up?", client, lookups)
+
+    assert result.answer == "3 people were invited but never logged in."
+    assert not result.refused

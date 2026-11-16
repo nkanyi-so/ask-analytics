@@ -3,13 +3,26 @@
 import re
 from typing import Any
 
-UP_WORDS = {"up", "increase", "increased", "rose", "risen", "more", "higher", "grew", "gained"}
+UP_WORDS = {
+    "up",
+    "increase",
+    "increased",
+    "rise",
+    "rose",
+    "risen",
+    "more",
+    "higher",
+    "grew",
+    "gained",
+}
 DOWN_WORDS = {
     "down",
     "decrease",
     "decreased",
+    "fall",
     "fell",
     "fallen",
+    "drop",
     "fewer",
     "less",
     "lower",
@@ -23,8 +36,15 @@ DATE = re.compile(
     r"|\b\d{1,2}(?:st|nd|rd|th)?\s+(?:of\s+)?[A-Z][a-z]{2,8}\.?(?:,?\s+\d{4})?"
     r"|\b[A-Z][a-z]{2,8}\.?\s+\d{1,2}(?:st|nd|rd|th)?(?:,?\s+\d{4})?"
 )
-WINDOW_PHRASE = re.compile(r"\b(?:7|30)(?:[\s-]*days?|d)\b", re.IGNORECASE)
-NEARBY_WORDS = 6
+# The scorer keeps its own patterns and reads digits only. It shares no code with the
+# assistant's number check, so a bug in one cannot hide behind the same bug in the other.
+WINDOW_PHRASE = re.compile(
+    r"\b(?:7|30)(?:[\s-]*days?|d)\b"
+    r"|\b(?:compared\s+(?:with|to)|versus|vs\.?|against|than)\s+(?:the\s+)?"
+    r"(?:previous|prior|preceding)\s+(?:7|30)\b",
+    re.IGNORECASE,
+)
+NEARBY_WORDS = 8
 
 
 def without_dates_and_windows(answer: str) -> str:
@@ -41,18 +61,25 @@ def whole_numbers(text: str) -> set[int]:
 def says_direction(answer: str, direction: str, near: int | None = None) -> bool:
     """Does the answer say the change went this way, and not the other?
 
-    Questions such as "more or less?" invite an answer that repeats both words, so
-    only the words close to the number count when a number is given.
+    Questions such as "more or less?" invite an answer that repeats both words, and
+    the live model often adds a second fact going the other way ("errors rose ...
+    invoices fell"). So when a number is given, only the words close to it and in its
+    own sentence or clause count. A sign on the number ("a change of -41") counts as a
+    direction word too: it can supply the direction, and it can contradict one.
     """
-    tokens = re.findall(r"[a-z]+|\d+(?:,\d{3})*", answer.lower())
-    if near is not None:
-        spots = [i for i, token in enumerate(tokens) if token.replace(",", "") == str(near)]
-        tokens = [
-            token
-            for spot in spots
-            for token in tokens[max(0, spot - NEARBY_WORDS) : spot + NEARBY_WORDS + 1]
-        ]
-    words = set(tokens)
+    if near is None:
+        words = set(re.findall(r"[a-z]+", answer.lower()))
+    else:
+        words = set()
+        for clause in re.split(r"(?<=[.!?:;])\s+|\n+", answer.lower()):
+            tokens = re.findall(r"[a-z]+|\d+(?:,\d{3})*", clause)
+            spots = [i for i, token in enumerate(tokens) if token.replace(",", "") == str(near)]
+            for spot in spots:
+                words.update(tokens[max(0, spot - NEARBY_WORDS) : spot + NEARBY_WORDS + 1])
+            if spots and re.search(rf"(?<![\w-])[-\u2212]{near}\b", clause):
+                words.add("down")
+            if spots and re.search(rf"(?<!\w)\+{near}\b", clause):
+                words.add("up")
     right, wrong = (UP_WORDS, DOWN_WORDS) if direction == "up" else (DOWN_WORDS, UP_WORDS)
     return bool(words & right) and not words & wrong
 

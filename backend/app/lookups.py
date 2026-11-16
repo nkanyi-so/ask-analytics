@@ -115,6 +115,16 @@ def window_span(as_of: date, window: Window, previous: bool = False) -> Span:
     return start, datetime.combine(last_day + timedelta(days=1), time.min)
 
 
+def window_dates(as_of: date, window: Window, previous: bool = False) -> tuple[date, date]:
+    """The first and last day of the window, or of the one before it.
+
+    Tool results carry these, so the assistant can name the days a window covers by
+    copying them instead of working them out.
+    """
+    start, after = window_span(as_of, window, previous)
+    return start.date(), (after - timedelta(days=1)).date()
+
+
 def in_span(span: Span) -> ColumnElement[bool]:
     return and_(events.c.ts >= span[0], events.c.ts < span[1])
 
@@ -457,6 +467,9 @@ class Lookups:
     @property
     def as_of(self) -> date:
         return self._db.as_of
+
+    def dates(self, window: Window, previous: bool = False) -> tuple[date, date]:
+        return window_dates(self._db.as_of, window, previous)
 
     def _cached[T](self, name: str, args: tuple[object, ...], compute: Callable[[], T]) -> T:
         return self._cache.get_or_compute((name, *args), compute)

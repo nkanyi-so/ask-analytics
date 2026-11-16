@@ -359,7 +359,7 @@ Known and accepted: cached results are shared lists. The models are frozen, and 
 - [x] `evals/questions.json` generated from ground truth: thirty answerable in three tiers, ten refusals including three adversarial (see `docs/SPEC.md`). Results reported per tier. `evals/run.py` with fixture and live modes, writing `docs/eval-results.md`.
 - [x] Tests (fixture client): a correct answer, a refusal, a made-up number replaced by a refusal, the rate limit, the budget cap.
 
-- [ ] One live run of `make evals`, with its table in the log. Not done: no API key yet.
+- [x] One live run of `make evals`, with its table in the log. *Done on 16 Nov 2026, once a key existed: see the entry at the end of this phase's log.*
 
 **Gate:** fixture evals run inside `make check` and pass. One live run of `make evals` is done only if `ANTHROPIC_API_KEY` is set and the human has said yes; its table goes in the log. If there is no key, say so and leave the live run unticked.
 
@@ -450,6 +450,30 @@ Non-blocking, fixed: the visitor key uses the last `X-Forwarded-For` entry and g
 Known and accepted, noted in `docs/eval-results.md`: a few expected numbers are small (1, 3, 5), and "Who has gone quiet?" measures the choice of window as much as the count.
 
 **Gate: passed, with the live run outstanding.**
+
+*Second entry, 16 Nov 2026: the live run.* The human added a key and said yes to `claude-haiku-5-5`. Five runs, about $0.38 in all. The last one:
+
+```
+$ make evals
+Evals, live, claude-haiku-5-5:
+
+| Tier | Questions | Passed all 3 runs | Rate | Single runs passed |
+|---|---|---|---|---|
+| direct | 12 | 12 | 100% | 36 of 36 |
+| indirect | 10 | 10 | 100% | 30 of 30 |
+| comparison | 8 | 8 | 100% | 24 of 24 |
+| refusal | 10 | 10 | 100% | 30 of 30 |
+| all | 40 | 40 | 100% | 120 of 120 |
+
+Failures (any run):
+None.
+```
+
+The first run scored 70% (and a run before that had every request rejected, over a tool schema the API does not accept). `docs/eval-results.md` has every run, each failure with the answer that showed it, and each fix. In short: the model was missing facts (which tools exist, which lookup holds a total, what days a window covers), the scorer misjudged some correct answers, and the number check needed to read numbers written as words. The `reviewer` agent then found two blocking problems in those fixes: an allowance that let an invented previous value past the number check, and a scorer rule that passed a wrong direction. Both were tightened, with tests, before the fifth run. The refusal tier was 30 of 30 in every run.
+
+The 100% is partly fitted to these forty questions, because the fixes were tested on them. SPEC says to add harder questions when a first run is perfect; the first run was not, but the same advice now applies. `claude-opus-5-5` has not been run.
+
+**Gate: passed, live run included.**
 
 ---
 

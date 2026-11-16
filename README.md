@@ -4,7 +4,7 @@ One trusted number per tool, on a page leadership opens themselves, and a plain-
 
 A public rebuild of the usage observability I built for a client's internal platform. The platform here is synthetic: a seeded workspace of eight tools and forty people over sixty days of activity. Locally the analytics source can be real (Mixpanel); the hosted demo reads a file-backed source, so the public deployment needs no analytics keys and never breaks.
 
-> **Status, 16 Nov 2026.** Runs locally. Not deployed yet. The live eval has not been run, so the table below shows fixture results only. The Mixpanel source has been run against a real Mixpanel project: all five lookups in every window equal ground truth.
+> **Status, 16 Nov 2026.** Runs locally. Not deployed yet. The live eval has been run on `claude-haiku-5-5` (not yet on `claude-opus-5-5`). The Mixpanel source has been run against a real Mixpanel project: all five lookups in every window equal ground truth.
 
 ## Run it
 
@@ -44,10 +44,13 @@ Forty questions: twelve direct, ten indirect (the wording names no lookup, windo
 | Mode | Model | Date | Direct | Indirect | Comparison | Refusal |
 |---|---|---|---|---|---|---|
 | Fixture | none | 16 Nov 2026 | 12 of 12 | 10 of 10 | 8 of 8 | 10 of 10 |
-| Live | `claude-haiku-5-5` | not run yet | | | | |
+| Live, first run | `claude-haiku-5-5` | 16 Nov 2026 | 8 of 12 | 9 of 10 | 1 of 8 | 10 of 10 |
+| Live, fifth run | `claude-haiku-5-5` | 16 Nov 2026 | 12 of 12 | 10 of 10 | 8 of 8 | 10 of 10 |
 | Live | `claude-opus-5-5` | not run yet | | | | |
 
-Read the fixture row for what it is. The fixture client plays the model from a script, so it proves the lookups, the loop, the number check and the scorer. It says nothing about whether a model picks the right lookup. Only the live rows will, and they are empty until `make evals` is run. A live run asks every question three times, and a question passes only if all three runs pass.
+Read the fixture row for what it is. The fixture client plays the model from a script, so it proves the lookups, the loop, the number check and the scorer. It says nothing about whether a model picks the right lookup. The live rows do. A live run asks every question three times, and a question passes only if all three runs pass.
+
+The first live run scored 70%. Getting to 100% took four rounds of fixes, and the failures were the useful part: the number check caught the model counting rows by itself; the model refused "how many emails were sent" because the prompt never said which tools exist; and telling it to write digits did not stop it writing "Three people", so the number check now reads number words too. A review of those fixes then found two that had loosened a check too far, which were tightened before the last run. The last run is partly fitted to these forty questions, since they are what the fixes were tested on. Every run, failure and fix is in `docs/eval-results.md`.
 
 How a change is gated: fixture evals run inside `make check`, on every commit and every pull request, and must score 40 of 40. Details and known weak spots are in `docs/eval-results.md`.
 
@@ -67,7 +70,7 @@ AI-assisted, with Claude Code, under gates I set and checked: a plan reviewed be
 
 ## What I'd do next
 
-- Run the live eval on both models, and add harder questions until something fails.
+- Write a second set of questions that is never used for tuning, and run both models on it. The current forty were used to fix the failures they found.
 - Deploy (`docs/deploy.md`), then check the visitor-address handling on the real platforms.
 - Move the rate limit and budget to Redis.
 - Send the Monday summary by email. Today the endpoint only renders it.
