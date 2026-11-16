@@ -1,0 +1,3628 @@
+{
+ "as_of": "2026-10-30",
+ "days": 60,
+ "lookups": {
+  "activity_by_client": {
+   "30d": [
+    {
+     "active_people": 10,
+     "active_people_change": 0,
+     "active_people_previous": 10,
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "outputs": 632,
+     "outputs_change": 19,
+     "outputs_previous": 613
+    },
+    {
+     "active_people": 8,
+     "active_people_change": -1,
+     "active_people_previous": 9,
+     "client_id": "c02",
+     "client_name": "Brightwater",
+     "outputs": 436,
+     "outputs_change": -19,
+     "outputs_previous": 455
+    },
+    {
+     "active_people": 6,
+     "active_people_change": 0,
+     "active_people_previous": 6,
+     "client_id": "c03",
+     "client_name": "Cobalt Lane",
+     "outputs": 258,
+     "outputs_change": 22,
+     "outputs_previous": 236
+    },
+    {
+     "active_people": 6,
+     "active_people_change": 0,
+     "active_people_previous": 6,
+     "client_id": "c04",
+     "client_name": "Dune Collective",
+     "outputs": 189,
+     "outputs_change": -12,
+     "outputs_previous": 201
+    },
+    {
+     "active_people": 3,
+     "active_people_change": 0,
+     "active_people_previous": 3,
+     "client_id": "c05",
+     "client_name": "Ember Works",
+     "outputs": 75,
+     "outputs_change": -38,
+     "outputs_previous": 113
+    },
+    {
+     "active_people": 3,
+     "active_people_change": 0,
+     "active_people_previous": 3,
+     "client_id": "c06",
+     "client_name": "Fjord Media",
+     "outputs": 88,
+     "outputs_change": 8,
+     "outputs_previous": 80
+    }
+   ],
+   "7d": [
+    {
+     "active_people": 10,
+     "active_people_change": 0,
+     "active_people_previous": 10,
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "outputs": 122,
+     "outputs_change": -21,
+     "outputs_previous": 143
+    },
+    {
+     "active_people": 8,
+     "active_people_change": 1,
+     "active_people_previous": 7,
+     "client_id": "c02",
+     "client_name": "Brightwater",
+     "outputs": 100,
+     "outputs_change": -5,
+     "outputs_previous": 105
+    },
+    {
+     "active_people": 6,
+     "active_people_change": 0,
+     "active_people_previous": 6,
+     "client_id": "c03",
+     "client_name": "Cobalt Lane",
+     "outputs": 55,
+     "outputs_change": -2,
+     "outputs_previous": 57
+    },
+    {
+     "active_people": 5,
+     "active_people_change": -1,
+     "active_people_previous": 6,
+     "client_id": "c04",
+     "client_name": "Dune Collective",
+     "outputs": 37,
+     "outputs_change": 4,
+     "outputs_previous": 33
+    },
+    {
+     "active_people": 3,
+     "active_people_change": 0,
+     "active_people_previous": 3,
+     "client_id": "c05",
+     "client_name": "Ember Works",
+     "outputs": 12,
+     "outputs_change": -5,
+     "outputs_previous": 17
+    },
+    {
+     "active_people": 3,
+     "active_people_change": 0,
+     "active_people_previous": 3,
+     "client_id": "c06",
+     "client_name": "Fjord Media",
+     "outputs": 18,
+     "outputs_change": -4,
+     "outputs_previous": 22
+    }
+   ],
+   "today": [
+    {
+     "active_people": 9,
+     "active_people_change": 1,
+     "active_people_previous": 8,
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "outputs": 31,
+     "outputs_change": 5,
+     "outputs_previous": 26
+    },
+    {
+     "active_people": 7,
+     "active_people_change": 1,
+     "active_people_previous": 6,
+     "client_id": "c02",
+     "client_name": "Brightwater",
+     "outputs": 21,
+     "outputs_change": 2,
+     "outputs_previous": 19
+    },
+    {
+     "active_people": 4,
+     "active_people_change": 0,
+     "active_people_previous": 4,
+     "client_id": "c03",
+     "client_name": "Cobalt Lane",
+     "outputs": 10,
+     "outputs_change": -1,
+     "outputs_previous": 11
+    },
+    {
+     "active_people": 3,
+     "active_people_change": -1,
+     "active_people_previous": 4,
+     "client_id": "c04",
+     "client_name": "Dune Collective",
+     "outputs": 7,
+     "outputs_change": 0,
+     "outputs_previous": 7
+    },
+    {
+     "active_people": 0,
+     "active_people_change": -1,
+     "active_people_previous": 1,
+     "client_id": "c05",
+     "client_name": "Ember Works",
+     "outputs": 0,
+     "outputs_change": -4,
+     "outputs_previous": 4
+    },
+    {
+     "active_people": 2,
+     "active_people_change": -1,
+     "active_people_previous": 3,
+     "client_id": "c06",
+     "client_name": "Fjord Media",
+     "outputs": 5,
+     "outputs_change": -1,
+     "outputs_previous": 6
+    }
+   ]
+  },
+  "activity_by_person": {
+   "30d": [
+    {
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "last_seen": "2026-10-30",
+     "logins": 16,
+     "logins_change": -1,
+     "logins_previous": 17,
+     "name": "Otto Quill",
+     "outputs": 54,
+     "outputs_change": -14,
+     "outputs_previous": 68,
+     "role": "admin",
+     "user_id": "u001"
+    },
+    {
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "last_seen": "2026-10-30",
+     "logins": 20,
+     "logins_change": 4,
+     "logins_previous": 16,
+     "name": "Pia Marlow",
+     "outputs": 72,
+     "outputs_change": 20,
+     "outputs_previous": 52,
+     "role": "manager",
+     "user_id": "u002"
+    },
+    {
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "last_seen": "2026-10-30",
+     "logins": 23,
+     "logins_change": 1,
+     "logins_previous": 22,
+     "name": "Tess Marlow",
+     "outputs": 90,
+     "outputs_change": 23,
+     "outputs_previous": 67,
+     "role": "manager",
+     "user_id": "u003"
+    },
+    {
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "last_seen": "2026-10-30",
+     "logins": 14,
+     "logins_change": -3,
+     "logins_previous": 17,
+     "name": "Faye Lindqvist",
+     "outputs": 47,
+     "outputs_change": -21,
+     "outputs_previous": 68,
+     "role": "member",
+     "user_id": "u004"
+    },
+    {
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "last_seen": "2026-10-30",
+     "logins": 21,
+     "logins_change": 2,
+     "logins_previous": 19,
+     "name": "Kofi Eklund",
+     "outputs": 66,
+     "outputs_change": -6,
+     "outputs_previous": 72,
+     "role": "member",
+     "user_id": "u005"
+    },
+    {
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "last_seen": "2026-10-30",
+     "logins": 21,
+     "logins_change": 7,
+     "logins_previous": 14,
+     "name": "Juno Thackeray",
+     "outputs": 66,
+     "outputs_change": 14,
+     "outputs_previous": 52,
+     "role": "member",
+     "user_id": "u006"
+    },
+    {
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "last_seen": "2026-10-30",
+     "logins": 16,
+     "logins_change": 5,
+     "logins_previous": 11,
+     "name": "Nia Lindqvist",
+     "outputs": 54,
+     "outputs_change": 18,
+     "outputs_previous": 36,
+     "role": "member",
+     "user_id": "u007"
+    },
+    {
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "last_seen": "2026-10-27",
+     "logins": 17,
+     "logins_change": -4,
+     "logins_previous": 21,
+     "name": "Hana Castell",
+     "outputs": 69,
+     "outputs_change": -6,
+     "outputs_previous": 75,
+     "role": "member",
+     "user_id": "u008"
+    },
+    {
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "last_seen": "2026-10-30",
+     "logins": 18,
+     "logins_change": -2,
+     "logins_previous": 20,
+     "name": "Hana Abara",
+     "outputs": 55,
+     "outputs_change": -13,
+     "outputs_previous": 68,
+     "role": "member",
+     "user_id": "u009"
+    },
+    {
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "last_seen": "2026-10-30",
+     "logins": 17,
+     "logins_change": 0,
+     "logins_previous": 17,
+     "name": "Umar Quill",
+     "outputs": 59,
+     "outputs_change": 4,
+     "outputs_previous": 55,
+     "role": "member",
+     "user_id": "u010"
+    },
+    {
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "last_seen": null,
+     "logins": 0,
+     "logins_change": 0,
+     "logins_previous": 0,
+     "name": "Yara Dunmore",
+     "outputs": 0,
+     "outputs_change": 0,
+     "outputs_previous": 0,
+     "role": "member",
+     "user_id": "u011"
+    },
+    {
+     "client_id": "c02",
+     "client_name": "Brightwater",
+     "last_seen": "2026-10-30",
+     "logins": 18,
+     "logins_change": 1,
+     "logins_previous": 17,
+     "name": "Vera Eklund",
+     "outputs": 63,
+     "outputs_change": 4,
+     "outputs_previous": 59,
+     "role": "admin",
+     "user_id": "u012"
+    },
+    {
+     "client_id": "c02",
+     "client_name": "Brightwater",
+     "last_seen": "2026-10-30",
+     "logins": 22,
+     "logins_change": 3,
+     "logins_previous": 19,
+     "name": "Juno Dunmore",
+     "outputs": 79,
+     "outputs_change": 18,
+     "outputs_previous": 61,
+     "role": "manager",
+     "user_id": "u013"
+    },
+    {
+     "client_id": "c02",
+     "client_name": "Brightwater",
+     "last_seen": "2026-09-25",
+     "logins": 0,
+     "logins_change": -17,
+     "logins_previous": 17,
+     "name": "Xena Jarrah",
+     "outputs": 0,
+     "outputs_change": -52,
+     "outputs_previous": 52,
+     "role": "manager",
+     "user_id": "u014"
+    },
+    {
+     "client_id": "c02",
+     "client_name": "Brightwater",
+     "last_seen": "2026-10-30",
+     "logins": 19,
+     "logins_change": 0,
+     "logins_previous": 19,
+     "name": "Faye Abara",
+     "outputs": 69,
+     "outputs_change": 11,
+     "outputs_previous": 58,
+     "role": "member",
+     "user_id": "u015"
+    },
+    {
+     "client_id": "c02",
+     "client_name": "Brightwater",
+     "last_seen": "2026-10-28",
+     "logins": 20,
+     "logins_change": 6,
+     "logins_previous": 14,
+     "name": "Zeno Marlow",
+     "outputs": 60,
+     "outputs_change": 16,
+     "outputs_previous": 44,
+     "role": "member",
+     "user_id": "u016"
+    },
+    {
+     "client_id": "c02",
+     "client_name": "Brightwater",
+     "last_seen": "2026-10-30",
+     "logins": 12,
+     "logins_change": -4,
+     "logins_previous": 16,
+     "name": "Nia Okoro",
+     "outputs": 32,
+     "outputs_change": -14,
+     "outputs_previous": 46,
+     "role": "member",
+     "user_id": "u017"
+    },
+    {
+     "client_id": "c02",
+     "client_name": "Brightwater",
+     "last_seen": "2026-10-30",
+     "logins": 19,
+     "logins_change": 1,
+     "logins_previous": 18,
+     "name": "Wim Holt",
+     "outputs": 69,
+     "outputs_change": 9,
+     "outputs_previous": 60,
+     "role": "member",
+     "user_id": "u018"
+    },
+    {
+     "client_id": "c02",
+     "client_name": "Brightwater",
+     "last_seen": "2026-10-30",
+     "logins": 16,
+     "logins_change": 3,
+     "logins_previous": 13,
+     "name": "Pia Thackeray",
+     "outputs": 53,
+     "outputs_change": 8,
+     "outputs_previous": 45,
+     "role": "member",
+     "user_id": "u019"
+    },
+    {
+     "client_id": "c02",
+     "client_name": "Brightwater",
+     "last_seen": "2026-10-30",
+     "logins": 3,
+     "logins_change": -8,
+     "logins_previous": 11,
+     "name": "Juno Okoro",
+     "outputs": 11,
+     "outputs_change": -19,
+     "outputs_previous": 30,
+     "role": "member",
+     "user_id": "u020"
+    },
+    {
+     "client_id": "c03",
+     "client_name": "Cobalt Lane",
+     "last_seen": "2026-10-29",
+     "logins": 16,
+     "logins_change": 6,
+     "logins_previous": 10,
+     "name": "Wim Rosales",
+     "outputs": 51,
+     "outputs_change": 28,
+     "outputs_previous": 23,
+     "role": "admin",
+     "user_id": "u021"
+    },
+    {
+     "client_id": "c03",
+     "client_name": "Cobalt Lane",
+     "last_seen": "2026-10-30",
+     "logins": 18,
+     "logins_change": 0,
+     "logins_previous": 18,
+     "name": "Kofi Okoro",
+     "outputs": 49,
+     "outputs_change": -4,
+     "outputs_previous": 53,
+     "role": "manager",
+     "user_id": "u022"
+    },
+    {
+     "client_id": "c03",
+     "client_name": "Cobalt Lane",
+     "last_seen": "2026-10-30",
+     "logins": 16,
+     "logins_change": 4,
+     "logins_previous": 12,
+     "name": "Bram Nakata",
+     "outputs": 47,
+     "outputs_change": 10,
+     "outputs_previous": 37,
+     "role": "member",
+     "user_id": "u023"
+    },
+    {
+     "client_id": "c03",
+     "client_name": "Cobalt Lane",
+     "last_seen": "2026-10-30",
+     "logins": 18,
+     "logins_change": 2,
+     "logins_previous": 16,
+     "name": "Wim Thackeray",
+     "outputs": 47,
+     "outputs_change": 1,
+     "outputs_previous": 46,
+     "role": "member",
+     "user_id": "u024"
+    },
+    {
+     "client_id": "c03",
+     "client_name": "Cobalt Lane",
+     "last_seen": "2026-10-30",
+     "logins": 12,
+     "logins_change": 1,
+     "logins_previous": 11,
+     "name": "Dara Okoro",
+     "outputs": 38,
+     "outputs_change": 4,
+     "outputs_previous": 34,
+     "role": "member",
+     "user_id": "u025"
+    },
+    {
+     "client_id": "c03",
+     "client_name": "Cobalt Lane",
+     "last_seen": "2026-10-29",
+     "logins": 11,
+     "logins_change": -3,
+     "logins_previous": 14,
+     "name": "Cleo Sorrel",
+     "outputs": 26,
+     "outputs_change": -17,
+     "outputs_previous": 43,
+     "role": "member",
+     "user_id": "u026"
+    },
+    {
+     "client_id": "c03",
+     "client_name": "Cobalt Lane",
+     "last_seen": null,
+     "logins": 0,
+     "logins_change": 0,
+     "logins_previous": 0,
+     "name": "Otto Thackeray",
+     "outputs": 0,
+     "outputs_change": 0,
+     "outputs_previous": 0,
+     "role": "member",
+     "user_id": "u027"
+    },
+    {
+     "client_id": "c04",
+     "client_name": "Dune Collective",
+     "last_seen": "2026-10-30",
+     "logins": 15,
+     "logins_change": -1,
+     "logins_previous": 16,
+     "name": "Bram Thackeray",
+     "outputs": 38,
+     "outputs_change": 7,
+     "outputs_previous": 31,
+     "role": "admin",
+     "user_id": "u028"
+    },
+    {
+     "client_id": "c04",
+     "client_name": "Dune Collective",
+     "last_seen": "2026-10-30",
+     "logins": 15,
+     "logins_change": -2,
+     "logins_previous": 17,
+     "name": "Sami Marlow",
+     "outputs": 39,
+     "outputs_change": -1,
+     "outputs_previous": 40,
+     "role": "manager",
+     "user_id": "u029"
+    },
+    {
+     "client_id": "c04",
+     "client_name": "Dune Collective",
+     "last_seen": "2026-10-30",
+     "logins": 17,
+     "logins_change": -4,
+     "logins_previous": 21,
+     "name": "Ivo Quill",
+     "outputs": 38,
+     "outputs_change": -20,
+     "outputs_previous": 58,
+     "role": "member",
+     "user_id": "u030"
+    },
+    {
+     "client_id": "c04",
+     "client_name": "Dune Collective",
+     "last_seen": "2026-10-29",
+     "logins": 14,
+     "logins_change": 0,
+     "logins_previous": 14,
+     "name": "Lena Holt",
+     "outputs": 27,
+     "outputs_change": -4,
+     "outputs_previous": 31,
+     "role": "member",
+     "user_id": "u031"
+    },
+    {
+     "client_id": "c04",
+     "client_name": "Dune Collective",
+     "last_seen": "2026-10-22",
+     "logins": 8,
+     "logins_change": -2,
+     "logins_previous": 10,
+     "name": "Yara Quill",
+     "outputs": 27,
+     "outputs_change": 3,
+     "outputs_previous": 24,
+     "role": "member",
+     "user_id": "u032"
+    },
+    {
+     "client_id": "c04",
+     "client_name": "Dune Collective",
+     "last_seen": "2026-10-28",
+     "logins": 9,
+     "logins_change": 2,
+     "logins_previous": 7,
+     "name": "Otto Castell",
+     "outputs": 20,
+     "outputs_change": 3,
+     "outputs_previous": 17,
+     "role": "member",
+     "user_id": "u033"
+    },
+    {
+     "client_id": "c05",
+     "client_name": "Ember Works",
+     "last_seen": "2026-10-26",
+     "logins": 13,
+     "logins_change": -2,
+     "logins_previous": 15,
+     "name": "Ivo Penrose",
+     "outputs": 24,
+     "outputs_change": -8,
+     "outputs_previous": 32,
+     "role": "admin",
+     "user_id": "u034"
+    },
+    {
+     "client_id": "c05",
+     "client_name": "Ember Works",
+     "last_seen": "2026-10-29",
+     "logins": 14,
+     "logins_change": -7,
+     "logins_previous": 21,
+     "name": "Ivo Jarrah",
+     "outputs": 30,
+     "outputs_change": -17,
+     "outputs_previous": 47,
+     "role": "manager",
+     "user_id": "u035"
+    },
+    {
+     "client_id": "c05",
+     "client_name": "Ember Works",
+     "last_seen": "2026-10-28",
+     "logins": 10,
+     "logins_change": -6,
+     "logins_previous": 16,
+     "name": "Lena Ivanek",
+     "outputs": 21,
+     "outputs_change": -13,
+     "outputs_previous": 34,
+     "role": "member",
+     "user_id": "u036"
+    },
+    {
+     "client_id": "c05",
+     "client_name": "Ember Works",
+     "last_seen": null,
+     "logins": 0,
+     "logins_change": 0,
+     "logins_previous": 0,
+     "name": "Sami Holt",
+     "outputs": 0,
+     "outputs_change": 0,
+     "outputs_previous": 0,
+     "role": "member",
+     "user_id": "u037"
+    },
+    {
+     "client_id": "c06",
+     "client_name": "Fjord Media",
+     "last_seen": "2026-10-30",
+     "logins": 19,
+     "logins_change": 3,
+     "logins_previous": 16,
+     "name": "Sami Okoro",
+     "outputs": 33,
+     "outputs_change": 4,
+     "outputs_previous": 29,
+     "role": "admin",
+     "user_id": "u038"
+    },
+    {
+     "client_id": "c06",
+     "client_name": "Fjord Media",
+     "last_seen": "2026-10-29",
+     "logins": 13,
+     "logins_change": 2,
+     "logins_previous": 11,
+     "name": "Elio Holt",
+     "outputs": 22,
+     "outputs_change": -2,
+     "outputs_previous": 24,
+     "role": "member",
+     "user_id": "u039"
+    },
+    {
+     "client_id": "c06",
+     "client_name": "Fjord Media",
+     "last_seen": "2026-10-30",
+     "logins": 19,
+     "logins_change": 3,
+     "logins_previous": 16,
+     "name": "Tess Galvez",
+     "outputs": 33,
+     "outputs_change": 6,
+     "outputs_previous": 27,
+     "role": "member",
+     "user_id": "u040"
+    }
+   ],
+   "7d": [
+    {
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "last_seen": "2026-10-30",
+     "logins": 3,
+     "logins_change": -1,
+     "logins_previous": 4,
+     "name": "Otto Quill",
+     "outputs": 5,
+     "outputs_change": -10,
+     "outputs_previous": 15,
+     "role": "admin",
+     "user_id": "u001"
+    },
+    {
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "last_seen": "2026-10-30",
+     "logins": 5,
+     "logins_change": 2,
+     "logins_previous": 3,
+     "name": "Pia Marlow",
+     "outputs": 20,
+     "outputs_change": 14,
+     "outputs_previous": 6,
+     "role": "manager",
+     "user_id": "u002"
+    },
+    {
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "last_seen": "2026-10-30",
+     "logins": 5,
+     "logins_change": 0,
+     "logins_previous": 5,
+     "name": "Tess Marlow",
+     "outputs": 16,
+     "outputs_change": -5,
+     "outputs_previous": 21,
+     "role": "manager",
+     "user_id": "u003"
+    },
+    {
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "last_seen": "2026-10-30",
+     "logins": 4,
+     "logins_change": 2,
+     "logins_previous": 2,
+     "name": "Faye Lindqvist",
+     "outputs": 16,
+     "outputs_change": 8,
+     "outputs_previous": 8,
+     "role": "member",
+     "user_id": "u004"
+    },
+    {
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "last_seen": "2026-10-30",
+     "logins": 6,
+     "logins_change": 3,
+     "logins_previous": 3,
+     "name": "Kofi Eklund",
+     "outputs": 14,
+     "outputs_change": 4,
+     "outputs_previous": 10,
+     "role": "member",
+     "user_id": "u005"
+    },
+    {
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "last_seen": "2026-10-30",
+     "logins": 3,
+     "logins_change": -3,
+     "logins_previous": 6,
+     "name": "Juno Thackeray",
+     "outputs": 6,
+     "outputs_change": -11,
+     "outputs_previous": 17,
+     "role": "member",
+     "user_id": "u006"
+    },
+    {
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "last_seen": "2026-10-30",
+     "logins": 4,
+     "logins_change": 1,
+     "logins_previous": 3,
+     "name": "Nia Lindqvist",
+     "outputs": 14,
+     "outputs_change": -1,
+     "outputs_previous": 15,
+     "role": "member",
+     "user_id": "u007"
+    },
+    {
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "last_seen": "2026-10-27",
+     "logins": 2,
+     "logins_change": -3,
+     "logins_previous": 5,
+     "name": "Hana Castell",
+     "outputs": 8,
+     "outputs_change": -12,
+     "outputs_previous": 20,
+     "role": "member",
+     "user_id": "u008"
+    },
+    {
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "last_seen": "2026-10-30",
+     "logins": 3,
+     "logins_change": -2,
+     "logins_previous": 5,
+     "name": "Hana Abara",
+     "outputs": 10,
+     "outputs_change": -5,
+     "outputs_previous": 15,
+     "role": "member",
+     "user_id": "u009"
+    },
+    {
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "last_seen": "2026-10-30",
+     "logins": 4,
+     "logins_change": 0,
+     "logins_previous": 4,
+     "name": "Umar Quill",
+     "outputs": 13,
+     "outputs_change": -3,
+     "outputs_previous": 16,
+     "role": "member",
+     "user_id": "u010"
+    },
+    {
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "last_seen": null,
+     "logins": 0,
+     "logins_change": 0,
+     "logins_previous": 0,
+     "name": "Yara Dunmore",
+     "outputs": 0,
+     "outputs_change": 0,
+     "outputs_previous": 0,
+     "role": "member",
+     "user_id": "u011"
+    },
+    {
+     "client_id": "c02",
+     "client_name": "Brightwater",
+     "last_seen": "2026-10-30",
+     "logins": 5,
+     "logins_change": 0,
+     "logins_previous": 5,
+     "name": "Vera Eklund",
+     "outputs": 14,
+     "outputs_change": -4,
+     "outputs_previous": 18,
+     "role": "admin",
+     "user_id": "u012"
+    },
+    {
+     "client_id": "c02",
+     "client_name": "Brightwater",
+     "last_seen": "2026-10-30",
+     "logins": 5,
+     "logins_change": 0,
+     "logins_previous": 5,
+     "name": "Juno Dunmore",
+     "outputs": 21,
+     "outputs_change": 4,
+     "outputs_previous": 17,
+     "role": "manager",
+     "user_id": "u013"
+    },
+    {
+     "client_id": "c02",
+     "client_name": "Brightwater",
+     "last_seen": "2026-09-25",
+     "logins": 0,
+     "logins_change": 0,
+     "logins_previous": 0,
+     "name": "Xena Jarrah",
+     "outputs": 0,
+     "outputs_change": 0,
+     "outputs_previous": 0,
+     "role": "manager",
+     "user_id": "u014"
+    },
+    {
+     "client_id": "c02",
+     "client_name": "Brightwater",
+     "last_seen": "2026-10-30",
+     "logins": 5,
+     "logins_change": 1,
+     "logins_previous": 4,
+     "name": "Faye Abara",
+     "outputs": 18,
+     "outputs_change": 0,
+     "outputs_previous": 18,
+     "role": "member",
+     "user_id": "u015"
+    },
+    {
+     "client_id": "c02",
+     "client_name": "Brightwater",
+     "last_seen": "2026-10-28",
+     "logins": 4,
+     "logins_change": -1,
+     "logins_previous": 5,
+     "name": "Zeno Marlow",
+     "outputs": 12,
+     "outputs_change": -3,
+     "outputs_previous": 15,
+     "role": "member",
+     "user_id": "u016"
+    },
+    {
+     "client_id": "c02",
+     "client_name": "Brightwater",
+     "last_seen": "2026-10-30",
+     "logins": 3,
+     "logins_change": 0,
+     "logins_previous": 3,
+     "name": "Nia Okoro",
+     "outputs": 7,
+     "outputs_change": -1,
+     "outputs_previous": 8,
+     "role": "member",
+     "user_id": "u017"
+    },
+    {
+     "client_id": "c02",
+     "client_name": "Brightwater",
+     "last_seen": "2026-10-30",
+     "logins": 5,
+     "logins_change": 1,
+     "logins_previous": 4,
+     "name": "Wim Holt",
+     "outputs": 17,
+     "outputs_change": 1,
+     "outputs_previous": 16,
+     "role": "member",
+     "user_id": "u018"
+    },
+    {
+     "client_id": "c02",
+     "client_name": "Brightwater",
+     "last_seen": "2026-10-30",
+     "logins": 3,
+     "logins_change": -1,
+     "logins_previous": 4,
+     "name": "Pia Thackeray",
+     "outputs": 10,
+     "outputs_change": -3,
+     "outputs_previous": 13,
+     "role": "member",
+     "user_id": "u019"
+    },
+    {
+     "client_id": "c02",
+     "client_name": "Brightwater",
+     "last_seen": "2026-10-30",
+     "logins": 1,
+     "logins_change": 1,
+     "logins_previous": 0,
+     "name": "Juno Okoro",
+     "outputs": 1,
+     "outputs_change": 1,
+     "outputs_previous": 0,
+     "role": "member",
+     "user_id": "u020"
+    },
+    {
+     "client_id": "c03",
+     "client_name": "Cobalt Lane",
+     "last_seen": "2026-10-29",
+     "logins": 3,
+     "logins_change": 0,
+     "logins_previous": 3,
+     "name": "Wim Rosales",
+     "outputs": 10,
+     "outputs_change": -2,
+     "outputs_previous": 12,
+     "role": "admin",
+     "user_id": "u021"
+    },
+    {
+     "client_id": "c03",
+     "client_name": "Cobalt Lane",
+     "last_seen": "2026-10-30",
+     "logins": 4,
+     "logins_change": 0,
+     "logins_previous": 4,
+     "name": "Kofi Okoro",
+     "outputs": 11,
+     "outputs_change": -2,
+     "outputs_previous": 13,
+     "role": "manager",
+     "user_id": "u022"
+    },
+    {
+     "client_id": "c03",
+     "client_name": "Cobalt Lane",
+     "last_seen": "2026-10-30",
+     "logins": 3,
+     "logins_change": -1,
+     "logins_previous": 4,
+     "name": "Bram Nakata",
+     "outputs": 8,
+     "outputs_change": -8,
+     "outputs_previous": 16,
+     "role": "member",
+     "user_id": "u023"
+    },
+    {
+     "client_id": "c03",
+     "client_name": "Cobalt Lane",
+     "last_seen": "2026-10-30",
+     "logins": 5,
+     "logins_change": 2,
+     "logins_previous": 3,
+     "name": "Wim Thackeray",
+     "outputs": 10,
+     "outputs_change": 0,
+     "outputs_previous": 10,
+     "role": "member",
+     "user_id": "u024"
+    },
+    {
+     "client_id": "c03",
+     "client_name": "Cobalt Lane",
+     "last_seen": "2026-10-30",
+     "logins": 2,
+     "logins_change": 1,
+     "logins_previous": 1,
+     "name": "Dara Okoro",
+     "outputs": 6,
+     "outputs_change": 3,
+     "outputs_previous": 3,
+     "role": "member",
+     "user_id": "u025"
+    },
+    {
+     "client_id": "c03",
+     "client_name": "Cobalt Lane",
+     "last_seen": "2026-10-29",
+     "logins": 4,
+     "logins_change": 3,
+     "logins_previous": 1,
+     "name": "Cleo Sorrel",
+     "outputs": 10,
+     "outputs_change": 7,
+     "outputs_previous": 3,
+     "role": "member",
+     "user_id": "u026"
+    },
+    {
+     "client_id": "c03",
+     "client_name": "Cobalt Lane",
+     "last_seen": null,
+     "logins": 0,
+     "logins_change": 0,
+     "logins_previous": 0,
+     "name": "Otto Thackeray",
+     "outputs": 0,
+     "outputs_change": 0,
+     "outputs_previous": 0,
+     "role": "member",
+     "user_id": "u027"
+    },
+    {
+     "client_id": "c04",
+     "client_name": "Dune Collective",
+     "last_seen": "2026-10-30",
+     "logins": 3,
+     "logins_change": 0,
+     "logins_previous": 3,
+     "name": "Bram Thackeray",
+     "outputs": 7,
+     "outputs_change": 0,
+     "outputs_previous": 7,
+     "role": "admin",
+     "user_id": "u028"
+    },
+    {
+     "client_id": "c04",
+     "client_name": "Dune Collective",
+     "last_seen": "2026-10-30",
+     "logins": 4,
+     "logins_change": 3,
+     "logins_previous": 1,
+     "name": "Sami Marlow",
+     "outputs": 9,
+     "outputs_change": 7,
+     "outputs_previous": 2,
+     "role": "manager",
+     "user_id": "u029"
+    },
+    {
+     "client_id": "c04",
+     "client_name": "Dune Collective",
+     "last_seen": "2026-10-30",
+     "logins": 4,
+     "logins_change": 2,
+     "logins_previous": 2,
+     "name": "Ivo Quill",
+     "outputs": 12,
+     "outputs_change": 8,
+     "outputs_previous": 4,
+     "role": "member",
+     "user_id": "u030"
+    },
+    {
+     "client_id": "c04",
+     "client_name": "Dune Collective",
+     "last_seen": "2026-10-29",
+     "logins": 4,
+     "logins_change": 1,
+     "logins_previous": 3,
+     "name": "Lena Holt",
+     "outputs": 7,
+     "outputs_change": 1,
+     "outputs_previous": 6,
+     "role": "member",
+     "user_id": "u031"
+    },
+    {
+     "client_id": "c04",
+     "client_name": "Dune Collective",
+     "last_seen": "2026-10-22",
+     "logins": 0,
+     "logins_change": -3,
+     "logins_previous": 3,
+     "name": "Yara Quill",
+     "outputs": 0,
+     "outputs_change": -8,
+     "outputs_previous": 8,
+     "role": "member",
+     "user_id": "u032"
+    },
+    {
+     "client_id": "c04",
+     "client_name": "Dune Collective",
+     "last_seen": "2026-10-28",
+     "logins": 1,
+     "logins_change": -2,
+     "logins_previous": 3,
+     "name": "Otto Castell",
+     "outputs": 2,
+     "outputs_change": -4,
+     "outputs_previous": 6,
+     "role": "member",
+     "user_id": "u033"
+    },
+    {
+     "client_id": "c05",
+     "client_name": "Ember Works",
+     "last_seen": "2026-10-26",
+     "logins": 2,
+     "logins_change": -1,
+     "logins_previous": 3,
+     "name": "Ivo Penrose",
+     "outputs": 2,
+     "outputs_change": -4,
+     "outputs_previous": 6,
+     "role": "admin",
+     "user_id": "u034"
+    },
+    {
+     "client_id": "c05",
+     "client_name": "Ember Works",
+     "last_seen": "2026-10-29",
+     "logins": 2,
+     "logins_change": 0,
+     "logins_previous": 2,
+     "name": "Ivo Jarrah",
+     "outputs": 6,
+     "outputs_change": 1,
+     "outputs_previous": 5,
+     "role": "manager",
+     "user_id": "u035"
+    },
+    {
+     "client_id": "c05",
+     "client_name": "Ember Works",
+     "last_seen": "2026-10-28",
+     "logins": 2,
+     "logins_change": 0,
+     "logins_previous": 2,
+     "name": "Lena Ivanek",
+     "outputs": 4,
+     "outputs_change": -2,
+     "outputs_previous": 6,
+     "role": "member",
+     "user_id": "u036"
+    },
+    {
+     "client_id": "c05",
+     "client_name": "Ember Works",
+     "last_seen": null,
+     "logins": 0,
+     "logins_change": 0,
+     "logins_previous": 0,
+     "name": "Sami Holt",
+     "outputs": 0,
+     "outputs_change": 0,
+     "outputs_previous": 0,
+     "role": "member",
+     "user_id": "u037"
+    },
+    {
+     "client_id": "c06",
+     "client_name": "Fjord Media",
+     "last_seen": "2026-10-30",
+     "logins": 3,
+     "logins_change": -2,
+     "logins_previous": 5,
+     "name": "Sami Okoro",
+     "outputs": 6,
+     "outputs_change": -3,
+     "outputs_previous": 9,
+     "role": "admin",
+     "user_id": "u038"
+    },
+    {
+     "client_id": "c06",
+     "client_name": "Fjord Media",
+     "last_seen": "2026-10-29",
+     "logins": 2,
+     "logins_change": -3,
+     "logins_previous": 5,
+     "name": "Elio Holt",
+     "outputs": 4,
+     "outputs_change": -3,
+     "outputs_previous": 7,
+     "role": "member",
+     "user_id": "u039"
+    },
+    {
+     "client_id": "c06",
+     "client_name": "Fjord Media",
+     "last_seen": "2026-10-30",
+     "logins": 5,
+     "logins_change": 2,
+     "logins_previous": 3,
+     "name": "Tess Galvez",
+     "outputs": 8,
+     "outputs_change": 2,
+     "outputs_previous": 6,
+     "role": "member",
+     "user_id": "u040"
+    }
+   ],
+   "today": [
+    {
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "last_seen": "2026-10-30",
+     "logins": 1,
+     "logins_change": 1,
+     "logins_previous": 0,
+     "name": "Otto Quill",
+     "outputs": 2,
+     "outputs_change": 2,
+     "outputs_previous": 0,
+     "role": "admin",
+     "user_id": "u001"
+    },
+    {
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "last_seen": "2026-10-30",
+     "logins": 1,
+     "logins_change": 0,
+     "logins_previous": 1,
+     "name": "Pia Marlow",
+     "outputs": 5,
+     "outputs_change": 2,
+     "outputs_previous": 3,
+     "role": "manager",
+     "user_id": "u002"
+    },
+    {
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "last_seen": "2026-10-30",
+     "logins": 1,
+     "logins_change": 0,
+     "logins_previous": 1,
+     "name": "Tess Marlow",
+     "outputs": 3,
+     "outputs_change": -1,
+     "outputs_previous": 4,
+     "role": "manager",
+     "user_id": "u003"
+    },
+    {
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "last_seen": "2026-10-30",
+     "logins": 1,
+     "logins_change": 0,
+     "logins_previous": 1,
+     "name": "Faye Lindqvist",
+     "outputs": 4,
+     "outputs_change": 0,
+     "outputs_previous": 4,
+     "role": "member",
+     "user_id": "u004"
+    },
+    {
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "last_seen": "2026-10-30",
+     "logins": 1,
+     "logins_change": 0,
+     "logins_previous": 1,
+     "name": "Kofi Eklund",
+     "outputs": 3,
+     "outputs_change": 0,
+     "outputs_previous": 3,
+     "role": "member",
+     "user_id": "u005"
+    },
+    {
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "last_seen": "2026-10-30",
+     "logins": 1,
+     "logins_change": 0,
+     "logins_previous": 1,
+     "name": "Juno Thackeray",
+     "outputs": 2,
+     "outputs_change": -1,
+     "outputs_previous": 3,
+     "role": "member",
+     "user_id": "u006"
+    },
+    {
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "last_seen": "2026-10-30",
+     "logins": 1,
+     "logins_change": 0,
+     "logins_previous": 1,
+     "name": "Nia Lindqvist",
+     "outputs": 5,
+     "outputs_change": 3,
+     "outputs_previous": 2,
+     "role": "member",
+     "user_id": "u007"
+    },
+    {
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "last_seen": "2026-10-27",
+     "logins": 0,
+     "logins_change": 0,
+     "logins_previous": 0,
+     "name": "Hana Castell",
+     "outputs": 0,
+     "outputs_change": 0,
+     "outputs_previous": 0,
+     "role": "member",
+     "user_id": "u008"
+    },
+    {
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "last_seen": "2026-10-30",
+     "logins": 1,
+     "logins_change": 0,
+     "logins_previous": 1,
+     "name": "Hana Abara",
+     "outputs": 2,
+     "outputs_change": -2,
+     "outputs_previous": 4,
+     "role": "member",
+     "user_id": "u009"
+    },
+    {
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "last_seen": "2026-10-30",
+     "logins": 1,
+     "logins_change": 0,
+     "logins_previous": 1,
+     "name": "Umar Quill",
+     "outputs": 5,
+     "outputs_change": 2,
+     "outputs_previous": 3,
+     "role": "member",
+     "user_id": "u010"
+    },
+    {
+     "client_id": "c01",
+     "client_name": "Alder & Finch",
+     "last_seen": null,
+     "logins": 0,
+     "logins_change": 0,
+     "logins_previous": 0,
+     "name": "Yara Dunmore",
+     "outputs": 0,
+     "outputs_change": 0,
+     "outputs_previous": 0,
+     "role": "member",
+     "user_id": "u011"
+    },
+    {
+     "client_id": "c02",
+     "client_name": "Brightwater",
+     "last_seen": "2026-10-30",
+     "logins": 1,
+     "logins_change": 0,
+     "logins_previous": 1,
+     "name": "Vera Eklund",
+     "outputs": 3,
+     "outputs_change": 1,
+     "outputs_previous": 2,
+     "role": "admin",
+     "user_id": "u012"
+    },
+    {
+     "client_id": "c02",
+     "client_name": "Brightwater",
+     "last_seen": "2026-10-30",
+     "logins": 1,
+     "logins_change": 0,
+     "logins_previous": 1,
+     "name": "Juno Dunmore",
+     "outputs": 3,
+     "outputs_change": -3,
+     "outputs_previous": 6,
+     "role": "manager",
+     "user_id": "u013"
+    },
+    {
+     "client_id": "c02",
+     "client_name": "Brightwater",
+     "last_seen": "2026-09-25",
+     "logins": 0,
+     "logins_change": 0,
+     "logins_previous": 0,
+     "name": "Xena Jarrah",
+     "outputs": 0,
+     "outputs_change": 0,
+     "outputs_previous": 0,
+     "role": "manager",
+     "user_id": "u014"
+    },
+    {
+     "client_id": "c02",
+     "client_name": "Brightwater",
+     "last_seen": "2026-10-30",
+     "logins": 1,
+     "logins_change": 0,
+     "logins_previous": 1,
+     "name": "Faye Abara",
+     "outputs": 3,
+     "outputs_change": -1,
+     "outputs_previous": 4,
+     "role": "member",
+     "user_id": "u015"
+    },
+    {
+     "client_id": "c02",
+     "client_name": "Brightwater",
+     "last_seen": "2026-10-28",
+     "logins": 0,
+     "logins_change": 0,
+     "logins_previous": 0,
+     "name": "Zeno Marlow",
+     "outputs": 0,
+     "outputs_change": 0,
+     "outputs_previous": 0,
+     "role": "member",
+     "user_id": "u016"
+    },
+    {
+     "client_id": "c02",
+     "client_name": "Brightwater",
+     "last_seen": "2026-10-30",
+     "logins": 1,
+     "logins_change": 0,
+     "logins_previous": 1,
+     "name": "Nia Okoro",
+     "outputs": 3,
+     "outputs_change": 1,
+     "outputs_previous": 2,
+     "role": "member",
+     "user_id": "u017"
+    },
+    {
+     "client_id": "c02",
+     "client_name": "Brightwater",
+     "last_seen": "2026-10-30",
+     "logins": 1,
+     "logins_change": 0,
+     "logins_previous": 1,
+     "name": "Wim Holt",
+     "outputs": 4,
+     "outputs_change": 3,
+     "outputs_previous": 1,
+     "role": "member",
+     "user_id": "u018"
+    },
+    {
+     "client_id": "c02",
+     "client_name": "Brightwater",
+     "last_seen": "2026-10-30",
+     "logins": 1,
+     "logins_change": 0,
+     "logins_previous": 1,
+     "name": "Pia Thackeray",
+     "outputs": 4,
+     "outputs_change": 0,
+     "outputs_previous": 4,
+     "role": "member",
+     "user_id": "u019"
+    },
+    {
+     "client_id": "c02",
+     "client_name": "Brightwater",
+     "last_seen": "2026-10-30",
+     "logins": 1,
+     "logins_change": 1,
+     "logins_previous": 0,
+     "name": "Juno Okoro",
+     "outputs": 1,
+     "outputs_change": 1,
+     "outputs_previous": 0,
+     "role": "member",
+     "user_id": "u020"
+    },
+    {
+     "client_id": "c03",
+     "client_name": "Cobalt Lane",
+     "last_seen": "2026-10-29",
+     "logins": 0,
+     "logins_change": -1,
+     "logins_previous": 1,
+     "name": "Wim Rosales",
+     "outputs": 0,
+     "outputs_change": -3,
+     "outputs_previous": 3,
+     "role": "admin",
+     "user_id": "u021"
+    },
+    {
+     "client_id": "c03",
+     "client_name": "Cobalt Lane",
+     "last_seen": "2026-10-30",
+     "logins": 1,
+     "logins_change": 0,
+     "logins_previous": 1,
+     "name": "Kofi Okoro",
+     "outputs": 2,
+     "outputs_change": -1,
+     "outputs_previous": 3,
+     "role": "manager",
+     "user_id": "u022"
+    },
+    {
+     "client_id": "c03",
+     "client_name": "Cobalt Lane",
+     "last_seen": "2026-10-30",
+     "logins": 1,
+     "logins_change": 1,
+     "logins_previous": 0,
+     "name": "Bram Nakata",
+     "outputs": 3,
+     "outputs_change": 3,
+     "outputs_previous": 0,
+     "role": "member",
+     "user_id": "u023"
+    },
+    {
+     "client_id": "c03",
+     "client_name": "Cobalt Lane",
+     "last_seen": "2026-10-30",
+     "logins": 1,
+     "logins_change": 0,
+     "logins_previous": 1,
+     "name": "Wim Thackeray",
+     "outputs": 3,
+     "outputs_change": 0,
+     "outputs_previous": 3,
+     "role": "member",
+     "user_id": "u024"
+    },
+    {
+     "client_id": "c03",
+     "client_name": "Cobalt Lane",
+     "last_seen": "2026-10-30",
+     "logins": 1,
+     "logins_change": 1,
+     "logins_previous": 0,
+     "name": "Dara Okoro",
+     "outputs": 2,
+     "outputs_change": 2,
+     "outputs_previous": 0,
+     "role": "member",
+     "user_id": "u025"
+    },
+    {
+     "client_id": "c03",
+     "client_name": "Cobalt Lane",
+     "last_seen": "2026-10-29",
+     "logins": 0,
+     "logins_change": -1,
+     "logins_previous": 1,
+     "name": "Cleo Sorrel",
+     "outputs": 0,
+     "outputs_change": -2,
+     "outputs_previous": 2,
+     "role": "member",
+     "user_id": "u026"
+    },
+    {
+     "client_id": "c03",
+     "client_name": "Cobalt Lane",
+     "last_seen": null,
+     "logins": 0,
+     "logins_change": 0,
+     "logins_previous": 0,
+     "name": "Otto Thackeray",
+     "outputs": 0,
+     "outputs_change": 0,
+     "outputs_previous": 0,
+     "role": "member",
+     "user_id": "u027"
+    },
+    {
+     "client_id": "c04",
+     "client_name": "Dune Collective",
+     "last_seen": "2026-10-30",
+     "logins": 1,
+     "logins_change": 0,
+     "logins_previous": 1,
+     "name": "Bram Thackeray",
+     "outputs": 1,
+     "outputs_change": -1,
+     "outputs_previous": 2,
+     "role": "admin",
+     "user_id": "u028"
+    },
+    {
+     "client_id": "c04",
+     "client_name": "Dune Collective",
+     "last_seen": "2026-10-30",
+     "logins": 1,
+     "logins_change": 0,
+     "logins_previous": 1,
+     "name": "Sami Marlow",
+     "outputs": 3,
+     "outputs_change": 2,
+     "outputs_previous": 1,
+     "role": "manager",
+     "user_id": "u029"
+    },
+    {
+     "client_id": "c04",
+     "client_name": "Dune Collective",
+     "last_seen": "2026-10-30",
+     "logins": 1,
+     "logins_change": 0,
+     "logins_previous": 1,
+     "name": "Ivo Quill",
+     "outputs": 3,
+     "outputs_change": 0,
+     "outputs_previous": 3,
+     "role": "member",
+     "user_id": "u030"
+    },
+    {
+     "client_id": "c04",
+     "client_name": "Dune Collective",
+     "last_seen": "2026-10-29",
+     "logins": 0,
+     "logins_change": -1,
+     "logins_previous": 1,
+     "name": "Lena Holt",
+     "outputs": 0,
+     "outputs_change": -1,
+     "outputs_previous": 1,
+     "role": "member",
+     "user_id": "u031"
+    },
+    {
+     "client_id": "c04",
+     "client_name": "Dune Collective",
+     "last_seen": "2026-10-22",
+     "logins": 0,
+     "logins_change": 0,
+     "logins_previous": 0,
+     "name": "Yara Quill",
+     "outputs": 0,
+     "outputs_change": 0,
+     "outputs_previous": 0,
+     "role": "member",
+     "user_id": "u032"
+    },
+    {
+     "client_id": "c04",
+     "client_name": "Dune Collective",
+     "last_seen": "2026-10-28",
+     "logins": 0,
+     "logins_change": 0,
+     "logins_previous": 0,
+     "name": "Otto Castell",
+     "outputs": 0,
+     "outputs_change": 0,
+     "outputs_previous": 0,
+     "role": "member",
+     "user_id": "u033"
+    },
+    {
+     "client_id": "c05",
+     "client_name": "Ember Works",
+     "last_seen": "2026-10-26",
+     "logins": 0,
+     "logins_change": 0,
+     "logins_previous": 0,
+     "name": "Ivo Penrose",
+     "outputs": 0,
+     "outputs_change": 0,
+     "outputs_previous": 0,
+     "role": "admin",
+     "user_id": "u034"
+    },
+    {
+     "client_id": "c05",
+     "client_name": "Ember Works",
+     "last_seen": "2026-10-29",
+     "logins": 0,
+     "logins_change": -1,
+     "logins_previous": 1,
+     "name": "Ivo Jarrah",
+     "outputs": 0,
+     "outputs_change": -4,
+     "outputs_previous": 4,
+     "role": "manager",
+     "user_id": "u035"
+    },
+    {
+     "client_id": "c05",
+     "client_name": "Ember Works",
+     "last_seen": "2026-10-28",
+     "logins": 0,
+     "logins_change": 0,
+     "logins_previous": 0,
+     "name": "Lena Ivanek",
+     "outputs": 0,
+     "outputs_change": 0,
+     "outputs_previous": 0,
+     "role": "member",
+     "user_id": "u036"
+    },
+    {
+     "client_id": "c05",
+     "client_name": "Ember Works",
+     "last_seen": null,
+     "logins": 0,
+     "logins_change": 0,
+     "logins_previous": 0,
+     "name": "Sami Holt",
+     "outputs": 0,
+     "outputs_change": 0,
+     "outputs_previous": 0,
+     "role": "member",
+     "user_id": "u037"
+    },
+    {
+     "client_id": "c06",
+     "client_name": "Fjord Media",
+     "last_seen": "2026-10-30",
+     "logins": 1,
+     "logins_change": 0,
+     "logins_previous": 1,
+     "name": "Sami Okoro",
+     "outputs": 2,
+     "outputs_change": 0,
+     "outputs_previous": 2,
+     "role": "admin",
+     "user_id": "u038"
+    },
+    {
+     "client_id": "c06",
+     "client_name": "Fjord Media",
+     "last_seen": "2026-10-29",
+     "logins": 0,
+     "logins_change": -1,
+     "logins_previous": 1,
+     "name": "Elio Holt",
+     "outputs": 0,
+     "outputs_change": -2,
+     "outputs_previous": 2,
+     "role": "member",
+     "user_id": "u039"
+    },
+    {
+     "client_id": "c06",
+     "client_name": "Fjord Media",
+     "last_seen": "2026-10-30",
+     "logins": 1,
+     "logins_change": 0,
+     "logins_previous": 1,
+     "name": "Tess Galvez",
+     "outputs": 3,
+     "outputs_change": 1,
+     "outputs_previous": 2,
+     "role": "member",
+     "user_id": "u040"
+    }
+   ]
+  },
+  "errors_seen": {
+   "30d": [
+    {
+     "affected": [
+      "Dara Okoro",
+      "Elio Holt",
+      "Faye Abara",
+      "Hana Abara",
+      "Ivo Penrose",
+      "Juno Dunmore",
+      "Juno Thackeray",
+      "Kofi Eklund",
+      "Kofi Okoro",
+      "Lena Holt",
+      "Nia Lindqvist",
+      "Otto Quill",
+      "Sami Marlow",
+      "Tess Galvez",
+      "Tess Marlow",
+      "Umar Quill",
+      "Vera Eklund",
+      "Wim Holt",
+      "Wim Rosales",
+      "Wim Thackeray",
+      "Zeno Marlow"
+     ],
+     "count": 86,
+     "count_change": 86,
+     "count_previous": 0,
+     "people_affected": 21,
+     "people_affected_change": 21,
+     "people_affected_previous": 0,
+     "source": "pdf_renderer",
+     "tool_id": "invoice_generator",
+     "tool_name": "Invoice generator"
+    },
+    {
+     "affected": [
+      "Faye Abara",
+      "Faye Lindqvist",
+      "Juno Thackeray",
+      "Nia Okoro",
+      "Tess Marlow"
+     ],
+     "count": 5,
+     "count_change": 5,
+     "count_previous": 0,
+     "people_affected": 5,
+     "people_affected_change": 5,
+     "people_affected_previous": 0,
+     "source": "rate_limit",
+     "tool_id": "email_drafter",
+     "tool_name": "Email drafter"
+    },
+    {
+     "affected": [
+      "Juno Dunmore",
+      "Kofi Okoro",
+      "Tess Marlow",
+      "Zeno Marlow"
+     ],
+     "count": 4,
+     "count_change": 1,
+     "count_previous": 3,
+     "people_affected": 4,
+     "people_affected_change": 1,
+     "people_affected_previous": 3,
+     "source": "rate_limit",
+     "tool_id": "report_summariser",
+     "tool_name": "Report summariser"
+    },
+    {
+     "affected": [
+      "Juno Thackeray",
+      "Kofi Okoro",
+      "Tess Galvez",
+      "Tess Marlow"
+     ],
+     "count": 4,
+     "count_change": 2,
+     "count_previous": 2,
+     "people_affected": 4,
+     "people_affected_change": 2,
+     "people_affected_previous": 2,
+     "source": "upstream_timeout",
+     "tool_id": "media_plan_builder",
+     "tool_name": "Media plan builder"
+    },
+    {
+     "affected": [
+      "Bram Nakata",
+      "Nia Lindqvist",
+      "Pia Marlow"
+     ],
+     "count": 3,
+     "count_change": 2,
+     "count_previous": 1,
+     "people_affected": 3,
+     "people_affected_change": 2,
+     "people_affected_previous": 1,
+     "source": "rate_limit",
+     "tool_id": "call_agenda",
+     "tool_name": "Call agenda"
+    },
+    {
+     "affected": [
+      "Juno Okoro",
+      "Wim Thackeray"
+     ],
+     "count": 2,
+     "count_change": 1,
+     "count_previous": 1,
+     "people_affected": 2,
+     "people_affected_change": 1,
+     "people_affected_previous": 1,
+     "source": "input_validation",
+     "tool_id": "call_agenda",
+     "tool_name": "Call agenda"
+    },
+    {
+     "affected": [
+      "Nia Lindqvist",
+      "Tess Marlow"
+     ],
+     "count": 2,
+     "count_change": 1,
+     "count_previous": 1,
+     "people_affected": 2,
+     "people_affected_change": 1,
+     "people_affected_previous": 1,
+     "source": "input_validation",
+     "tool_id": "email_drafter",
+     "tool_name": "Email drafter"
+    },
+    {
+     "affected": [
+      "Lena Holt",
+      "Wim Rosales"
+     ],
+     "count": 2,
+     "count_change": -2,
+     "count_previous": 4,
+     "people_affected": 2,
+     "people_affected_change": -2,
+     "people_affected_previous": 4,
+     "source": "input_validation",
+     "tool_id": "invoice_generator",
+     "tool_name": "Invoice generator"
+    },
+    {
+     "affected": [
+      "Dara Okoro",
+      "Juno Thackeray"
+     ],
+     "count": 2,
+     "count_change": -2,
+     "count_previous": 4,
+     "people_affected": 2,
+     "people_affected_change": -1,
+     "people_affected_previous": 3,
+     "source": "input_validation",
+     "tool_id": "meeting_notes",
+     "tool_name": "Meeting notes"
+    },
+    {
+     "affected": [
+      "Kofi Eklund",
+      "Sami Okoro"
+     ],
+     "count": 2,
+     "count_change": 0,
+     "count_previous": 2,
+     "people_affected": 2,
+     "people_affected_change": 0,
+     "people_affected_previous": 2,
+     "source": "input_validation",
+     "tool_id": "proposal_writer",
+     "tool_name": "Proposal writer"
+    },
+    {
+     "affected": [
+      "Nia Lindqvist",
+      "Wim Holt"
+     ],
+     "count": 2,
+     "count_change": 0,
+     "count_previous": 2,
+     "people_affected": 2,
+     "people_affected_change": 0,
+     "people_affected_previous": 2,
+     "source": "input_validation",
+     "tool_id": "report_summariser",
+     "tool_name": "Report summariser"
+    },
+    {
+     "affected": [
+      "Faye Abara",
+      "Sami Okoro"
+     ],
+     "count": 2,
+     "count_change": 2,
+     "count_previous": 0,
+     "people_affected": 2,
+     "people_affected_change": 2,
+     "people_affected_previous": 0,
+     "source": "rate_limit",
+     "tool_id": "media_plan_builder",
+     "tool_name": "Media plan builder"
+    },
+    {
+     "affected": [
+      "Hana Abara",
+      "Ivo Jarrah"
+     ],
+     "count": 2,
+     "count_change": 1,
+     "count_previous": 1,
+     "people_affected": 2,
+     "people_affected_change": 1,
+     "people_affected_previous": 1,
+     "source": "rate_limit",
+     "tool_id": "meeting_notes",
+     "tool_name": "Meeting notes"
+    },
+    {
+     "affected": [
+      "Juno Dunmore",
+      "Lena Holt"
+     ],
+     "count": 2,
+     "count_change": 1,
+     "count_previous": 1,
+     "people_affected": 2,
+     "people_affected_change": 1,
+     "people_affected_previous": 1,
+     "source": "upstream_timeout",
+     "tool_id": "call_agenda",
+     "tool_name": "Call agenda"
+    },
+    {
+     "affected": [
+      "Kofi Okoro",
+      "Nia Okoro"
+     ],
+     "count": 2,
+     "count_change": -2,
+     "count_previous": 4,
+     "people_affected": 2,
+     "people_affected_change": -2,
+     "people_affected_previous": 4,
+     "source": "upstream_timeout",
+     "tool_id": "email_drafter",
+     "tool_name": "Email drafter"
+    },
+    {
+     "affected": [
+      "Sami Marlow",
+      "Umar Quill"
+     ],
+     "count": 2,
+     "count_change": 2,
+     "count_previous": 0,
+     "people_affected": 2,
+     "people_affected_change": 2,
+     "people_affected_previous": 0,
+     "source": "upstream_timeout",
+     "tool_id": "proposal_writer",
+     "tool_name": "Proposal writer"
+    },
+    {
+     "affected": [
+      "Faye Abara"
+     ],
+     "count": 1,
+     "count_change": -1,
+     "count_previous": 2,
+     "people_affected": 1,
+     "people_affected_change": -1,
+     "people_affected_previous": 2,
+     "source": "input_validation",
+     "tool_id": "media_plan_builder",
+     "tool_name": "Media plan builder"
+    },
+    {
+     "affected": [
+      "Vera Eklund"
+     ],
+     "count": 1,
+     "count_change": 1,
+     "count_previous": 0,
+     "people_affected": 1,
+     "people_affected_change": 1,
+     "people_affected_previous": 0,
+     "source": "rate_limit",
+     "tool_id": "proposal_writer",
+     "tool_name": "Proposal writer"
+    },
+    {
+     "affected": [
+      "Cleo Sorrel"
+     ],
+     "count": 1,
+     "count_change": 1,
+     "count_previous": 0,
+     "people_affected": 1,
+     "people_affected_change": 1,
+     "people_affected_previous": 0,
+     "source": "upstream_timeout",
+     "tool_id": "invoice_generator",
+     "tool_name": "Invoice generator"
+    },
+    {
+     "affected": [
+      "Zeno Marlow"
+     ],
+     "count": 1,
+     "count_change": -1,
+     "count_previous": 2,
+     "people_affected": 1,
+     "people_affected_change": -1,
+     "people_affected_previous": 2,
+     "source": "upstream_timeout",
+     "tool_id": "meeting_notes",
+     "tool_name": "Meeting notes"
+    },
+    {
+     "affected": [
+      "Nia Okoro"
+     ],
+     "count": 1,
+     "count_change": 0,
+     "count_previous": 1,
+     "people_affected": 1,
+     "people_affected_change": 0,
+     "people_affected_previous": 1,
+     "source": "upstream_timeout",
+     "tool_id": "report_summariser",
+     "tool_name": "Report summariser"
+    },
+    {
+     "affected": [],
+     "count": 0,
+     "count_change": -1,
+     "count_previous": 1,
+     "people_affected": 0,
+     "people_affected_change": -1,
+     "people_affected_previous": 1,
+     "source": "input_validation",
+     "tool_id": "contact_enrichment",
+     "tool_name": "Contact enrichment"
+    }
+   ],
+   "7d": [
+    {
+     "affected": [
+      "Dara Okoro",
+      "Elio Holt",
+      "Faye Abara",
+      "Hana Abara",
+      "Ivo Penrose",
+      "Juno Dunmore",
+      "Juno Thackeray",
+      "Kofi Eklund",
+      "Kofi Okoro",
+      "Lena Holt",
+      "Nia Lindqvist",
+      "Otto Quill",
+      "Sami Marlow",
+      "Tess Galvez",
+      "Tess Marlow",
+      "Umar Quill",
+      "Vera Eklund",
+      "Wim Holt",
+      "Wim Rosales",
+      "Wim Thackeray",
+      "Zeno Marlow"
+     ],
+     "count": 86,
+     "count_change": 86,
+     "count_previous": 0,
+     "people_affected": 21,
+     "people_affected_change": 21,
+     "people_affected_previous": 0,
+     "source": "pdf_renderer",
+     "tool_id": "invoice_generator",
+     "tool_name": "Invoice generator"
+    },
+    {
+     "affected": [
+      "Faye Abara"
+     ],
+     "count": 1,
+     "count_change": 1,
+     "count_previous": 0,
+     "people_affected": 1,
+     "people_affected_change": 1,
+     "people_affected_previous": 0,
+     "source": "input_validation",
+     "tool_id": "media_plan_builder",
+     "tool_name": "Media plan builder"
+    },
+    {
+     "affected": [
+      "Kofi Eklund"
+     ],
+     "count": 1,
+     "count_change": 1,
+     "count_previous": 0,
+     "people_affected": 1,
+     "people_affected_change": 1,
+     "people_affected_previous": 0,
+     "source": "input_validation",
+     "tool_id": "proposal_writer",
+     "tool_name": "Proposal writer"
+    },
+    {
+     "affected": [
+      "Tess Marlow"
+     ],
+     "count": 1,
+     "count_change": 0,
+     "count_previous": 1,
+     "people_affected": 1,
+     "people_affected_change": 0,
+     "people_affected_previous": 1,
+     "source": "rate_limit",
+     "tool_id": "email_drafter",
+     "tool_name": "Email drafter"
+    },
+    {
+     "affected": [
+      "Kofi Okoro"
+     ],
+     "count": 1,
+     "count_change": 1,
+     "count_previous": 0,
+     "people_affected": 1,
+     "people_affected_change": 1,
+     "people_affected_previous": 0,
+     "source": "rate_limit",
+     "tool_id": "report_summariser",
+     "tool_name": "Report summariser"
+    },
+    {
+     "affected": [
+      "Juno Dunmore"
+     ],
+     "count": 1,
+     "count_change": 1,
+     "count_previous": 0,
+     "people_affected": 1,
+     "people_affected_change": 1,
+     "people_affected_previous": 0,
+     "source": "upstream_timeout",
+     "tool_id": "call_agenda",
+     "tool_name": "Call agenda"
+    },
+    {
+     "affected": [
+      "Juno Thackeray"
+     ],
+     "count": 1,
+     "count_change": 0,
+     "count_previous": 1,
+     "people_affected": 1,
+     "people_affected_change": 0,
+     "people_affected_previous": 1,
+     "source": "upstream_timeout",
+     "tool_id": "media_plan_builder",
+     "tool_name": "Media plan builder"
+    },
+    {
+     "affected": [
+      "Umar Quill"
+     ],
+     "count": 1,
+     "count_change": 0,
+     "count_previous": 1,
+     "people_affected": 1,
+     "people_affected_change": 0,
+     "people_affected_previous": 1,
+     "source": "upstream_timeout",
+     "tool_id": "proposal_writer",
+     "tool_name": "Proposal writer"
+    },
+    {
+     "affected": [
+      "Nia Okoro"
+     ],
+     "count": 1,
+     "count_change": 1,
+     "count_previous": 0,
+     "people_affected": 1,
+     "people_affected_change": 1,
+     "people_affected_previous": 0,
+     "source": "upstream_timeout",
+     "tool_id": "report_summariser",
+     "tool_name": "Report summariser"
+    },
+    {
+     "affected": [],
+     "count": 0,
+     "count_change": -2,
+     "count_previous": 2,
+     "people_affected": 0,
+     "people_affected_change": -2,
+     "people_affected_previous": 2,
+     "source": "input_validation",
+     "tool_id": "invoice_generator",
+     "tool_name": "Invoice generator"
+    },
+    {
+     "affected": [],
+     "count": 0,
+     "count_change": -1,
+     "count_previous": 1,
+     "people_affected": 0,
+     "people_affected_change": -1,
+     "people_affected_previous": 1,
+     "source": "input_validation",
+     "tool_id": "meeting_notes",
+     "tool_name": "Meeting notes"
+    },
+    {
+     "affected": [],
+     "count": 0,
+     "count_change": -1,
+     "count_previous": 1,
+     "people_affected": 0,
+     "people_affected_change": -1,
+     "people_affected_previous": 1,
+     "source": "rate_limit",
+     "tool_id": "media_plan_builder",
+     "tool_name": "Media plan builder"
+    },
+    {
+     "affected": [],
+     "count": 0,
+     "count_change": -1,
+     "count_previous": 1,
+     "people_affected": 0,
+     "people_affected_change": -1,
+     "people_affected_previous": 1,
+     "source": "rate_limit",
+     "tool_id": "meeting_notes",
+     "tool_name": "Meeting notes"
+    }
+   ],
+   "today": [
+    {
+     "affected": [
+      "Juno Thackeray",
+      "Kofi Okoro",
+      "Sami Marlow",
+      "Tess Marlow"
+     ],
+     "count": 9,
+     "count_change": -10,
+     "count_previous": 19,
+     "people_affected": 4,
+     "people_affected_change": -4,
+     "people_affected_previous": 8,
+     "source": "pdf_renderer",
+     "tool_id": "invoice_generator",
+     "tool_name": "Invoice generator"
+    },
+    {
+     "affected": [
+      "Tess Marlow"
+     ],
+     "count": 1,
+     "count_change": 1,
+     "count_previous": 0,
+     "people_affected": 1,
+     "people_affected_change": 1,
+     "people_affected_previous": 0,
+     "source": "rate_limit",
+     "tool_id": "email_drafter",
+     "tool_name": "Email drafter"
+    },
+    {
+     "affected": [
+      "Juno Thackeray"
+     ],
+     "count": 1,
+     "count_change": 1,
+     "count_previous": 0,
+     "people_affected": 1,
+     "people_affected_change": 1,
+     "people_affected_previous": 0,
+     "source": "upstream_timeout",
+     "tool_id": "media_plan_builder",
+     "tool_name": "Media plan builder"
+    },
+    {
+     "affected": [],
+     "count": 0,
+     "count_change": -1,
+     "count_previous": 1,
+     "people_affected": 0,
+     "people_affected_change": -1,
+     "people_affected_previous": 1,
+     "source": "upstream_timeout",
+     "tool_id": "proposal_writer",
+     "tool_name": "Proposal writer"
+    },
+    {
+     "affected": [],
+     "count": 0,
+     "count_change": -1,
+     "count_previous": 1,
+     "people_affected": 0,
+     "people_affected_change": -1,
+     "people_affected_previous": 1,
+     "source": "upstream_timeout",
+     "tool_id": "report_summariser",
+     "tool_name": "Report summariser"
+    }
+   ]
+  },
+  "roster": {
+   "30d": {
+    "active": [
+     {
+      "client_name": "Alder & Finch",
+      "last_seen": "2026-10-30",
+      "name": "Otto Quill",
+      "user_id": "u001"
+     },
+     {
+      "client_name": "Alder & Finch",
+      "last_seen": "2026-10-30",
+      "name": "Pia Marlow",
+      "user_id": "u002"
+     },
+     {
+      "client_name": "Alder & Finch",
+      "last_seen": "2026-10-30",
+      "name": "Tess Marlow",
+      "user_id": "u003"
+     },
+     {
+      "client_name": "Alder & Finch",
+      "last_seen": "2026-10-30",
+      "name": "Faye Lindqvist",
+      "user_id": "u004"
+     },
+     {
+      "client_name": "Alder & Finch",
+      "last_seen": "2026-10-30",
+      "name": "Kofi Eklund",
+      "user_id": "u005"
+     },
+     {
+      "client_name": "Alder & Finch",
+      "last_seen": "2026-10-30",
+      "name": "Juno Thackeray",
+      "user_id": "u006"
+     },
+     {
+      "client_name": "Alder & Finch",
+      "last_seen": "2026-10-30",
+      "name": "Nia Lindqvist",
+      "user_id": "u007"
+     },
+     {
+      "client_name": "Alder & Finch",
+      "last_seen": "2026-10-27",
+      "name": "Hana Castell",
+      "user_id": "u008"
+     },
+     {
+      "client_name": "Alder & Finch",
+      "last_seen": "2026-10-30",
+      "name": "Hana Abara",
+      "user_id": "u009"
+     },
+     {
+      "client_name": "Alder & Finch",
+      "last_seen": "2026-10-30",
+      "name": "Umar Quill",
+      "user_id": "u010"
+     },
+     {
+      "client_name": "Brightwater",
+      "last_seen": "2026-10-30",
+      "name": "Vera Eklund",
+      "user_id": "u012"
+     },
+     {
+      "client_name": "Brightwater",
+      "last_seen": "2026-10-30",
+      "name": "Juno Dunmore",
+      "user_id": "u013"
+     },
+     {
+      "client_name": "Brightwater",
+      "last_seen": "2026-10-30",
+      "name": "Faye Abara",
+      "user_id": "u015"
+     },
+     {
+      "client_name": "Brightwater",
+      "last_seen": "2026-10-28",
+      "name": "Zeno Marlow",
+      "user_id": "u016"
+     },
+     {
+      "client_name": "Brightwater",
+      "last_seen": "2026-10-30",
+      "name": "Nia Okoro",
+      "user_id": "u017"
+     },
+     {
+      "client_name": "Brightwater",
+      "last_seen": "2026-10-30",
+      "name": "Wim Holt",
+      "user_id": "u018"
+     },
+     {
+      "client_name": "Brightwater",
+      "last_seen": "2026-10-30",
+      "name": "Pia Thackeray",
+      "user_id": "u019"
+     },
+     {
+      "client_name": "Brightwater",
+      "last_seen": "2026-10-30",
+      "name": "Juno Okoro",
+      "user_id": "u020"
+     },
+     {
+      "client_name": "Cobalt Lane",
+      "last_seen": "2026-10-29",
+      "name": "Wim Rosales",
+      "user_id": "u021"
+     },
+     {
+      "client_name": "Cobalt Lane",
+      "last_seen": "2026-10-30",
+      "name": "Kofi Okoro",
+      "user_id": "u022"
+     },
+     {
+      "client_name": "Cobalt Lane",
+      "last_seen": "2026-10-30",
+      "name": "Bram Nakata",
+      "user_id": "u023"
+     },
+     {
+      "client_name": "Cobalt Lane",
+      "last_seen": "2026-10-30",
+      "name": "Wim Thackeray",
+      "user_id": "u024"
+     },
+     {
+      "client_name": "Cobalt Lane",
+      "last_seen": "2026-10-30",
+      "name": "Dara Okoro",
+      "user_id": "u025"
+     },
+     {
+      "client_name": "Cobalt Lane",
+      "last_seen": "2026-10-29",
+      "name": "Cleo Sorrel",
+      "user_id": "u026"
+     },
+     {
+      "client_name": "Dune Collective",
+      "last_seen": "2026-10-30",
+      "name": "Bram Thackeray",
+      "user_id": "u028"
+     },
+     {
+      "client_name": "Dune Collective",
+      "last_seen": "2026-10-30",
+      "name": "Sami Marlow",
+      "user_id": "u029"
+     },
+     {
+      "client_name": "Dune Collective",
+      "last_seen": "2026-10-30",
+      "name": "Ivo Quill",
+      "user_id": "u030"
+     },
+     {
+      "client_name": "Dune Collective",
+      "last_seen": "2026-10-29",
+      "name": "Lena Holt",
+      "user_id": "u031"
+     },
+     {
+      "client_name": "Dune Collective",
+      "last_seen": "2026-10-22",
+      "name": "Yara Quill",
+      "user_id": "u032"
+     },
+     {
+      "client_name": "Dune Collective",
+      "last_seen": "2026-10-28",
+      "name": "Otto Castell",
+      "user_id": "u033"
+     },
+     {
+      "client_name": "Ember Works",
+      "last_seen": "2026-10-26",
+      "name": "Ivo Penrose",
+      "user_id": "u034"
+     },
+     {
+      "client_name": "Ember Works",
+      "last_seen": "2026-10-29",
+      "name": "Ivo Jarrah",
+      "user_id": "u035"
+     },
+     {
+      "client_name": "Ember Works",
+      "last_seen": "2026-10-28",
+      "name": "Lena Ivanek",
+      "user_id": "u036"
+     },
+     {
+      "client_name": "Fjord Media",
+      "last_seen": "2026-10-30",
+      "name": "Sami Okoro",
+      "user_id": "u038"
+     },
+     {
+      "client_name": "Fjord Media",
+      "last_seen": "2026-10-29",
+      "name": "Elio Holt",
+      "user_id": "u039"
+     },
+     {
+      "client_name": "Fjord Media",
+      "last_seen": "2026-10-30",
+      "name": "Tess Galvez",
+      "user_id": "u040"
+     }
+    ],
+    "active_count": 36,
+    "active_count_change": -1,
+    "active_count_previous": 37,
+    "invited_count": 40,
+    "never_showed_up": [
+     {
+      "client_name": "Alder & Finch",
+      "last_seen": null,
+      "name": "Yara Dunmore",
+      "user_id": "u011"
+     },
+     {
+      "client_name": "Cobalt Lane",
+      "last_seen": null,
+      "name": "Otto Thackeray",
+      "user_id": "u027"
+     },
+     {
+      "client_name": "Ember Works",
+      "last_seen": null,
+      "name": "Sami Holt",
+      "user_id": "u037"
+     }
+    ],
+    "never_showed_up_count": 3,
+    "went_quiet": [
+     {
+      "client_name": "Brightwater",
+      "last_seen": "2026-09-25",
+      "name": "Xena Jarrah",
+      "user_id": "u014"
+     }
+    ],
+    "went_quiet_count": 1,
+    "went_quiet_count_change": 1,
+    "went_quiet_count_previous": 0
+   },
+   "7d": {
+    "active": [
+     {
+      "client_name": "Alder & Finch",
+      "last_seen": "2026-10-30",
+      "name": "Otto Quill",
+      "user_id": "u001"
+     },
+     {
+      "client_name": "Alder & Finch",
+      "last_seen": "2026-10-30",
+      "name": "Pia Marlow",
+      "user_id": "u002"
+     },
+     {
+      "client_name": "Alder & Finch",
+      "last_seen": "2026-10-30",
+      "name": "Tess Marlow",
+      "user_id": "u003"
+     },
+     {
+      "client_name": "Alder & Finch",
+      "last_seen": "2026-10-30",
+      "name": "Faye Lindqvist",
+      "user_id": "u004"
+     },
+     {
+      "client_name": "Alder & Finch",
+      "last_seen": "2026-10-30",
+      "name": "Kofi Eklund",
+      "user_id": "u005"
+     },
+     {
+      "client_name": "Alder & Finch",
+      "last_seen": "2026-10-30",
+      "name": "Juno Thackeray",
+      "user_id": "u006"
+     },
+     {
+      "client_name": "Alder & Finch",
+      "last_seen": "2026-10-30",
+      "name": "Nia Lindqvist",
+      "user_id": "u007"
+     },
+     {
+      "client_name": "Alder & Finch",
+      "last_seen": "2026-10-27",
+      "name": "Hana Castell",
+      "user_id": "u008"
+     },
+     {
+      "client_name": "Alder & Finch",
+      "last_seen": "2026-10-30",
+      "name": "Hana Abara",
+      "user_id": "u009"
+     },
+     {
+      "client_name": "Alder & Finch",
+      "last_seen": "2026-10-30",
+      "name": "Umar Quill",
+      "user_id": "u010"
+     },
+     {
+      "client_name": "Brightwater",
+      "last_seen": "2026-10-30",
+      "name": "Vera Eklund",
+      "user_id": "u012"
+     },
+     {
+      "client_name": "Brightwater",
+      "last_seen": "2026-10-30",
+      "name": "Juno Dunmore",
+      "user_id": "u013"
+     },
+     {
+      "client_name": "Brightwater",
+      "last_seen": "2026-10-30",
+      "name": "Faye Abara",
+      "user_id": "u015"
+     },
+     {
+      "client_name": "Brightwater",
+      "last_seen": "2026-10-28",
+      "name": "Zeno Marlow",
+      "user_id": "u016"
+     },
+     {
+      "client_name": "Brightwater",
+      "last_seen": "2026-10-30",
+      "name": "Nia Okoro",
+      "user_id": "u017"
+     },
+     {
+      "client_name": "Brightwater",
+      "last_seen": "2026-10-30",
+      "name": "Wim Holt",
+      "user_id": "u018"
+     },
+     {
+      "client_name": "Brightwater",
+      "last_seen": "2026-10-30",
+      "name": "Pia Thackeray",
+      "user_id": "u019"
+     },
+     {
+      "client_name": "Brightwater",
+      "last_seen": "2026-10-30",
+      "name": "Juno Okoro",
+      "user_id": "u020"
+     },
+     {
+      "client_name": "Cobalt Lane",
+      "last_seen": "2026-10-29",
+      "name": "Wim Rosales",
+      "user_id": "u021"
+     },
+     {
+      "client_name": "Cobalt Lane",
+      "last_seen": "2026-10-30",
+      "name": "Kofi Okoro",
+      "user_id": "u022"
+     },
+     {
+      "client_name": "Cobalt Lane",
+      "last_seen": "2026-10-30",
+      "name": "Bram Nakata",
+      "user_id": "u023"
+     },
+     {
+      "client_name": "Cobalt Lane",
+      "last_seen": "2026-10-30",
+      "name": "Wim Thackeray",
+      "user_id": "u024"
+     },
+     {
+      "client_name": "Cobalt Lane",
+      "last_seen": "2026-10-30",
+      "name": "Dara Okoro",
+      "user_id": "u025"
+     },
+     {
+      "client_name": "Cobalt Lane",
+      "last_seen": "2026-10-29",
+      "name": "Cleo Sorrel",
+      "user_id": "u026"
+     },
+     {
+      "client_name": "Dune Collective",
+      "last_seen": "2026-10-30",
+      "name": "Bram Thackeray",
+      "user_id": "u028"
+     },
+     {
+      "client_name": "Dune Collective",
+      "last_seen": "2026-10-30",
+      "name": "Sami Marlow",
+      "user_id": "u029"
+     },
+     {
+      "client_name": "Dune Collective",
+      "last_seen": "2026-10-30",
+      "name": "Ivo Quill",
+      "user_id": "u030"
+     },
+     {
+      "client_name": "Dune Collective",
+      "last_seen": "2026-10-29",
+      "name": "Lena Holt",
+      "user_id": "u031"
+     },
+     {
+      "client_name": "Dune Collective",
+      "last_seen": "2026-10-28",
+      "name": "Otto Castell",
+      "user_id": "u033"
+     },
+     {
+      "client_name": "Ember Works",
+      "last_seen": "2026-10-26",
+      "name": "Ivo Penrose",
+      "user_id": "u034"
+     },
+     {
+      "client_name": "Ember Works",
+      "last_seen": "2026-10-29",
+      "name": "Ivo Jarrah",
+      "user_id": "u035"
+     },
+     {
+      "client_name": "Ember Works",
+      "last_seen": "2026-10-28",
+      "name": "Lena Ivanek",
+      "user_id": "u036"
+     },
+     {
+      "client_name": "Fjord Media",
+      "last_seen": "2026-10-30",
+      "name": "Sami Okoro",
+      "user_id": "u038"
+     },
+     {
+      "client_name": "Fjord Media",
+      "last_seen": "2026-10-29",
+      "name": "Elio Holt",
+      "user_id": "u039"
+     },
+     {
+      "client_name": "Fjord Media",
+      "last_seen": "2026-10-30",
+      "name": "Tess Galvez",
+      "user_id": "u040"
+     }
+    ],
+    "active_count": 35,
+    "active_count_change": 0,
+    "active_count_previous": 35,
+    "invited_count": 40,
+    "never_showed_up": [
+     {
+      "client_name": "Alder & Finch",
+      "last_seen": null,
+      "name": "Yara Dunmore",
+      "user_id": "u011"
+     },
+     {
+      "client_name": "Cobalt Lane",
+      "last_seen": null,
+      "name": "Otto Thackeray",
+      "user_id": "u027"
+     },
+     {
+      "client_name": "Ember Works",
+      "last_seen": null,
+      "name": "Sami Holt",
+      "user_id": "u037"
+     }
+    ],
+    "never_showed_up_count": 3,
+    "went_quiet": [
+     {
+      "client_name": "Brightwater",
+      "last_seen": "2026-09-25",
+      "name": "Xena Jarrah",
+      "user_id": "u014"
+     },
+     {
+      "client_name": "Dune Collective",
+      "last_seen": "2026-10-22",
+      "name": "Yara Quill",
+      "user_id": "u032"
+     }
+    ],
+    "went_quiet_count": 2,
+    "went_quiet_count_change": 0,
+    "went_quiet_count_previous": 2
+   },
+   "today": {
+    "active": [
+     {
+      "client_name": "Alder & Finch",
+      "last_seen": "2026-10-30",
+      "name": "Otto Quill",
+      "user_id": "u001"
+     },
+     {
+      "client_name": "Alder & Finch",
+      "last_seen": "2026-10-30",
+      "name": "Pia Marlow",
+      "user_id": "u002"
+     },
+     {
+      "client_name": "Alder & Finch",
+      "last_seen": "2026-10-30",
+      "name": "Tess Marlow",
+      "user_id": "u003"
+     },
+     {
+      "client_name": "Alder & Finch",
+      "last_seen": "2026-10-30",
+      "name": "Faye Lindqvist",
+      "user_id": "u004"
+     },
+     {
+      "client_name": "Alder & Finch",
+      "last_seen": "2026-10-30",
+      "name": "Kofi Eklund",
+      "user_id": "u005"
+     },
+     {
+      "client_name": "Alder & Finch",
+      "last_seen": "2026-10-30",
+      "name": "Juno Thackeray",
+      "user_id": "u006"
+     },
+     {
+      "client_name": "Alder & Finch",
+      "last_seen": "2026-10-30",
+      "name": "Nia Lindqvist",
+      "user_id": "u007"
+     },
+     {
+      "client_name": "Alder & Finch",
+      "last_seen": "2026-10-30",
+      "name": "Hana Abara",
+      "user_id": "u009"
+     },
+     {
+      "client_name": "Alder & Finch",
+      "last_seen": "2026-10-30",
+      "name": "Umar Quill",
+      "user_id": "u010"
+     },
+     {
+      "client_name": "Brightwater",
+      "last_seen": "2026-10-30",
+      "name": "Vera Eklund",
+      "user_id": "u012"
+     },
+     {
+      "client_name": "Brightwater",
+      "last_seen": "2026-10-30",
+      "name": "Juno Dunmore",
+      "user_id": "u013"
+     },
+     {
+      "client_name": "Brightwater",
+      "last_seen": "2026-10-30",
+      "name": "Faye Abara",
+      "user_id": "u015"
+     },
+     {
+      "client_name": "Brightwater",
+      "last_seen": "2026-10-30",
+      "name": "Nia Okoro",
+      "user_id": "u017"
+     },
+     {
+      "client_name": "Brightwater",
+      "last_seen": "2026-10-30",
+      "name": "Wim Holt",
+      "user_id": "u018"
+     },
+     {
+      "client_name": "Brightwater",
+      "last_seen": "2026-10-30",
+      "name": "Pia Thackeray",
+      "user_id": "u019"
+     },
+     {
+      "client_name": "Brightwater",
+      "last_seen": "2026-10-30",
+      "name": "Juno Okoro",
+      "user_id": "u020"
+     },
+     {
+      "client_name": "Cobalt Lane",
+      "last_seen": "2026-10-30",
+      "name": "Kofi Okoro",
+      "user_id": "u022"
+     },
+     {
+      "client_name": "Cobalt Lane",
+      "last_seen": "2026-10-30",
+      "name": "Bram Nakata",
+      "user_id": "u023"
+     },
+     {
+      "client_name": "Cobalt Lane",
+      "last_seen": "2026-10-30",
+      "name": "Wim Thackeray",
+      "user_id": "u024"
+     },
+     {
+      "client_name": "Cobalt Lane",
+      "last_seen": "2026-10-30",
+      "name": "Dara Okoro",
+      "user_id": "u025"
+     },
+     {
+      "client_name": "Dune Collective",
+      "last_seen": "2026-10-30",
+      "name": "Bram Thackeray",
+      "user_id": "u028"
+     },
+     {
+      "client_name": "Dune Collective",
+      "last_seen": "2026-10-30",
+      "name": "Sami Marlow",
+      "user_id": "u029"
+     },
+     {
+      "client_name": "Dune Collective",
+      "last_seen": "2026-10-30",
+      "name": "Ivo Quill",
+      "user_id": "u030"
+     },
+     {
+      "client_name": "Fjord Media",
+      "last_seen": "2026-10-30",
+      "name": "Sami Okoro",
+      "user_id": "u038"
+     },
+     {
+      "client_name": "Fjord Media",
+      "last_seen": "2026-10-30",
+      "name": "Tess Galvez",
+      "user_id": "u040"
+     }
+    ],
+    "active_count": 25,
+    "active_count_change": -1,
+    "active_count_previous": 26,
+    "invited_count": 40,
+    "never_showed_up": [
+     {
+      "client_name": "Alder & Finch",
+      "last_seen": null,
+      "name": "Yara Dunmore",
+      "user_id": "u011"
+     },
+     {
+      "client_name": "Cobalt Lane",
+      "last_seen": null,
+      "name": "Otto Thackeray",
+      "user_id": "u027"
+     },
+     {
+      "client_name": "Ember Works",
+      "last_seen": null,
+      "name": "Sami Holt",
+      "user_id": "u037"
+     }
+    ],
+    "never_showed_up_count": 3,
+    "went_quiet": [
+     {
+      "client_name": "Alder & Finch",
+      "last_seen": "2026-10-27",
+      "name": "Hana Castell",
+      "user_id": "u008"
+     },
+     {
+      "client_name": "Brightwater",
+      "last_seen": "2026-09-25",
+      "name": "Xena Jarrah",
+      "user_id": "u014"
+     },
+     {
+      "client_name": "Brightwater",
+      "last_seen": "2026-10-28",
+      "name": "Zeno Marlow",
+      "user_id": "u016"
+     },
+     {
+      "client_name": "Cobalt Lane",
+      "last_seen": "2026-10-29",
+      "name": "Wim Rosales",
+      "user_id": "u021"
+     },
+     {
+      "client_name": "Cobalt Lane",
+      "last_seen": "2026-10-29",
+      "name": "Cleo Sorrel",
+      "user_id": "u026"
+     },
+     {
+      "client_name": "Dune Collective",
+      "last_seen": "2026-10-29",
+      "name": "Lena Holt",
+      "user_id": "u031"
+     },
+     {
+      "client_name": "Dune Collective",
+      "last_seen": "2026-10-22",
+      "name": "Yara Quill",
+      "user_id": "u032"
+     },
+     {
+      "client_name": "Dune Collective",
+      "last_seen": "2026-10-28",
+      "name": "Otto Castell",
+      "user_id": "u033"
+     },
+     {
+      "client_name": "Ember Works",
+      "last_seen": "2026-10-26",
+      "name": "Ivo Penrose",
+      "user_id": "u034"
+     },
+     {
+      "client_name": "Ember Works",
+      "last_seen": "2026-10-29",
+      "name": "Ivo Jarrah",
+      "user_id": "u035"
+     },
+     {
+      "client_name": "Ember Works",
+      "last_seen": "2026-10-28",
+      "name": "Lena Ivanek",
+      "user_id": "u036"
+     },
+     {
+      "client_name": "Fjord Media",
+      "last_seen": "2026-10-29",
+      "name": "Elio Holt",
+      "user_id": "u039"
+     }
+    ],
+    "went_quiet_count": 12,
+    "went_quiet_count_change": 1,
+    "went_quiet_count_previous": 11
+   }
+  },
+  "usage_by_tool": {
+   "30d": [
+    {
+     "active_people": 36,
+     "active_people_change": 0,
+     "active_people_previous": 36,
+     "errors": 7,
+     "errors_change": 4,
+     "errors_previous": 3,
+     "headline_count": 241,
+     "headline_count_change": 6,
+     "headline_count_previous": 235,
+     "headline_event": "agenda_created",
+     "tool_id": "call_agenda",
+     "tool_name": "Call agenda"
+    },
+    {
+     "active_people": 0,
+     "active_people_change": -36,
+     "active_people_previous": 36,
+     "errors": 0,
+     "errors_change": -1,
+     "errors_previous": 1,
+     "headline_count": 0,
+     "headline_count_change": -104,
+     "headline_count_previous": 104,
+     "headline_event": "contact_enriched",
+     "tool_id": "contact_enrichment",
+     "tool_name": "Contact enrichment"
+    },
+    {
+     "active_people": 35,
+     "active_people_change": -2,
+     "active_people_previous": 37,
+     "errors": 9,
+     "errors_change": 4,
+     "errors_previous": 5,
+     "headline_count": 382,
+     "headline_count_change": 45,
+     "headline_count_previous": 337,
+     "headline_event": "email_sent",
+     "tool_id": "email_drafter",
+     "tool_name": "Email drafter"
+    },
+    {
+     "active_people": 36,
+     "active_people_change": 0,
+     "active_people_previous": 36,
+     "errors": 89,
+     "errors_change": 85,
+     "errors_previous": 4,
+     "headline_count": 190,
+     "headline_count_change": -6,
+     "headline_count_previous": 196,
+     "headline_event": "invoice_issued",
+     "tool_id": "invoice_generator",
+     "tool_name": "Invoice generator"
+    },
+    {
+     "active_people": 35,
+     "active_people_change": -1,
+     "active_people_previous": 36,
+     "errors": 7,
+     "errors_change": 3,
+     "errors_previous": 4,
+     "headline_count": 165,
+     "headline_count_change": -4,
+     "headline_count_previous": 169,
+     "headline_event": "plan_exported",
+     "tool_id": "media_plan_builder",
+     "tool_name": "Media plan builder"
+    },
+    {
+     "active_people": 36,
+     "active_people_change": -1,
+     "active_people_previous": 37,
+     "errors": 5,
+     "errors_change": -2,
+     "errors_previous": 7,
+     "headline_count": 315,
+     "headline_count_change": 3,
+     "headline_count_previous": 312,
+     "headline_event": "notes_filed",
+     "tool_id": "meeting_notes",
+     "tool_name": "Meeting notes"
+    },
+    {
+     "active_people": 34,
+     "active_people_change": -2,
+     "active_people_previous": 36,
+     "errors": 5,
+     "errors_change": 3,
+     "errors_previous": 2,
+     "headline_count": 140,
+     "headline_count_change": -10,
+     "headline_count_previous": 150,
+     "headline_event": "proposal_sent",
+     "tool_id": "proposal_writer",
+     "tool_name": "Proposal writer"
+    },
+    {
+     "active_people": 36,
+     "active_people_change": 0,
+     "active_people_previous": 36,
+     "errors": 7,
+     "errors_change": 1,
+     "errors_previous": 6,
+     "headline_count": 245,
+     "headline_count_change": 50,
+     "headline_count_previous": 195,
+     "headline_event": "summary_saved",
+     "tool_id": "report_summariser",
+     "tool_name": "Report summariser"
+    }
+   ],
+   "7d": [
+    {
+     "active_people": 26,
+     "active_people_change": -2,
+     "active_people_previous": 28,
+     "errors": 1,
+     "errors_change": 1,
+     "errors_previous": 0,
+     "headline_count": 46,
+     "headline_count_change": -8,
+     "headline_count_previous": 54,
+     "headline_event": "agenda_created",
+     "tool_id": "call_agenda",
+     "tool_name": "Call agenda"
+    },
+    {
+     "active_people": 0,
+     "active_people_change": 0,
+     "active_people_previous": 0,
+     "errors": 0,
+     "errors_change": 0,
+     "errors_previous": 0,
+     "headline_count": 0,
+     "headline_count_change": 0,
+     "headline_count_previous": 0,
+     "headline_event": "contact_enriched",
+     "tool_id": "contact_enrichment",
+     "tool_name": "Contact enrichment"
+    },
+    {
+     "active_people": 31,
+     "active_people_change": 0,
+     "active_people_previous": 31,
+     "errors": 1,
+     "errors_change": 0,
+     "errors_previous": 1,
+     "headline_count": 91,
+     "headline_count_change": 5,
+     "headline_count_previous": 86,
+     "headline_event": "email_sent",
+     "tool_id": "email_drafter",
+     "tool_name": "Email drafter"
+    },
+    {
+     "active_people": 22,
+     "active_people_change": -3,
+     "active_people_previous": 25,
+     "errors": 86,
+     "errors_change": 84,
+     "errors_previous": 2,
+     "headline_count": 10,
+     "headline_count_change": -41,
+     "headline_count_previous": 51,
+     "headline_event": "invoice_issued",
+     "tool_id": "invoice_generator",
+     "tool_name": "Invoice generator"
+    },
+    {
+     "active_people": 22,
+     "active_people_change": 1,
+     "active_people_previous": 21,
+     "errors": 2,
+     "errors_change": 0,
+     "errors_previous": 2,
+     "headline_count": 38,
+     "headline_count_change": 2,
+     "headline_count_previous": 36,
+     "headline_event": "plan_exported",
+     "tool_id": "media_plan_builder",
+     "tool_name": "Media plan builder"
+    },
+    {
+     "active_people": 30,
+     "active_people_change": -1,
+     "active_people_previous": 31,
+     "errors": 0,
+     "errors_change": -2,
+     "errors_previous": 2,
+     "headline_count": 67,
+     "headline_count_change": 1,
+     "headline_count_previous": 66,
+     "headline_event": "notes_filed",
+     "tool_id": "meeting_notes",
+     "tool_name": "Meeting notes"
+    },
+    {
+     "active_people": 24,
+     "active_people_change": 4,
+     "active_people_previous": 20,
+     "errors": 2,
+     "errors_change": 1,
+     "errors_previous": 1,
+     "headline_count": 33,
+     "headline_count_change": 2,
+     "headline_count_previous": 31,
+     "headline_event": "proposal_sent",
+     "tool_id": "proposal_writer",
+     "tool_name": "Proposal writer"
+    },
+    {
+     "active_people": 28,
+     "active_people_change": -1,
+     "active_people_previous": 29,
+     "errors": 2,
+     "errors_change": 2,
+     "errors_previous": 0,
+     "headline_count": 59,
+     "headline_count_change": 6,
+     "headline_count_previous": 53,
+     "headline_event": "summary_saved",
+     "tool_id": "report_summariser",
+     "tool_name": "Report summariser"
+    }
+   ],
+   "today": [
+    {
+     "active_people": 8,
+     "active_people_change": -6,
+     "active_people_previous": 14,
+     "errors": 0,
+     "errors_change": 0,
+     "errors_previous": 0,
+     "headline_count": 11,
+     "headline_count_change": 1,
+     "headline_count_previous": 10,
+     "headline_event": "agenda_created",
+     "tool_id": "call_agenda",
+     "tool_name": "Call agenda"
+    },
+    {
+     "active_people": 0,
+     "active_people_change": 0,
+     "active_people_previous": 0,
+     "errors": 0,
+     "errors_change": 0,
+     "errors_previous": 0,
+     "headline_count": 0,
+     "headline_count_change": 0,
+     "headline_count_previous": 0,
+     "headline_event": "contact_enriched",
+     "tool_id": "contact_enrichment",
+     "tool_name": "Contact enrichment"
+    },
+    {
+     "active_people": 17,
+     "active_people_change": 0,
+     "active_people_previous": 17,
+     "errors": 1,
+     "errors_change": 1,
+     "errors_previous": 0,
+     "headline_count": 18,
+     "headline_count_change": -5,
+     "headline_count_previous": 23,
+     "headline_event": "email_sent",
+     "tool_id": "email_drafter",
+     "tool_name": "Email drafter"
+    },
+    {
+     "active_people": 6,
+     "active_people_change": -2,
+     "active_people_previous": 8,
+     "errors": 9,
+     "errors_change": -10,
+     "errors_previous": 19,
+     "headline_count": 2,
+     "headline_count_change": 1,
+     "headline_count_previous": 1,
+     "headline_event": "invoice_issued",
+     "tool_id": "invoice_generator",
+     "tool_name": "Invoice generator"
+    },
+    {
+     "active_people": 7,
+     "active_people_change": 2,
+     "active_people_previous": 5,
+     "errors": 1,
+     "errors_change": 1,
+     "errors_previous": 0,
+     "headline_count": 10,
+     "headline_count_change": 5,
+     "headline_count_previous": 5,
+     "headline_event": "plan_exported",
+     "tool_id": "media_plan_builder",
+     "tool_name": "Media plan builder"
+    },
+    {
+     "active_people": 15,
+     "active_people_change": -2,
+     "active_people_previous": 17,
+     "errors": 0,
+     "errors_change": 0,
+     "errors_previous": 0,
+     "headline_count": 15,
+     "headline_count_change": 1,
+     "headline_count_previous": 14,
+     "headline_event": "notes_filed",
+     "tool_id": "meeting_notes",
+     "tool_name": "Meeting notes"
+    },
+    {
+     "active_people": 10,
+     "active_people_change": 1,
+     "active_people_previous": 9,
+     "errors": 0,
+     "errors_change": -1,
+     "errors_previous": 1,
+     "headline_count": 9,
+     "headline_count_change": -2,
+     "headline_count_previous": 11,
+     "headline_event": "proposal_sent",
+     "tool_id": "proposal_writer",
+     "tool_name": "Proposal writer"
+    },
+    {
+     "active_people": 8,
+     "active_people_change": -1,
+     "active_people_previous": 9,
+     "errors": 0,
+     "errors_change": -1,
+     "errors_previous": 1,
+     "headline_count": 9,
+     "headline_count_change": 0,
+     "headline_count_previous": 9,
+     "headline_event": "summary_saved",
+     "tool_id": "report_summariser",
+     "tool_name": "Report summariser"
+    }
+   ]
+  }
+ },
+ "patterns": {
+  "error_source": "pdf_renderer",
+  "error_tool": "invoice_generator",
+  "never_logged_in": [
+   "u011",
+   "u027",
+   "u037"
+  ],
+  "quiet_user": "u014",
+  "unused_tool": "contact_enrichment"
+ },
+ "seed": 20261030
+}

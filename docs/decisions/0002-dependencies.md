@@ -9,6 +9,7 @@
 | fastapi | 0 | The API framework named in ARCHITECTURE; typed routes and dependencies for the token check. |
 | uvicorn | 0 | The server that runs the FastAPI app locally and in the deployed container. |
 | pydantic-settings | 0 | Typed settings from the environment, so `.env.example` names are checked in one place. |
+| sqlalchemy | 1 | Core only, no ORM: the schema and the lookups as portable SQL, per decision 0001. |
 
 ## Backend (development only)
 

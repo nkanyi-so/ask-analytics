@@ -8,7 +8,7 @@ FILE_PATH=$(printf '%s' "$INPUT" | python3 -c 'import json,sys; print(json.load(
 case "$FILE_PATH" in
   *.py)
     if command -v uv >/dev/null 2>&1 && [ -f "$CLAUDE_PROJECT_DIR/backend/pyproject.toml" ]; then
-      (cd "$CLAUDE_PROJECT_DIR/backend" && uv run --quiet ruff format "$FILE_PATH" >/dev/null 2>&1)
+      (cd "$CLAUDE_PROJECT_DIR/backend" && uv run --quiet ruff format --config pyproject.toml "$FILE_PATH" >/dev/null 2>&1)
     fi
     ;;
 esac

@@ -57,9 +57,29 @@ docs/
 
 SQL is written to be portable to Postgres. See `docs/decisions/0001-sqlite-for-the-demo.md`.
 
+### The data file
+
+`data/events.jsonl` is one JSON object per line, each with a `kind`: one `meta` line (`as_of`, `seed`, `days`), then `client`, `tool`, `user` and `event` lines. People who never logged in have no events, so the roster has to travel with the events; this is how. An `EventSource` returns all of it as one `Workspace` (clients, tools, users, events, `as_of`).
+
 ## Time
 
-`AS_OF` is the last day of the seed, stored in `ground_truth.json` and loaded into settings. Windows are computed from it: `today` is that calendar day, `7d` and `30d` end on it, inclusive. Nothing reads the wall clock for data.
+`AS_OF` is the last day of the seed. The source provides it (the `meta` line for the file source) and `ground_truth.json` repeats it; the app reads it from the source, never from the ground-truth file, which exists only to check answers. Windows are computed from it: `today` is that calendar day, `7d` and `30d` end on it, inclusive. Nothing reads the wall clock for data. `AS_OF` is a weekday so that `today` is not an empty weekend.
+
+## Definitions
+
+These are the meanings behind every number. The lookups and the ground-truth generator implement them separately and must agree.
+
+- **Window**: `today` is `AS_OF`; `7d` is the 7 calendar days ending on `AS_OF`; `30d` is the 30 ending on `AS_OF`. Days run midnight to midnight in the workspace's own clock.
+- **Previous window**: the same number of days immediately before the window. For `30d` that is days 1 to 30 of the seed, so sixty days are exactly enough.
+- **Change**: current minus previous, as a whole number. No percentages, so no number the backend did not count ever reaches the model.
+- **Output**: one headline event. **Headline count** of a tool: its headline events in the window.
+- **Active person** (in a window): at least one `login` in it.
+- **Active people of a tool**: distinct people with any event on that tool in the window (opened, headline or error).
+- **Errors of a tool**: `error` events on that tool in the window.
+- **Last seen**: the date of a person's most recent `login` on or before `AS_OF`, whatever the window. Empty if they never logged in.
+- **Never showed up**: invited, and no `login` up to `AS_OF`. The same people in every window.
+- **Went quiet** (in a window): logged in before the window started, and not once inside it.
+- **Error group**: errors sharing a source and a tool. **People affected**: distinct people in the group.
 
 ## The five lookups
 
@@ -73,7 +93,9 @@ errors_seen(window, tool_id=None) -> list[ErrorGroup]   # source, tool, count, p
 roster(window) -> Roster                          # active, never_showed_up, went_quiet
 ```
 
-Every lookup takes `with_previous: bool = False`. When true, each row also carries the same measure for the previous window of equal length and the difference. This is how "up or down, and by how much" gets answered without the model doing arithmetic.
+Every lookup takes `with_previous: bool = False`. When true, each row also carries the same measure for the previous window of equal length and the difference (`<measure>_previous`, `<measure>_change`). This is how "up or down, and by how much" gets answered without the model doing arithmetic.
+
+Rows are complete and ordered: every tool, person and client appears even at zero, sorted by id. Error groups are sorted by count, largest first; with `with_previous` a group that only had errors in the previous window still appears, at zero. The roster carries its own counts next to its lists, so nothing downstream ever counts.
 
 Return types are frozen dataclasses or pydantic models. The same objects feed the API, the assistant's tool results and the ground-truth generator's checks.
 
