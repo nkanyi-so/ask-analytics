@@ -1,0 +1,104 @@
+/* Every colour, size and space the interface uses. Nothing is hard-coded elsewhere.
+   The reasoning and the contrast ratios are in docs/DESIGN.md. */
+
+:root {
+  color-scheme: light dark;
+
+  /* Colour: near-monochrome with one accent. */
+  --canvas: #fafaf9;
+  --surface: #ffffff;
+  --sunken: #f1f1ef;
+  --line: #e3e3e0;
+  --control: #85898e;
+  --ink: #17191b;
+  --ink-2: #565b60;
+  --ink-3: #676c71;
+  --accent: #17694d;
+  --accent-ink: #ffffff;
+  --accent-soft: #e6f1ec;
+
+  /* Type: one family. `--font-sans` is set by next/font in layout.tsx. */
+  --font: var(--font-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --text-hero: clamp(4.5rem, 14vw, 9rem);
+  --text-hero-words: clamp(1.75rem, 4.5vw, 2.75rem);
+  --text-title: 1.75rem;
+  --text-lead: 1.25rem;
+  --text-heading: 1.125rem;
+  --text-body: 1rem;
+  --text-small: 0.875rem;
+  --text-caption: 0.8125rem;
+  --text-figure: 2rem;
+
+  --leading-hero: 0.95;
+  --leading-figure: 1.1;
+  --leading-display: 1.15;
+  --leading-title: 1.2;
+  --leading-heading: 1.35;
+  --leading-text: 1.45;
+  --leading-body: 1.55;
+  --tracking-hero: -0.04em;
+  --tracking-display: -0.02em;
+  --tracking-title: -0.015em;
+
+  /* Space: a 4px base. */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+  --space-9: 6rem;
+
+  --page-width: 72rem;
+  --measure: 40rem;
+  --ask-width: 52rem;
+  --rail: 12rem;
+  --num-column: 7rem;
+  --control-height: 3.5rem;
+  --control-height-small: 2.75rem;
+  --gutter: 1rem;
+  --measure-hero: 22ch;
+  --measure-notice: 26ch;
+  --who-column: 14rem;
+  --step-gutter: 1.5rem;
+
+  /* Shape: by rank, not one value everywhere. */
+  --radius-control: 10px;
+  --radius-panel: 20px;
+  --radius-pill: 999px;
+  --radius-mark: 6px;
+
+  --hairline: 1px;
+  --rule: 2px;
+  --switch-inset: 3px;
+  --focus-ring: 2px solid var(--accent);
+  --focus-offset: 2px;
+  --hover-lift: brightness(1.08);
+  --rise: 8px;
+  --stagger: 60ms;
+  --arrive: 240ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+@media (min-width: 48rem) {
+  :root {
+    --gutter: 2rem;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --canvas: #121314;
+    --surface: #1a1b1d;
+    --sunken: #0d0e0f;
+    --line: #2b2d30;
+    --control: #6e7379;
+    --ink: #ecedee;
+    --ink-2: #a9adb2;
+    --ink-3: #8b9096;
+    --accent: #79c9a6;
+    --accent-ink: #0e1f18;
+    --accent-soft: #1b2a24;
+  }
+}

@@ -837,3 +837,81 @@ $ echo $?
 *Review.* The `reviewer` agent found nothing blocking in the code, the Dockerfile or the CI job, and two false sentences in the README, both corrected: demo mode answers all forty eval questions, not only the three suggested ones; and `make check` does not run CI's image build or secret scan. Also fixed: the deployed check now covers a Railway service built without the Dockerfile; a token of spaces is refused; the test fixture is no longer affected by a `DEPLOYED` left in a developer's shell; the image layer no longer keeps uv's cache.
 
 **Gate: not passed.** Nothing is hosted.
+
+---
+
+## Phase 7: design pass
+
+Added on 16 Nov 2026 at the human's request. SPEC calls visual polish "a later layer"; this is that layer. No backend behaviour, API contract or existing test may change.
+
+- [x] `docs/DESIGN.md` written first and approved: direction, tokens, every screen state.
+- [x] Built with all tokens in `frontend/src/app/tokens.css`.
+- [x] Every state photographed at 375, 768 and 1280 in light and dark; reviewed against DESIGN.md; fixed; repeated once.
+- [x] `npx impeccable detect` run, and what it found fixed.
+
+**Gate:** `make check` exits 0 with no change under `backend/app`, `backend/evals` or any existing test. Every state in DESIGN.md has a screenshot, or DESIGN.md says why not. Contrast passes AA. Every control is reachable by keyboard with a visible focus ring. The detector reports nothing.
+
+**Log:**
+
+16 Nov 2026. Branch `design-pass`. Done at the human's request while Phase 6's gate is still open: that gate waits for a deploy, which the human has put last. Nothing under `backend/app` or `backend/evals` changed, and no existing test was edited.
+
+*What was built.* `docs/DESIGN.md` first, approved before any code. Then: `frontend/src/app/tokens.css` (every colour, size and space), a rewritten `globals.css`, the Ask panel (`components/AskPanel.tsx`), both pages as figures and tables instead of cards, and one new route on the frontend's own server, `GET /api/evidence`, with `lib/evidence.ts` and `lib/answer.ts` behind it. Old components `AskBox`, `Tile` and `PageHeader` are gone.
+
+*The one thing the brief could not have as asked.* "Show what the lookup returned" needs the lookup's result, which the API does not send with an answer, and the brief ruled out API changes. The page re-reads the lookup through the existing endpoints instead. It marks a number in the answer only when the number is in a row shown and the answer uses that measure's words; otherwise it shows the row and marks nothing.
+
+*Gate evidence.*
+
+`make check`, with no change under `backend/app` or `backend/evals`:
+
+```
+$ make check
+All checks passed!
+Success: no issues found in 23 source files
+332 passed
+| all | 40 | 40 | 100% |
+ Test Files  6 passed (6)
+      Tests  53 passed (53)
+$ echo $?
+0
+$ git diff main --stat -- backend/app backend/evals
+$
+```
+
+Screenshots: `frontend/scripts/screenshots.mjs` took 126 in demo mode (21 states, three widths, light and dark) and 18 against the live model (12 real questions, $0.008). Two states have none, and DESIGN.md says why: an answer using two lookups (no recorded answer does, and the live model did not for any question tried) and Reliability with no errors (the seeded data has errors in every window).
+
+Contrast: every text pair computed, lowest 4.69 (captions on the sunken surface, light); control borders 3.37 at lowest. All pass AA.
+
+Keyboard, driven by Playwright:
+
+```
+a "ask-analytics" ring=true
+a "Overview" ring=true
+a "Reliability" ring=true
+input "How many invoices were issued in the las" ring=true
+button "Ask" ring=true
+button "How many invoices were issued in the las" ring=true
+button "Which tool is nobody touching?" ring=true
+button "Did email usage go up or down this week," ring=true
+a "Today" ring=true
+a "7 days" ring=true
+a "30 days" ring=true
+Enter in the field sends the question: Nobody has used Contact enrichment in the last 7 days.
+Ask with nothing typed moves focus to: question
+While waiting, focus stays on: question
+Sideways scroll on Reliability at 800 wide: 0 px (was 83)
+```
+
+`npx impeccable detect`, on the source and on both pages at 1280 and 390 wide: nothing reported. Its first run found two things, both fixed: a thick rule down the side of notices, and the typeface (Instrument Sans, on its overused list; now Hanken Grotesk).
+
+*Self-review of the screenshots, two rounds.* Round one: the question field collapsed on a phone; a full-width accent button was too loud in dark mode; table columns were spread too wide; the rate-limit notice said the same thing three times; notices sat in half of a two-column layout; the Ask button was greyed out on first visit, so the page opened with no accent. Round two: phone tables were eleven screens long (one line per figure), now one wrapped line per row; a heading touched its paragraph on the error page.
+
+*Review.* The `reviewer` agent found three blocking problems, all fixed:
+
+1. **The panel said numbers were marked when none were**, for any answer without a number.
+2. **The refusal line could be untrue.** "No answer passed the check" is one of five reasons a lookup can run and no answer be shown. The line now claims only what is known.
+3. **The new route returned more than the page shows** (ids, the full list of active people), while the docs said otherwise. It now returns titled rows of figures only, and the docs name the one extra thing it serves: previous-window values.
+
+Non-blocking, fixed: a number could be marked as checked against a different measure that happened to share it ("22 errors" against "active people 22"), so marking now needs the measure's words as well; keyboard focus was lost on submit; heading order; phone tables were read twice by screen readers; Reliability scrolled sideways between 768 and 850 wide; hard-coded values moved into the token file; a new test pins the two backend messages the panel reads.
+
+**Gate: passed.**
+

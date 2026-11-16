@@ -169,7 +169,13 @@ With no `ANTHROPIC_API_KEY` the backend runs the `FixtureClient`. Every `/api/as
 
 ## Frontend
 
-Next.js app router. Pages: `/` (Overview), `/reliability`, plus the Ask box on Overview. Server-side route handlers under `/app/api/*` call the backend with the admin token from the server environment; the browser never sees it. Stat tiles and one table per tab. A window switch (today, 7 days, 30 days). A "Data as of" line. Three suggested questions under the Ask box. Each answer shows which lookup was used.
+Next.js app router. Pages: `/` (Overview), `/reliability`, plus the Ask panel on Overview. Server components and the route handlers under `/app/api/*` call the backend with the admin token from the server environment; the browser never sees it. Figures and one table per section. A window switch (today, 7 days, 30 days). A "Data to" line. Three suggested questions under the Ask field. The look, the tokens and every screen state are in `docs/DESIGN.md`; all tokens live in `frontend/src/app/tokens.css`.
+
+### The working under an answer
+
+An answer is shown with its working: which lookup ran, what it returned, and that it was checked. The API does not send lookup results with an answer, so the page reads the lookup again through `GET /api/evidence`, a route on the frontend's own server that calls the existing `/api/overview` or `/api/reliability` with the token. It returns titled rows of figures and nothing else: no ids, and previous-window values only when the model asked for the comparison. Those previous values are the one thing it serves that the tables do not print (they show the change). `lib/evidence.ts` shapes the rows on the server and, in the browser, picks the ones the answer rests on; `lib/answer.ts` finds the numbers in the answer text. Both select and word; neither adds, counts or compares, so rule 1 holds. "Checked" on the page describes the backend's number check; the page does not re-run it. It marks a number in the answer only when the number is in a row shown and the answer uses that measure's words, and otherwise shows the row unmarked.
+
+Two things the panel can only tell from the backend's wording, because the API has no field for them: which of the two 429s it got (the word "budget"), and a demo-mode question with no recording (the reply starts "Demo mode"). `backend/tests/test_frontend_wording.py` fails if either wording changes.
 
 ## Security
 

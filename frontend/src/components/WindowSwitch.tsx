@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { windowLabel } from "@/lib/format";
+import { switchLabel } from "@/lib/format";
 import { WINDOWS, type Window } from "@/lib/windows";
 
 export function WindowSwitch({ path, current }: { path: string; current: Window }): ReactNode {
@@ -12,8 +12,10 @@ export function WindowSwitch({ path, current }: { path: string; current: Window 
           key={window}
           href={`${path}?window=${window}`}
           aria-current={window === current ? "page" : undefined}
+          // The page changes below the switch; keep the reader where they are.
+          scroll={false}
         >
-          {windowLabel(window)}
+          {switchLabel(window)}
         </Link>
       ))}
     </nav>
