@@ -387,6 +387,11 @@ def truth_roster(data: Record, window: str) -> Record:
         {"active_count": len(current["active"]), "went_quiet_count": len(current["went_quiet"])},
         {"active_count": len(previous["active"]), "went_quiet_count": len(previous["went_quiet"])},
     )
+    if window_days(window, previous=True)[0] <= FIRST_DAY:
+        # Going quiet needs history before the window. Nothing precedes the previous
+        # 30 days, so "nobody had gone quiet then" would be an artefact, not a fact.
+        roster["went_quiet_count_previous"] = None
+        roster["went_quiet_count_change"] = None
     for group, ids in current.items():
         roster[group] = people(ids)
     return roster
@@ -411,8 +416,10 @@ def ground_truth(data: Record) -> Record:
             "error_tool": SPIKE_TOOL,
             "error_source": SPIKE_SOURCE,
         },
-        # Every row carries the previous-window values and the change; a lookup
-        # called without `with_previous` returns the same rows minus those fields.
+        # Every row carries the previous-window values and the change. A lookup called
+        # without `with_previous` returns the same rows minus those fields, with one
+        # difference: `errors_seen` then leaves out groups whose current count is zero
+        # (they are only listed here because they had errors in the previous window).
         "lookups": {
             name: {window: compute(data, window) for window in WINDOW_LENGTHS}
             for name, compute in lookups.items()

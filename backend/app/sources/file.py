@@ -18,7 +18,7 @@ class FileEventSource:
         tools: list[Tool] = []
         users: list[User] = []
         events: list[Event] = []
-        with self._path.open() as lines:
+        with self._path.open(encoding="utf-8") as lines:
             for line in lines:
                 record: dict[str, Any] = json.loads(line)
                 match record.pop("kind"):

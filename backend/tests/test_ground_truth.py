@@ -65,3 +65,26 @@ def test_patterns_show_up_in_the_expected_answers(truth: dict[str, Any]) -> None
         patterns["error_tool"],
         patterns["error_source"],
     )
+
+
+def test_error_groups_at_zero_exist_only_because_of_the_previous_window(
+    truth: dict[str, Any],
+) -> None:
+    for window in WINDOWS:
+        groups = truth["lookups"]["errors_seen"][window]
+        assert all(g["count"] > 0 or g["count_previous"] > 0 for g in groups)
+        keys = [(-g["count"], g["source"], g["tool_id"]) for g in groups]
+        assert keys == sorted(keys)
+        assert all(g["affected"] == sorted(g["affected"]) for g in groups)
+        assert all(len(g["affected"]) == g["people_affected"] for g in groups)
+
+
+def test_went_quiet_has_no_previous_value_without_earlier_history(truth: dict[str, Any]) -> None:
+    month = truth["lookups"]["roster"]["30d"]
+    assert month["went_quiet_count_previous"] is None
+    assert month["went_quiet_count_change"] is None
+    # Shorter windows have history before their previous window, so they do compare.
+    week = truth["lookups"]["roster"]["7d"]
+    assert week["went_quiet_count_change"] == (
+        week["went_quiet_count"] - week["went_quiet_count_previous"]
+    )

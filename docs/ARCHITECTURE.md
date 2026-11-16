@@ -78,8 +78,8 @@ These are the meanings behind every number. The lookups and the ground-truth gen
 - **Errors of a tool**: `error` events on that tool in the window.
 - **Last seen**: the date of a person's most recent `login` on or before `AS_OF`, whatever the window. Empty if they never logged in.
 - **Never showed up**: invited, and no `login` up to `AS_OF`. The same people in every window.
-- **Went quiet** (in a window): logged in before the window started, and not once inside it.
-- **Error group**: errors sharing a source and a tool. **People affected**: distinct people in the group.
+- **Went quiet** (in a window): logged in before the window started, and not once inside it. It needs history before the window, so its previous value and change are empty when no data precedes the previous window. That is the case for `30d`, whose previous window starts on day 1. Every other measure has a previous value in every window.
+- **Error group**: errors sharing a source and a tool. **People affected**: distinct people in the group; `affected` lists their names in alphabetical order.
 
 ## The five lookups
 
@@ -89,13 +89,13 @@ Window = Literal["today", "7d", "30d"]
 usage_by_tool(window) -> list[ToolUsage]          # headline_count, active_people, errors
 activity_by_person(window, user_id=None) -> list[PersonActivity]   # logins, outputs, last_seen
 activity_by_client(window) -> list[ClientActivity]  # active_people, outputs
-errors_seen(window, tool_id=None) -> list[ErrorGroup]   # source, tool, count, people_affected
+errors_seen(window, tool_id=None) -> list[ErrorGroup]   # source, tool, count, people_affected, affected
 roster(window) -> Roster                          # active, never_showed_up, went_quiet
 ```
 
 Every lookup takes `with_previous: bool = False`. When true, each row also carries the same measure for the previous window of equal length and the difference (`<measure>_previous`, `<measure>_change`). This is how "up or down, and by how much" gets answered without the model doing arithmetic.
 
-Rows are complete and ordered: every tool, person and client appears even at zero, sorted by id. Error groups are sorted by count, largest first; with `with_previous` a group that only had errors in the previous window still appears, at zero. The roster carries its own counts next to its lists, so nothing downstream ever counts.
+Rows are complete and ordered: every tool, person and client appears even at zero, sorted by id. Error groups are sorted by count, largest first, then by source, then by tool id. Without `with_previous` only groups with errors in the window appear; with it, a group that only had errors in the previous window also appears, at zero. The roster carries its own counts next to its lists, so nothing downstream ever counts.
 
 Return types are frozen dataclasses or pydantic models. The same objects feed the API, the assistant's tool results and the ground-truth generator's checks.
 

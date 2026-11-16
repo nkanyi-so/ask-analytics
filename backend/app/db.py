@@ -4,6 +4,7 @@ Plain SQLAlchemy Core, nothing SQLite-specific, so moving to Postgres is a conne
 string (docs/decisions/0001-sqlite-for-the-demo.md).
 """
 
+import sqlite3
 from dataclasses import asdict, dataclass
 from datetime import date
 
@@ -77,6 +78,9 @@ class Database:
 
 def load_database(source: EventSource) -> Database:
     """Read a source once and hold it in an in-memory SQLite database."""
+    if sqlite3.threadsafety != 3:
+        # 3 means "serialized": one connection may be used from several threads.
+        raise RuntimeError("This Python's SQLite is not built for sharing a connection.")
     workspace = source.load()
     # One shared connection: an in-memory SQLite database lives and dies with its
     # connection, and the API reads it from several threads.

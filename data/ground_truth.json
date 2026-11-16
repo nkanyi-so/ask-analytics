@@ -2752,8 +2752,8 @@
      }
     ],
     "went_quiet_count": 1,
-    "went_quiet_count_change": 1,
-    "went_quiet_count_previous": 0
+    "went_quiet_count_change": null,
+    "went_quiet_count_previous": null
    },
    "7d": {
     "active": [
