@@ -4,7 +4,7 @@ One trusted number per tool, on a page leadership opens themselves, and a plain-
 
 A public rebuild of the usage observability I built for a client's internal platform. The platform here is synthetic: a seeded workspace of eight tools and forty people over sixty days of activity. Locally the analytics source can be real (Mixpanel); the hosted demo reads a file-backed source, so the public deployment needs no analytics keys and never breaks.
 
-> **Status, 16 Nov 2026.** Runs locally. Not deployed yet. The live eval has not been run, so the table below shows fixture results only. The Mixpanel source is tested against a fake and has not yet run against Mixpanel itself.
+> **Status, 16 Nov 2026.** Runs locally. Not deployed yet. The live eval has not been run, so the table below shows fixture results only. The Mixpanel source has been run against a real Mixpanel project: all five lookups in every window equal ground truth.
 
 ## Run it
 
@@ -56,7 +56,7 @@ How a change is gated: fixture evals run inside `make check`, on every commit an
 - **Cache.** Lookup results are cached for ten minutes. The cache is warmed at startup and every five minutes after, so no visitor pays for a cold read.
 - **Model calls.** A 30-second timeout and one retry. Latency, tokens and cost are logged per call.
 - **Spend.** The Ask endpoint is limited per visitor and stops for the day at a fixed budget. A question reserves its worst-case cost before the model is called, so a burst cannot overshoot. The admin token does not protect spend: anyone who opens the page can ask. The rate limit and the budget do.
-- **Mixpanel.** One export request per load, retried with backoff on the statuses Mixpanel says to retry, inside one 60-second deadline. A repeated push is harmless because every record has a stable id.
+- **Mixpanel.** Checked against a real project, not only a fake. One export request per load, retried with backoff on the statuses Mixpanel says to retry, inside one 60-second deadline. A repeated push is harmless because every record has a stable id.
 - **Secrets and auth.** The admin token lives only on the two servers. Pages are rendered on the server and the Ask box talks to a route handler, so the token never reaches a browser; importing the module that reads it from client code fails the build. CI scans the whole git history for secrets.
 - **A deployed build cannot pretend.** The Docker image refuses to start in demo mode, without a real admin token, or on any source but the file.
 - **Known limit.** Rate-limit and budget counters are in memory, which fits one small instance. Redis is the next step.
@@ -68,7 +68,6 @@ AI-assisted, with Claude Code, under gates I set and checked: a plan reviewed be
 ## What I'd do next
 
 - Run the live eval on both models, and add harder questions until something fails.
-- Run the Mixpanel source against a real project.
 - Deploy (`docs/deploy.md`), then check the visitor-address handling on the real platforms.
 - Move the rate limit and budget to Redis.
 - Send the Monday summary by email. Today the endpoint only renders it.
