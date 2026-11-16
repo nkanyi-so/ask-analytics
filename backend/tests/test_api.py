@@ -2,12 +2,13 @@ from collections.abc import Iterator
 from typing import Any
 
 import pytest
+from fastapi import Request
 from fastapi.routing import APIRoute
 from fastapi.testclient import TestClient
 
 from app.config import Settings
 from app.llm import ModelReply, ModelUnavailable
-from app.main import api_router, create_app
+from app.main import api_router, create_app, visitor_of
 from tests.conftest import TEST_TOKEN
 
 AUTH = {"Authorization": f"Bearer {TEST_TOKEN}"}
@@ -208,18 +209,67 @@ def test_rate_limit_is_per_visitor_and_returns_a_clear_message(settings: Setting
 
 
 def test_daily_budget_stops_the_endpoint_before_the_model_is_called(settings: Settings) -> None:
-    # One refusal on this client costs 2000 * $4/M + 500 * $20/M = $0.018.
-    capped = settings.model_copy(update={"ask_daily_budget_usd": 0.03, "ask_rate_per_minute": 100})
+    # On this client one refusal costs 2000 * $4/M + 500 * $20/M = $0.018, and the worst
+    # case reserved per question is 5 calls * (15000 * $4/M + 4096 * $20/M) = $0.7096.
+    # With $0.73 a day: 0 + 0.7096 fits, 0.018 + 0.7096 fits, 0.036 + 0.7096 does not.
+    capped = settings.model_copy(update={"ask_daily_budget_usd": 0.73, "ask_rate_per_minute": 100})
     model = CostlyClient()
     with TestClient(create_app(capped, model_client=model)) as client:
         first = ask(client, "one")
         second = ask(client, "two")
         third = ask(client, "three")
+        spent = client.app.state.budget.spent_usd  # type: ignore[attr-defined]
 
     assert first.json()["cost_usd"] == pytest.approx(0.018)
     assert (first.status_code, second.status_code, third.status_code) == (200, 200, 429)
     assert third.json() == {"detail": "The demo has used its budget for today. Ask again tomorrow."}
     assert model.calls == 2, "the third question never reached the model"
+    assert spent == pytest.approx(0.036)
+
+
+def test_a_question_that_cannot_fit_its_worst_case_is_not_started(settings: Settings) -> None:
+    # $0.03 would cover one cheap answer, but nothing guarantees the answer is cheap.
+    tight = settings.model_copy(update={"ask_daily_budget_usd": 0.03})
+    model = CostlyClient()
+    with TestClient(create_app(tight, model_client=model)) as client:
+        assert ask(client, "one").status_code == 429
+    assert model.calls == 0
+
+
+def test_a_failed_model_call_is_still_charged_to_the_budget(settings: Settings) -> None:
+    with TestClient(create_app(settings, model_client=CostlyClient(fail=True))) as client:
+        assert ask(client, "anything").status_code == 503
+        spent = client.app.state.budget.spent_usd  # type: ignore[attr-defined]
+
+    # One worst-case call: 15000 * $4/M + 4096 * $20/M.
+    assert spent == pytest.approx(0.14192)
+
+
+@pytest.mark.parametrize(
+    ("header", "expected"),
+    [
+        ("203.0.113.7", "203.0.113.7"),
+        ("198.51.100.1, 203.0.113.7", "203.0.113.7"),
+        ("2001:db8:1:2:aaaa:bbbb:cccc:dddd", "2001:db8:1:2::/64"),
+        ("2001:db8:1:2::1", "2001:db8:1:2::/64"),
+        ("not-an-address", "not-an-address"),
+    ],
+)
+def test_visitor_key(header: str, expected: str) -> None:
+    request = Request({"type": "http", "headers": [(b"x-forwarded-for", header.encode())]})
+
+    assert visitor_of(request) == expected
+
+
+def test_a_browser_supplied_forwarded_entry_does_not_dodge_the_rate_limit(
+    settings: Settings,
+) -> None:
+    limited = settings.model_copy(update={"ask_rate_per_minute": 1})
+    with TestClient(create_app(limited)) as client:
+        first = ask(client, "Who has gone quiet?", visitor="10.0.0.1, 203.0.113.7")
+        second = ask(client, "Who has gone quiet?", visitor="10.9.9.9, 203.0.113.7")
+
+    assert (first.status_code, second.status_code) == (200, 429)
 
 
 def test_a_model_failure_is_reported_not_guessed(settings: Settings) -> None:

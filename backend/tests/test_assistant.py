@@ -248,9 +248,39 @@ def test_a_question_the_fixture_client_has_no_recording_for_says_so(lookups: Loo
     assert result.answer != REFUSAL_TEXT
 
 
+def test_refuse_anywhere_in_the_reply_is_a_refusal(lookups: Lookups) -> None:
+    client = ScriptedClient(
+        [
+            tool_reply("roster"),
+            ModelReply(
+                text="After checking, I must REFUSE this.", tool_calls=(), stop_reason="end_turn"
+            ),
+        ]
+    )
+
+    assert answer_question("anything", client, lookups).answer == REFUSAL_TEXT
+
+
+def test_cost_is_reported_per_model_call(lookups: Lookups) -> None:
+    question = "How many invoices were issued in the last 7 days?"
+    fixture = Fixture(calls=[USAGE_7D], answer="{0} invoices.", values=[INVOICES_7D])
+    costs: list[float] = []
+
+    answer_question(question, client_for(question, fixture), lookups, on_cost=costs.append)
+
+    assert costs == [0.0, 0.0]
+
+
 # --- the number check ----------------------------------------------------------------
 
-RESULTS = ['{"as_of": "2026-10-30", "rows": [{"count": 86, "change": -41, "name": "u014"}]}']
+RESULTS = [
+    '{"as_of": "2026-10-30", "rows": [{"user_id": "u014", "count": 86, "change": -41, '
+    '"last_seen": "2026-09-25", "ok": true}]}'
+]
+ROSTER_LIKE = [
+    '{"as_of": "2026-10-30", "active_count": 35, "active": [{"user_id": "u012", "name": "A"}, '
+    '{"user_id": "u031", "name": "B"}]}'
+]
 
 
 @pytest.mark.parametrize(
@@ -258,13 +288,17 @@ RESULTS = ['{"as_of": "2026-10-30", "rows": [{"count": 86, "change": -41, "name"
     [
         "There were 86 errors.",
         "Down by 41 in the last 7 days.",
-        "86 errors over the last 30 days, as of 30 October 2026.",
-        "Last seen on 2026-10-30.",
-        "No numbers here at all.",
         "It changed by -41.",
+        "86 errors over the last 30 days, as of 30 October 2026.",
+        "86 errors in the 30-day window (30d).",
+        "Last seen on 2026-09-25.",
+        "Last seen on 25 September 2026.",
+        "Last seen on Sep 25, 2026, which was the 25th of September.",
+        "u014 had 86 errors.",
+        "No numbers here at all.",
     ],
 )
-def test_numbers_from_the_results_dates_and_window_lengths_pass(answer: str) -> None:
+def test_numbers_dates_ids_and_window_phrases_from_the_results_pass(answer: str) -> None:
     assert unsupported_numbers(answer, RESULTS) == []
 
 
@@ -276,10 +310,30 @@ def test_numbers_from_the_results_dates_and_window_lengths_pass(answer: str) -> 
         ("Roughly 50% of people.", ["50"]),
         ("86 errors, up from 12.", ["12"]),
         ("1,086 errors.", ["1,086"]),
+        # Digits that only occur inside a date or an id are not counts.
+        ("10 invoices were issued.", ["10"]),
+        ("30 people were active.", ["30"]),
+        ("7 errors in the last 30 days.", ["7"]),
+        ("2026 events.", ["2026"]),
+        ("14 people were affected.", ["14"]),
+        ("25 logins.", ["25"]),
+        # A date that is not in the results is not excused.
+        ("Last seen on 24 September 2026.", ["24", "2026"]),
+        ("u015 had 86 errors.", ["015"]),
+        # `true` is not 1.
+        ("1 error.", ["1"]),
+        # Superscript digits read as digits.
+        ("Usage is 4\u00b2 higher.", ["42"]),
     ],
 )
 def test_any_other_number_is_caught(answer: str, bad: list[str]) -> None:
     assert unsupported_numbers(answer, RESULTS) == bad
+
+
+def test_a_count_cannot_borrow_digits_from_ids_in_a_roster() -> None:
+    assert unsupported_numbers("The invoice generator had 12 errors.", ROSTER_LIKE) == ["12"]
+    assert unsupported_numbers("31 people, 35 active.", ROSTER_LIKE) == ["31"]
+    assert unsupported_numbers("35 people were active.", ROSTER_LIKE) == []
 
 
 def test_thousands_separators_match_the_plain_number() -> None:

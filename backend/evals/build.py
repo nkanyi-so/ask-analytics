@@ -127,7 +127,8 @@ def answerable(truth: dict[str, Any]) -> list[dict[str, Any]]:
           [text({"call": 0, "list": "never_showed_up", "join": "name"})]),
         q("i04", "What is failing most often lately?", call("errors_seen", "7d", tool_id=None),
           "The {0} is failing most: {1} errors in the last 7 days.",
-          [text({"call": 0, "list": "rows", "top": "count", "field": "tool_name"}),
+          # Scored on the count alone: naming the tool or the error source is equally right.
+          [{"call": 0, "list": "rows", "top": "count", "field": "tool_name", "check": None},
            number({"call": 0, "list": "rows", "top": "count", "field": "count"})]),
         q("i05", "Which client got the most done this week?", call("activity_by_client", "7d"),
           "{0} produced the most in the last 7 days: {1} outputs.",
@@ -227,6 +228,8 @@ def expectation(truth: dict[str, Any], question: dict[str, Any]) -> dict[str, An
                 expect["texts"] += value.split(", ")
             case "direction":
                 expect["direction"] = value
+            case _:
+                pass  # worded in the fixture answer, not scored
     return expect
 
 

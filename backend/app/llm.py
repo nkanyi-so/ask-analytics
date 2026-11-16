@@ -67,6 +67,16 @@ def cost_usd(model: str, input_tokens: int, output_tokens: int) -> float:
     return (input_tokens * input_price + output_tokens * output_price) / 1_000_000
 
 
+# A generous guess at one model call's input: the system prompt, the tool definitions
+# and the largest tool results, several times over. Measured results are a few thousand.
+WORST_CASE_INPUT_TOKENS = 15_000
+
+
+def worst_case_call_usd(model: str) -> float:
+    """The most one model call can cost: a large input and the full output allowance."""
+    return cost_usd(model, WORST_CASE_INPUT_TOKENS, MAX_TOKENS)
+
+
 # --- the real client -----------------------------------------------------------------
 
 

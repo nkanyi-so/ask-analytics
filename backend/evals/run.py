@@ -22,7 +22,13 @@ from app.assistant import answer_question
 from app.cache import TTLCache
 from app.config import REPO_ROOT, Settings, get_settings
 from app.db import load_database
-from app.llm import AnthropicClient, FixtureClient, ModelClient, load_fixtures
+from app.llm import (
+    AnthropicClient,
+    FixtureClient,
+    ModelClient,
+    ModelUnavailable,
+    load_fixtures,
+)
 from app.lookups import Lookups
 from app.sources import build_source
 from evals.scoring import passes
@@ -56,7 +62,13 @@ def run(client: ModelClient, lookups: Lookups, runs: int) -> list[Outcome]:
     for question in load_questions():
         answers, passed, cost = [], [], 0.0
         for _ in range(runs):
-            result = answer_question(question["question"], client, lookups)
+            try:
+                result = answer_question(question["question"], client, lookups)
+            except ModelUnavailable as error:
+                # One outage must not throw away a paid run: count it and carry on.
+                answers.append(f"<model unavailable: {error}>")
+                passed.append(False)
+                continue
             answers.append(result.answer)
             passed.append(passes(question, result.answer, result.refused))
             cost += result.cost_usd

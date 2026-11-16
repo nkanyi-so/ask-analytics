@@ -1,5 +1,6 @@
 """FastAPI app. Routes stay thin: every number comes from `lookups.py`."""
 
+import ipaddress
 import logging
 import secrets
 from collections.abc import AsyncIterator
@@ -11,12 +12,19 @@ from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-from app.assistant import AskResult, answer_question
+from app.assistant import MAX_MODEL_TURNS, AskResult, answer_question
 from app.cache import TTLCache
 from app.config import EVALS_DIR, Settings, get_settings
 from app.db import load_database
 from app.limits import DailyBudget, RateLimiter
-from app.llm import AnthropicClient, FixtureClient, ModelClient, ModelUnavailable, load_fixtures
+from app.llm import (
+    AnthropicClient,
+    FixtureClient,
+    ModelClient,
+    ModelUnavailable,
+    load_fixtures,
+    worst_case_call_usd,
+)
 from app.lookups import (
     ClientActivity,
     ErrorGroup,
@@ -89,11 +97,21 @@ def visitor_of(request: Request) -> str:
     """Who is asking, for the rate limit.
 
     Only the frontend's server calls this API, so the socket address is always the
-    same. It forwards the real visitor in X-Forwarded-For. That header is trusted only
-    because this runs after the admin-token check: nobody else gets this far.
+    same. The frontend sets X-Forwarded-For to the visitor's address as its platform
+    reports it. The header is trusted only because this runs after the admin-token
+    check. If it holds a list, the last entry is used: that is the one the nearest
+    proxy added, and the earlier ones are whatever the browser claimed.
     """
-    forwarded = request.headers.get("x-forwarded-for", "").split(",")[0].strip()
-    return forwarded or (request.client.host if request.client else "unknown")
+    forwarded = request.headers.get("x-forwarded-for", "").split(",")[-1].strip()
+    address = forwarded or (request.client.host if request.client else "unknown")
+    try:
+        parsed = ipaddress.ip_address(address)
+    except ValueError:
+        return address
+    if parsed.version == 6:
+        # One IPv6 customer holds a whole /64 and could otherwise rotate through it.
+        return str(ipaddress.ip_network(f"{address}/64", strict=False))
+    return address
 
 
 def build_model_client(settings: Settings) -> ModelClient:
@@ -144,16 +162,24 @@ def api_router() -> APIRouter:
     @router.post("/ask")
     def ask(body: AskRequest, request: Request, lookups: Data) -> AskResponse:
         state = request.app.state
+        client: ModelClient = state.model_client
+        budget: DailyBudget = state.budget
         if not state.rate_limiter.allow(visitor_of(request)):
             raise HTTPException(429, "Too many questions. Wait a minute and try again.")
-        if not state.budget.has_room():
+        # Hold the worst case before calling the model, so a burst cannot overshoot.
+        call_estimate = worst_case_call_usd(client.model)
+        estimate = MAX_MODEL_TURNS * call_estimate
+        if not budget.reserve(estimate):
             raise HTTPException(429, "The demo has used its budget for today. Ask again tomorrow.")
-        client: ModelClient = state.model_client
+        spent: list[float] = []
         try:
-            result = answer_question(body.question, client, lookups)
+            result = answer_question(body.question, client, lookups, on_cost=spent.append)
         except ModelUnavailable as error:
+            # A call that failed or timed out may still be billed; assume it was.
+            spent.append(call_estimate)
             raise HTTPException(503, "The assistant is unavailable right now.") from error
-        state.budget.add(result.cost_usd)
+        finally:
+            budget.settle(estimate, sum(spent))
         return AskResponse(**result.model_dump(), demo_mode=isinstance(client, FixtureClient))
 
     return router

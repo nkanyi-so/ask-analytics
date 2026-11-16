@@ -11,6 +11,12 @@ Forty questions, scored by exact match on the number. No AI judge: every expecte
 
 An answerable question passes when the answer was not a refusal, contains every expected number as a whole number, contains every expected name, and (for comparisons) says the right direction. A refusal question passes only when the reply is a refusal.
 
+Three things to keep in mind when reading a table:
+
+- Dates and window phrases ("30 October 2026", "the last 7 days") are removed from an answer before its numbers are matched, so they cannot satisfy an expected number by accident. For comparisons, the direction word has to be near the number, and the opposite word must not be.
+- A few expected numbers are small (1, 3, 5). An answer could contain one for another reason, so a pass on those questions is weaker evidence than a pass on 382.
+- "Who has gone quiet?" expects the 7-day answer (two people), because the assistant is told to use 7 days when no window is named. Over 30 days the right answer is one person. A failure there measures the choice of window, not the count.
+
 ## Fixture mode
 
 `make check` runs the set with the fixture client and requires 40 of 40. No model is called. Each fixture says which lookup to call and which field of the result to put in the answer, so the number still comes from the real lookup and is scored against ground truth. This proves the lookups, the loop, the number check and the scorer. It says nothing about whether a model picks the right lookup.

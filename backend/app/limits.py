@@ -52,13 +52,19 @@ def utc_today() -> date:
 
 
 class DailyBudget:
-    """Stops the Ask endpoint for the day once the model has cost `limit_usd`."""
+    """Stops the Ask endpoint for the day once the model has cost `limit_usd`.
+
+    A question reserves its worst-case cost before the model is called and settles to
+    the real cost afterwards. Checking only what has already been spent would let a
+    burst of questions through together and overshoot the limit by all of them.
+    """
 
     def __init__(self, limit_usd: float, today: Callable[[], date] = utc_today) -> None:
         self._limit = limit_usd
         self._today = today
         self._day = today()
         self._spent = 0.0
+        self._reserved = 0.0
         self._lock = threading.Lock()
 
     def _roll_over(self) -> None:
@@ -66,15 +72,23 @@ class DailyBudget:
             self._day = self._today()
             self._spent = 0.0
 
-    def has_room(self) -> bool:
+    def reserve(self, estimate_usd: float) -> bool:
+        """Hold room for one question, or say there is none left today."""
         with self._lock:
             self._roll_over()
-            return self._spent < self._limit
+            if self._spent >= self._limit:
+                return False
+            if self._spent + self._reserved + estimate_usd > self._limit:
+                return False
+            self._reserved += estimate_usd
+            return True
 
-    def add(self, cost_usd: float) -> None:
+    def settle(self, estimate_usd: float, actual_usd: float) -> None:
+        """Release a reservation and record what the question really cost."""
         with self._lock:
             self._roll_over()
-            self._spent += cost_usd
+            self._reserved = max(0.0, self._reserved - estimate_usd)
+            self._spent += actual_usd
 
     @property
     def spent_usd(self) -> float:

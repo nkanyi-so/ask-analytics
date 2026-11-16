@@ -12,6 +12,8 @@ import json
 import logging
 import re
 import time
+import unicodedata
+from collections.abc import Callable
 from datetime import date
 from typing import Any
 
@@ -26,7 +28,8 @@ logger = logging.getLogger("ask_analytics.assistant")
 MAX_TOOL_CALLS = 3
 MAX_MODEL_TURNS = MAX_TOOL_CALLS + 2  # enough for three single calls and a final answer
 REFUSE_WORD = "REFUSE"
-WINDOW_LENGTHS = {7, 30}  # "the last 7 days", "the last 30 days"
+# Anywhere in the reply, not just at the start: "I must REFUSE" is still a refusal.
+REFUSE_PATTERN = re.compile(rf"\b{REFUSE_WORD}\b")
 
 REFUSAL_TEXT = (
     "I can't answer that from this dashboard. I can answer questions about usage by tool, "
@@ -193,24 +196,80 @@ def run_lookup(lookups: Lookups, name: str, raw_input: dict[str, Any]) -> tuple[
 # --- the number check ----------------------------------------------------------------
 
 NUMBER = re.compile(r"\d+(?:[.,]\d+)*")
+ISO_DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
+WINDOW_PHRASE = re.compile(r"\b(?:7|30)(?:[\s-]*days?|d)\b", re.IGNORECASE)
+ID_TOKEN = re.compile(r"\b[a-z]\d{2,3}\b")
+MONTHS = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+]
+
+
+def _walk(value: Any, numbers: set[int], strings: set[str]) -> None:
+    """Collect the JSON numbers and the string values of a tool result."""
+    if isinstance(value, bool):
+        return
+    if isinstance(value, int):
+        numbers.add(abs(value))  # "down by 41" for a change of -41
+    elif isinstance(value, str):
+        strings.add(value)
+    elif isinstance(value, list):
+        for item in value:
+            _walk(item, numbers, strings)
+    elif isinstance(value, dict):
+        for item in value.values():
+            _walk(item, numbers, strings)
+
+
+def _date_patterns(iso: str) -> list[re.Pattern[str]]:
+    """The ways an answer may write a date that is in the results."""
+    year, month, day = iso[:4], MONTHS[int(iso[5:7]) - 1], str(int(iso[8:10]))
+    name = f"(?:{month}|{month[:3]})\\.?"
+    ordinal = f"{day}(?:st|nd|rd|th)?"
+    return [
+        re.compile(re.escape(iso)),
+        re.compile(rf"\b{ordinal}\s+(?:of\s+)?{name}(?:,?\s+{year})?\b", re.IGNORECASE),
+        re.compile(rf"\b{name}\s+{ordinal}(?:,?\s+{year})?\b", re.IGNORECASE),
+    ]
 
 
 def _as_whole(token: str) -> int | None:
-    """1,234 -> 1234; 09 -> 9; anything with a decimal point -> None."""
+    """1,234 -> 1234; anything with a decimal point -> None."""
     plain = token.replace(",", "")
     return int(plain) if plain.isdigit() else None
 
 
 def unsupported_numbers(answer: str, tool_results: list[str]) -> list[str]:
-    """Numbers in the answer that no tool result of this turn contains.
+    """Numbers in the answer that no tool result of this turn justifies.
 
-    Compared as whole numbers, so 1,234 matches 1234 and a date's parts match the date.
-    Window lengths are always allowed. A decimal never matches: lookups return counts.
+    A number is justified if it is a number in a result (the sign aside). Digits are
+    also fine inside a date or an id that appears in the results, and in a window
+    phrase ("the last 7 days"). Anything else is reported: in particular a count that
+    merely matches part of an id or a date, and any decimal, since lookups return counts.
     """
-    allowed = set(WINDOW_LENGTHS)
+    numbers: set[int] = set()
+    strings: set[str] = set()
     for result in tool_results:
-        allowed |= {int(token) for token in re.findall(r"\d+", result)}
-    return [token for token in NUMBER.findall(answer) if _as_whole(token) not in allowed]
+        _walk(json.loads(result), numbers, strings)
+
+    # NFKC turns look-alikes such as superscript digits into plain ones.
+    remaining = unicodedata.normalize("NFKC", answer)
+    for iso in {match for value in strings for match in ISO_DATE.findall(value)}:
+        for pattern in _date_patterns(iso):
+            remaining = pattern.sub(" ", remaining)
+    remaining = ID_TOKEN.sub(lambda m: " " if m.group() in strings else m.group(), remaining)
+    remaining = WINDOW_PHRASE.sub(" ", remaining)
+    return [token for token in NUMBER.findall(remaining) if _as_whole(token) not in numbers]
 
 
 # --- the loop ------------------------------------------------------------------------
@@ -219,8 +278,9 @@ def unsupported_numbers(answer: str, tool_results: list[str]) -> list[str]:
 class Turn:
     """What one question has cost and looked up so far."""
 
-    def __init__(self, client: ModelClient) -> None:
+    def __init__(self, client: ModelClient, on_cost: Callable[[float], None] | None) -> None:
         self._client = client
+        self._on_cost = on_cost
         self._started = time.perf_counter()
         self.cost_usd = 0.0
         self.called: list[LookupCalled] = []
@@ -231,6 +291,9 @@ class Turn:
         reply = self._client.complete(system, TOOL_SPECS, messages)
         cost = cost_usd(self._client.model, reply.input_tokens, reply.output_tokens)
         self.cost_usd += cost
+        if self._on_cost is not None:
+            # Reported per call, so a failure on a later call cannot hide what was spent.
+            self._on_cost(cost)
         logger.info(
             "model_call model=%s latency_ms=%d input_tokens=%d output_tokens=%d cost_usd=%.6f "
             "stop_reason=%s",
@@ -279,8 +342,13 @@ def tool_results_for(turn: Turn, lookups: Lookups, reply: ModelReply) -> list[di
     return blocks
 
 
-def answer_question(question: str, client: ModelClient, lookups: Lookups) -> AskResult:
-    turn = Turn(client)
+def answer_question(
+    question: str,
+    client: ModelClient,
+    lookups: Lookups,
+    on_cost: Callable[[float], None] | None = None,
+) -> AskResult:
+    turn = Turn(client, on_cost)
     unavailable = client.cannot_answer(question)
     if unavailable is not None:
         return turn.refuse(unavailable)
@@ -303,7 +371,7 @@ def answer_question(question: str, client: ModelClient, lookups: Lookups) -> Ask
         # "refusal" from the model's own safeguards, or a reply cut off by max_tokens.
         logger.warning("refused: stop_reason=%s", reply.stop_reason)
         return turn.refuse()
-    if not turn.called or not answer or answer.upper().startswith(REFUSE_WORD):
+    if not turn.called or not answer or REFUSE_PATTERN.search(answer):
         return turn.refuse()
     unsupported = unsupported_numbers(answer, turn.results)
     if unsupported:
