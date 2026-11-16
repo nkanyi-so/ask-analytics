@@ -42,8 +42,19 @@ def test_an_unset_admin_token_lets_nobody_in() -> None:
             assert client.get("/api/overview?window=7d", headers=header).status_code == 401
 
 
-def test_health_needs_no_token(client: TestClient) -> None:
-    assert client.get("/health").json() == {"status": "ok"}
+def test_health_needs_no_token_and_says_whether_this_is_demo_mode(client: TestClient) -> None:
+    assert client.get("/health").json() == {"status": "ok", "demo_mode": True}
+
+
+def test_health_reports_a_live_app_as_not_demo_mode() -> None:
+    live = Settings(
+        _env_file=None,
+        anthropic_api_key="not-a-real-key",
+        admin_token=TEST_TOKEN,
+    )
+
+    # No lifespan here: building the live client is not needed to read the flag.
+    assert TestClient(create_app(live)).get("/health").json()["demo_mode"] is False
 
 
 def test_overview_is_the_lookups_and_nothing_else(
@@ -148,7 +159,7 @@ class CostlyClient:
 
 
 def ask(client: TestClient, question: str, visitor: str = "203.0.113.7") -> Any:
-    headers = {**AUTH, "X-Forwarded-For": visitor}
+    headers = {**AUTH, "X-Visitor-Address": visitor}
     return client.post("/api/ask", json={"question": question}, headers=headers)
 
 
@@ -249,27 +260,30 @@ def test_a_failed_model_call_is_still_charged_to_the_budget(settings: Settings) 
     ("header", "expected"),
     [
         ("203.0.113.7", "203.0.113.7"),
-        ("198.51.100.1, 203.0.113.7", "203.0.113.7"),
         ("2001:db8:1:2:aaaa:bbbb:cccc:dddd", "2001:db8:1:2::/64"),
         ("2001:db8:1:2::1", "2001:db8:1:2::/64"),
-        ("not-an-address", "not-an-address"),
+        ("shared", "shared"),
     ],
 )
 def test_visitor_key(header: str, expected: str) -> None:
-    request = Request({"type": "http", "headers": [(b"x-forwarded-for", header.encode())]})
+    request = Request({"type": "http", "headers": [(b"x-visitor-address", header.encode())]})
 
     assert visitor_of(request) == expected
 
 
-def test_a_browser_supplied_forwarded_entry_does_not_dodge_the_rate_limit(
-    settings: Settings,
-) -> None:
+def test_x_forwarded_for_is_ignored_because_proxies_rewrite_it(settings: Settings) -> None:
     limited = settings.model_copy(update={"ask_rate_per_minute": 1})
     with TestClient(create_app(limited)) as client:
-        first = ask(client, "Who has gone quiet?", visitor="10.0.0.1, 203.0.113.7")
-        second = ask(client, "Who has gone quiet?", visitor="10.9.9.9, 203.0.113.7")
+        statuses = [
+            client.post(
+                "/api/ask",
+                json={"question": "Who has gone quiet?"},
+                headers={**AUTH, "X-Forwarded-For": address},
+            ).status_code
+            for address in ("203.0.113.7", "198.51.100.9")
+        ]
 
-    assert (first.status_code, second.status_code) == (200, 429)
+    assert statuses == [200, 429], "a different X-Forwarded-For must not be a different visitor"
 
 
 def test_a_model_failure_is_reported_not_guessed(settings: Settings) -> None:

@@ -52,6 +52,11 @@ class ReliabilityResponse(BaseModel):
     errors: list[ErrorGroup]
 
 
+class HealthResponse(BaseModel):
+    status: str
+    demo_mode: bool
+
+
 class AskRequest(BaseModel):
     question: str = Field(min_length=1, max_length=500)
 
@@ -97,12 +102,12 @@ def visitor_of(request: Request) -> str:
     """Who is asking, for the rate limit.
 
     Only the frontend's server calls this API, so the socket address is always the
-    same. The frontend sets X-Forwarded-For to the visitor's address as its platform
-    reports it. The header is trusted only because this runs after the admin-token
-    check. If it holds a list, the last entry is used: that is the one the nearest
-    proxy added, and the earlier ones are whatever the browser claimed.
+    same. The frontend sends the visitor's address in X-Visitor-Address, a header of
+    our own: proxies between the two rewrite X-Forwarded-For, which would turn every
+    visitor into one. The header is trusted only because this runs after the
+    admin-token check, so only the frontend can have set it.
     """
-    forwarded = request.headers.get("x-forwarded-for", "").split(",")[-1].strip()
+    forwarded = request.headers.get("x-visitor-address", "").strip()
     address = forwarded or (request.client.host if request.client else "unknown")
     try:
         parsed = ipaddress.ip_address(address)
@@ -208,8 +213,9 @@ def create_app(
     )
 
     @app.get("/health")
-    def health() -> dict[str, str]:
-        return {"status": "ok"}
+    def health() -> HealthResponse:
+        # Public and data-free. `demo_mode` lets the page label recorded answers as such.
+        return HealthResponse(status="ok", demo_mode=app.state.settings.demo_mode)
 
     app.include_router(api_router())
     return app
