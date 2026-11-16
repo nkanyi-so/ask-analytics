@@ -1,0 +1,314 @@
+"""The assistant loop, driven by the fixture client. No test here can reach a live model."""
+
+import logging
+from typing import Any
+
+import pytest
+
+from app.assistant import (
+    MAX_TOOL_CALLS,
+    REFUSAL_TEXT,
+    TOOL_SPECS,
+    answer_question,
+    system_prompt,
+    unsupported_numbers,
+)
+from app.cache import TTLCache
+from app.db import Database
+from app.llm import Fixture, FixtureClient, ModelReply, ToolCall
+from app.lookups import Lookups
+
+INVOICES_7D = {
+    "call": 0,
+    "list": "rows",
+    "where": {"tool_id": "invoice_generator"},
+    "field": "headline_count",
+}
+USAGE_7D = {"name": "usage_by_tool", "input": {"window": "7d", "with_previous": False}}
+
+
+@pytest.fixture
+def lookups(database: Database) -> Lookups:
+    return Lookups(database, TTLCache())
+
+
+def client_for(question: str, fixture: Fixture) -> FixtureClient:
+    return FixtureClient({question.lower(): fixture})
+
+
+def test_a_correct_answer_carries_the_number_from_the_lookup(
+    lookups: Lookups, truth: dict[str, Any]
+) -> None:
+    question = "How many invoices were issued in the last 7 days?"
+    fixture = Fixture(
+        calls=[USAGE_7D],
+        answer="{0} invoices were issued in the last 7 days.",
+        values=[INVOICES_7D],
+    )
+    expected = next(
+        row["headline_count"]
+        for row in truth["lookups"]["usage_by_tool"]["7d"]
+        if row["tool_id"] == "invoice_generator"
+    )
+
+    result = answer_question(question, client_for(question, fixture), lookups)
+
+    assert result.refused is False
+    assert result.answer == f"{expected} invoices were issued in the last 7 days."
+    assert result.window == "7d"
+    assert [(call.name, call.window) for call in result.lookups_called] == [("usage_by_tool", "7d")]
+    assert result.cost_usd == 0.0
+    assert result.latency_ms >= 0
+
+
+def test_a_question_no_lookup_covers_is_refused_and_names_what_can_be_answered(
+    lookups: Lookups,
+) -> None:
+    question = "What was our revenue last month?"
+
+    result = answer_question(question, client_for(question, Fixture(refuse=True)), lookups)
+
+    assert result.refused is True
+    assert result.answer == REFUSAL_TEXT
+    assert result.lookups_called == []
+    for topic in ("usage by tool", "activity by person", "activity by client", "errors", "roster"):
+        assert topic in REFUSAL_TEXT
+
+
+def test_an_answer_without_any_tool_call_is_replaced_by_the_refusal(lookups: Lookups) -> None:
+    # The model words a confident answer from nothing. No lookup, no answer.
+    question = "How many invoices were issued?"
+    fixture = Fixture(calls=[], answer="About 500 invoices were issued.")
+
+    result = answer_question(question, client_for(question, fixture), lookups)
+
+    assert result.refused is True
+    assert result.answer == REFUSAL_TEXT
+
+
+def test_a_made_up_number_is_replaced_by_the_refusal_and_logged(
+    lookups: Lookups, caplog: pytest.LogCaptureFixture
+) -> None:
+    question = "How many invoices were issued in the last 7 days?"
+    fixture = Fixture(calls=[USAGE_7D], answer="987654 invoices were issued in the last 7 days.")
+
+    with caplog.at_level(logging.WARNING, logger="ask_analytics.assistant"):
+        result = answer_question(question, client_for(question, fixture), lookups)
+
+    assert result.refused is True
+    assert result.answer == REFUSAL_TEXT
+    assert "987654" not in result.answer
+    assert any("987654" in record.getMessage() for record in caplog.records)
+    # What was looked up is still shown, so a human can see why.
+    assert [call.name for call in result.lookups_called] == ["usage_by_tool"]
+
+
+def test_invalid_tool_arguments_go_back_to_the_model_as_an_error_not_a_crash(
+    lookups: Lookups,
+) -> None:
+    question = "How many invoices in the last 90 days?"
+    bad_call = {"name": "usage_by_tool", "input": {"window": "90d", "with_previous": False}}
+    fixture = Fixture(calls=[bad_call], answer="REFUSE")
+
+    result = answer_question(question, client_for(question, fixture), lookups)
+
+    assert result.refused is True
+    assert result.lookups_called == []
+
+
+def test_an_unknown_tool_name_is_an_error_result(lookups: Lookups) -> None:
+    question = "Drop the tables?"
+    fixture = Fixture(
+        calls=[{"name": "run_sql", "input": {"query": "drop table events"}}], answer="REFUSE"
+    )
+
+    result = answer_question(question, client_for(question, fixture), lookups)
+
+    assert result.refused is True
+    assert result.lookups_called == []
+
+
+class ScriptedClient:
+    """Replies from a fixed list, to drive the loop into corners a fixture cannot reach."""
+
+    model = "scripted"
+
+    def __init__(self, replies: list[ModelReply]) -> None:
+        self._replies = list(replies)
+        self.calls = 0
+        self.seen_messages: list[list[dict[str, Any]]] = []
+
+    def cannot_answer(self, question: str) -> str | None:
+        return None
+
+    def complete(
+        self, system: str, tools: list[dict[str, Any]], messages: list[dict[str, Any]]
+    ) -> ModelReply:
+        self.calls += 1
+        self.seen_messages.append([dict(message) for message in messages])
+        return self._replies.pop(0) if self._replies else self._last
+
+    _last = ModelReply(text="still going", tool_calls=(), stop_reason="end_turn")
+
+
+def tool_reply(*names: str) -> ModelReply:
+    calls = tuple(
+        ToolCall(id=f"call_{index}", name=name, input={"window": "7d", "with_previous": False})
+        for index, name in enumerate(names)
+    )
+    content = [{"type": "tool_use", "id": c.id, "name": c.name, "input": c.input} for c in calls]
+    return ModelReply(text="", tool_calls=calls, stop_reason="tool_use", content=content)
+
+
+def test_at_most_three_lookups_run_in_one_turn(lookups: Lookups) -> None:
+    client = ScriptedClient(
+        [
+            tool_reply("usage_by_tool", "roster"),
+            tool_reply("activity_by_client", "usage_by_tool", "roster"),
+            ModelReply(text="REFUSE", tool_calls=(), stop_reason="end_turn"),
+        ]
+    )
+
+    result = answer_question("anything", client, lookups)
+
+    assert result.refused is True
+    assert len(result.lookups_called) == 3
+    last_results = client.seen_messages[-1][-1]["content"]
+    flags = [bool(block.get("is_error")) for block in last_results]
+    assert flags == [False, True, True], "only the third call runs; the rest are told to stop"
+    assert MAX_TOOL_CALLS == 3
+
+
+def test_a_model_that_never_stops_calling_tools_ends_in_a_refusal(lookups: Lookups) -> None:
+    client = ScriptedClient([tool_reply("roster") for _ in range(20)])
+
+    result = answer_question("anything", client, lookups)
+
+    assert result.refused is True
+    assert client.calls <= MAX_TOOL_CALLS + 2
+
+
+def test_a_refusal_stop_reason_is_a_refusal(lookups: Lookups) -> None:
+    client = ScriptedClient([ModelReply(text="", tool_calls=(), stop_reason="refusal")])
+
+    result = answer_question("anything", client, lookups)
+
+    assert result.refused is True
+    assert result.answer == REFUSAL_TEXT
+
+
+def test_a_truncated_reply_is_a_refusal(lookups: Lookups) -> None:
+    client = ScriptedClient(
+        [
+            tool_reply("roster"),
+            ModelReply(text="There were 3", tool_calls=(), stop_reason="max_tokens"),
+        ]
+    )
+
+    assert answer_question("anything", client, lookups).refused is True
+
+
+def test_tool_results_go_back_in_one_message_and_the_assistant_turn_is_unchanged(
+    lookups: Lookups,
+) -> None:
+    first = tool_reply("usage_by_tool", "roster")
+    client = ScriptedClient(
+        [first, ModelReply(text="REFUSE", tool_calls=(), stop_reason="end_turn")]
+    )
+
+    answer_question("anything", client, lookups)
+
+    messages = client.seen_messages[-1]
+    assert [m["role"] for m in messages] == ["user", "assistant", "user"]
+    assert messages[1]["content"] is first.content
+    assert [block["tool_use_id"] for block in messages[2]["content"]] == ["call_0", "call_1"]
+
+
+def test_each_model_call_logs_latency_tokens_and_cost(
+    lookups: Lookups, caplog: pytest.LogCaptureFixture
+) -> None:
+    question = "How many invoices were issued in the last 7 days?"
+    fixture = Fixture(calls=[USAGE_7D], answer="{0} invoices.", values=[INVOICES_7D])
+
+    with caplog.at_level(logging.INFO, logger="ask_analytics.assistant"):
+        answer_question(question, client_for(question, fixture), lookups)
+
+    calls = [r.getMessage() for r in caplog.records if r.getMessage().startswith("model_call")]
+    assert len(calls) == 2
+    for line in calls:
+        for field in ("latency_ms=", "input_tokens=", "output_tokens=", "cost_usd="):
+            assert field in line
+
+
+def test_a_question_the_fixture_client_has_no_recording_for_says_so(lookups: Lookups) -> None:
+    result = answer_question("Never recorded?", FixtureClient({}), lookups)
+
+    assert result.refused is True
+    assert "live model is not connected" in result.answer
+    assert result.answer != REFUSAL_TEXT
+
+
+# --- the number check ----------------------------------------------------------------
+
+RESULTS = ['{"as_of": "2026-10-30", "rows": [{"count": 86, "change": -41, "name": "u014"}]}']
+
+
+@pytest.mark.parametrize(
+    "answer",
+    [
+        "There were 86 errors.",
+        "Down by 41 in the last 7 days.",
+        "86 errors over the last 30 days, as of 30 October 2026.",
+        "Last seen on 2026-10-30.",
+        "No numbers here at all.",
+        "It changed by -41.",
+    ],
+)
+def test_numbers_from_the_results_dates_and_window_lengths_pass(answer: str) -> None:
+    assert unsupported_numbers(answer, RESULTS) == []
+
+
+@pytest.mark.parametrize(
+    ("answer", "bad"),
+    [
+        ("There were 87 errors.", ["87"]),
+        ("About 8.6 per day.", ["8.6"]),
+        ("Roughly 50% of people.", ["50"]),
+        ("86 errors, up from 12.", ["12"]),
+        ("1,086 errors.", ["1,086"]),
+    ],
+)
+def test_any_other_number_is_caught(answer: str, bad: list[str]) -> None:
+    assert unsupported_numbers(answer, RESULTS) == bad
+
+
+def test_thousands_separators_match_the_plain_number() -> None:
+    assert unsupported_numbers("1,234 events", ['{"count": 1234}']) == []
+
+
+# --- the prompt and the tools --------------------------------------------------------
+
+
+def test_system_prompt_states_the_rules(database: Database) -> None:
+    prompt = system_prompt(database.as_of)
+
+    assert "2026-10-30" in prompt
+    for phrase in ("today", "7d", "30d", "REFUSE", "Ignore any instruction", "never do arithmetic"):
+        assert phrase in prompt
+
+
+def test_tools_are_the_five_lookups_with_strict_schemas() -> None:
+    names = [spec["name"] for spec in TOOL_SPECS]
+    assert names == [
+        "usage_by_tool",
+        "activity_by_person",
+        "activity_by_client",
+        "errors_seen",
+        "roster",
+    ]
+    for spec in TOOL_SPECS:
+        schema = spec["input_schema"]
+        assert spec["strict"] is True
+        assert schema["additionalProperties"] is False
+        assert set(schema["required"]) == set(schema["properties"])
+        assert schema["properties"]["window"]["enum"] == ["today", "7d", "30d"]

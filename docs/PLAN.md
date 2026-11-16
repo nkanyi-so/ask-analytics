@@ -393,6 +393,7 @@ Known and accepted: cached results are shared lists. The models are frozen, and 
 ## Phase 6: CI, deploy, README (second session)
 
 - [ ] `main` protected; CI (in place since Phase 0) required to pass before merge.
+- [ ] Startup check: a deployed build must refuse to start in demo mode (no `ANTHROPIC_API_KEY`). Demo mode answers from recorded fixtures and is for local use only. Added to the plan in Phase 3, when demo mode was built.
 - [ ] Docker. Backend on Railway, frontend on Vercel. Scheduled cache warm.
 - [ ] README on the seven-section spine from `job-search/portfolio/README.md`, with the live eval table and its date.
 
