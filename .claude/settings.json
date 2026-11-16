@@ -29,7 +29,12 @@
       "Bash(git push * --force*)",
       "Bash(git push * -f)",
       "Bash(git commit *--no-verify*)",
-      "Bash(git commit -n *)"
+      "Bash(git commit -n *)",
+      "Bash(git push * -f *)",
+      "Bash(git push * +*)",
+      "Bash(git commit -n)",
+      "Bash(git commit * -n)",
+      "Bash(git commit * -n *)"
     ]
   },
   "hooks": {

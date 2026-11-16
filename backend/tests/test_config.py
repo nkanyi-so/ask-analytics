@@ -1,6 +1,6 @@
 import pytest
 
-from app.config import DEFAULT_MODEL, Settings
+from app.config import DEFAULT_MODEL, REPO_ROOT, Settings
 
 
 def test_env_example_names_are_read(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -28,3 +28,12 @@ def test_demo_mode_follows_the_api_key(monkeypatch: pytest.MonkeyPatch) -> None:
 
     monkeypatch.setenv("ANTHROPIC_API_KEY", "not-a-real-key")
     assert Settings(_env_file=None).demo_mode is False
+
+
+def test_every_backend_name_in_env_example_is_a_setting() -> None:
+    # BACKEND_URL is read by the frontend only.
+    frontend_only = {"BACKEND_URL"}
+    lines = (REPO_ROOT / ".env.example").read_text().splitlines()
+    names = {line.split("=", 1)[0] for line in lines if "=" in line and not line.startswith("#")}
+
+    assert names - frontend_only == {field.upper() for field in Settings.model_fields}

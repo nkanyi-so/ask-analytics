@@ -5,7 +5,10 @@ INPUT=$(cat)
 FILE_PATH=$(printf '%s' "$INPUT" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("tool_input",{}).get("file_path",""))' 2>/dev/null)
 
 case "$FILE_PATH" in
-  .env|*/.env|.env.local|*/.env.local|uv.lock|*/uv.lock|package-lock.json|*/package-lock.json|*/.git/*)
+  .env.example|*/.env.example)
+    exit 0
+    ;;
+  .env|*/.env|.env.*|*/.env.*|uv.lock|*/uv.lock|package-lock.json|*/package-lock.json|*/.git/*)
     echo "Blocked: $FILE_PATH is protected (secrets, lockfile or git internals). Use uv or npm for dependencies and never touch .env." >&2
     exit 2
     ;;

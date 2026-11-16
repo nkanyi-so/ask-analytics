@@ -1,6 +1,7 @@
 .PHONY: setup seed dev check evals
 
 setup:
+	git config core.hooksPath .githooks
 	cd backend && uv sync
 	cd frontend && npm ci
 
