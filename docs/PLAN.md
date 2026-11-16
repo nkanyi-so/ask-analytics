@@ -599,7 +599,7 @@ For Phase 6: check on the real platforms that `x-real-ip` on Vercel and `X-Visit
 
 ## Phase 5: real source, MCP, summary (second session)
 
-- [ ] Mixpanel source: track via ingestion, read via raw export with a service account, one download per window, retry with backoff and a hard timeout. *Built and tested against a fake Mixpanel; left unticked until it has run against the real one.*
+- [x] Mixpanel source: track via ingestion, read via raw export with a service account, one download per window, retry with backoff and a hard timeout.
 - [x] MCP server (stdio) exposing the five lookups; Claude Desktop config in the README. *The config is in `docs/mcp.md` until Phase 6 writes the README.*
 - [x] Monday summary endpoint.
 
@@ -694,7 +694,50 @@ $ echo $?
 
 Non-blocking, all fixed: the person is read back from an explicit `user_id` property, since Mixpanel may rewrite `distinct_id`; the service-account secret is kept out of the config's `repr`; the fake Mixpanel now applies the date range, so a range that is too narrow fails the test; `anyio` has its line in the dependency record.
 
-**Gate: not passed.** MCP half shown; Mixpanel half waits for keys.
+**Gate: not passed** (as of the first entry above). MCP half shown; Mixpanel half waited for keys.
+
+*Second entry, 16 Nov 2026: the Mixpanel half, against the real service.* The human created a Mixpanel project that holds nothing else (US residency, free plan) and a service account with the project role Admin, and put the five `MIXPANEL_*` names in `.env`.
+
+`make mixpanel-push`:
+
+```
+Sent 9094 records to Mixpanel project <project id> (us).
+```
+
+Then the source, read through the real export API, compared with the seeded file and with ground truth (`EVENT_SOURCE` forced to `mixpanel` for the comparison):
+
+```
+export: one request, 7.5s
+clients 6 tools 8 users 40 events 9039 as_of 2026-10-30
+workspace identical to the file source: True
+  activity_by_client   today  equals ground truth
+  activity_by_client   7d     equals ground truth
+  activity_by_client   30d    equals ground truth
+  activity_by_person   today  equals ground truth
+  activity_by_person   7d     equals ground truth
+  activity_by_person   30d    equals ground truth
+  errors_seen          today  equals ground truth
+  errors_seen          7d     equals ground truth
+  errors_seen          30d    equals ground truth
+  roster               today  equals ground truth
+  roster               7d     equals ground truth
+  roster               30d    equals ground truth
+  usage_by_tool        today  equals ground truth
+  usage_by_tool        7d     equals ground truth
+  usage_by_tool        30d    equals ground truth
+15 of 15 lookup results equal ground truth
+```
+
+What the real service showed that the fake could not:
+
+- **Mixpanel rewrites dates.** A property sent as `2026-07-01` came back as `2026-07-01T00:00:00`, and the first real load failed on it. Dates are now read in either form, and the fake Mixpanel in the tests now does the same rewriting, so this cannot come back unnoticed. Timestamps (`ts`) came back exactly as sent.
+- **The first export after an import is slow.** Straight after the first push, a one-day export took 109 seconds to send its first byte, so the load hit its 60-second deadline and stopped, as designed. Minutes later the full 62-day export took 7 seconds. The deadline stays at 60 seconds, because an app that hangs at startup is worse than one that says why it cannot start. If a load fails right after a first push, wait a few minutes.
+- **A repeated push is harmless.** After a second `make mixpanel-push` the export still held 9,094 records with no duplicate ids, and the comparison above passed again unchanged.
+- Mixpanel adds properties of its own (`$user_id`, `$import`, several `$mp_*`). The source ignores them.
+
+Still not done: the MCP config has not been tried in Claude Desktop itself.
+
+**Gate: passed.** Lookups over the real Mixpanel source equal ground truth, and an MCP client lists five tools and gets the same result as the API.
 
 ---
 

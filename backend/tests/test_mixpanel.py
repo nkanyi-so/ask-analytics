@@ -2,6 +2,7 @@
 
 import base64
 import json
+import re
 from datetime import UTC, date, datetime
 from typing import Any
 
@@ -30,6 +31,23 @@ CONFIG = MixpanelConfig("4242", "svc.user", "svc-pass-not-real", AS_OF)
 EXPECTED_AUTH = "Basic " + base64.b64encode(b"svc.user:svc-pass-not-real").decode()
 
 
+DATE_ONLY = re.compile(r"\d{4}-\d{2}-\d{2}")
+
+
+def as_mixpanel_stores(record: dict[str, Any]) -> dict[str, Any]:
+    """What the real Mixpanel did to a record on the first real run (16 Nov 2026).
+
+    A property that is just a date came back as a date-time, and a `$user_id` and
+    several `$mp_*` properties were added. Everything else came back as sent.
+    """
+    properties = {
+        key: f"{value}T00:00:00" if isinstance(value, str) and DATE_ONLY.fullmatch(value) else value
+        for key, value in record["properties"].items()
+    }
+    properties |= {"$import": True, "$user_id": properties["distinct_id"], "$mp_event_size": 200}
+    return {"event": record["event"], "properties": properties}
+
+
 class FakeMixpanel:
     """Keeps what is imported and serves it back as an export, like the real thing."""
 
@@ -47,7 +65,7 @@ class FakeMixpanel:
             return httpx2.Response(self.fail_with.pop(0), text="try later")
         if request.url.path == "/import":
             batch = json.loads(request.content)
-            self.records.extend(batch)
+            self.records.extend(as_mixpanel_stores(record) for record in batch)
             return httpx2.Response(200, json={"code": 200, "num_records_imported": len(batch)})
         if request.url.path == "/api/2.0/export":
             wanted = set(json.loads(request.url.params["event"]))
@@ -81,7 +99,7 @@ def workspace() -> Workspace:
 @pytest.fixture
 def loaded(workspace: Workspace) -> FakeMixpanel:
     fake = FakeMixpanel()
-    fake.records = to_records(workspace, days=60)
+    fake.records = [as_mixpanel_stores(record) for record in to_records(workspace, days=60)]
     return fake
 
 
@@ -180,7 +198,7 @@ def test_it_gives_up_after_three_attempts(loaded: FakeMixpanel) -> None:
 
 def test_a_dropped_connection_is_retried(workspace: Workspace) -> None:
     fake = FakeMixpanel()
-    fake.records = to_records(workspace, 60)
+    fake.records = [as_mixpanel_stores(record) for record in to_records(workspace, 60)]
     calls = 0
 
     def flaky(request: httpx2.Request) -> httpx2.Response:
@@ -346,3 +364,13 @@ def test_settings_choose_the_mixpanel_source_and_name_what_is_missing() -> None:
         mixpanel_service_account_secret="svc-pass-not-real",
     )
     assert isinstance(build_source(full), MixpanelEventSource)
+
+
+def test_dates_are_read_back_in_the_form_mixpanel_returns_them(loaded: FakeMixpanel) -> None:
+    user = next(r for r in loaded.records if r["event"] == "workspace_user")
+    assert user["properties"]["invited_at"].endswith("T00:00:00")  # what the real export returns
+
+    workspace = source(loaded).load()
+
+    assert workspace.as_of == AS_OF
+    assert all(isinstance(person.invited_at, date) for person in workspace.users)
