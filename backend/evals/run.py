@@ -133,15 +133,23 @@ def build_lookups(settings: Settings) -> Lookups:
     return Lookups(load_database(build_source(settings)), TTLCache())
 
 
+def fixture_settings() -> Settings:
+    """Fixture mode never reads .env: it always scores the seeded file.
+
+    The fixtures were generated from that file, and `make check` must not send a
+    request to Mixpanel just because a local .env points the app at it.
+    """
+    return Settings(_env_file=None, event_source="file", anthropic_api_key="")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--live", action="store_true", help="call the live model (spends credits)")
     parser.add_argument("--model", help="model id for a live run (default: ANTHROPIC_MODEL)")
     arguments = parser.parse_args()
-    settings = get_settings()
-    lookups = build_lookups(settings)
 
     if not arguments.live:
+        lookups = build_lookups(fixture_settings())
         client: ModelClient = FixtureClient(load_fixtures(EVALS_DIR / "fixtures.json"))
         outcomes = run(client, lookups, runs=1)
         print("Evals, fixture mode (no model was called):\n")
@@ -151,11 +159,13 @@ def main() -> int:
             return 1
         return 0
 
+    settings = get_settings()
     if not settings.anthropic_api_key:
         print("evals: ANTHROPIC_API_KEY is not set, so there is no live run.", file=sys.stderr)
         return 2
     model = arguments.model or settings.anthropic_model
     client = AnthropicClient(settings.anthropic_api_key, model)
+    lookups = build_lookups(settings)
     outcomes = run(client, lookups, runs=LIVE_RUNS)
     write_live_section(model, outcomes, LIVE_RUNS)
     print(f"Evals, live, {model}:\n")

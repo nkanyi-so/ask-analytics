@@ -11,13 +11,23 @@
 | pydantic-settings | 0 | Typed settings from the environment, so `.env.example` names are checked in one place. |
 | sqlalchemy | 1 | Core only, no ORM: the schema and the lookups as portable SQL, per decision 0001. |
 | anthropic | 3 | The official SDK for the tool-use loop; its timeout, retry and typed errors replace hand-written ones. |
+| httpx2 | 5 | HTTP client for Mixpanel's import and export APIs. Already installed as the Anthropic SDK's own client, so this adds a direct use, not a new package. Was development-only before (the test client needs it). |
+
+## Backend (local tools, group `mcp`)
+
+Installed by `make setup`; a deployed API image can leave the group out, since the API never imports it.
+
+| Dependency | Phase | Reason |
+|---|---|---|
+| mcp | 5 | The official MCP SDK (2.x), for the stdio server that exposes the five lookups and for the client the tests use to prove it. It brings about a dozen packages of its own (HTTP and auth transports this project does not use), which is why it sits in its own group. |
+| anyio | 5 | Runs the MCP server's async entry point and the async MCP client inside tests. Not a new package: it is what `mcp` and `httpx2` are built on. Listed because it is now imported directly. |
 
 ## Backend (development only)
 
 | Dependency | Phase | Reason |
 |---|---|---|
 | pytest | 0 | Test runner. |
-| httpx2 | 0 | Needed by FastAPI's test client. Starlette now warns against plain `httpx`, and the Anthropic SDK is built on `httpx2` too, so one HTTP library covers both. |
+| httpx2 | 0 | Needed by FastAPI's test client. Starlette now warns against plain `httpx`, and the Anthropic SDK is built on `httpx2` too, so one HTTP library covers both. A runtime dependency since Phase 5 (see above). |
 | ruff | 0 | Format and lint. |
 | mypy | 0 | Strict type check on `backend/app`; also what the registry test runs to prove a tool without a headline event fails. |
 

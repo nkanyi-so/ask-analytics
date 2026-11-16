@@ -174,3 +174,16 @@ def test_a_live_run_without_a_key_stops_before_any_model_call(
 
     assert run.main() == 2
     assert "ANTHROPIC_API_KEY is not set" in capsys.readouterr().err
+
+
+def test_fixture_mode_ignores_a_local_env_that_points_at_mixpanel(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # `make check` must never send a request to Mixpanel, whatever .env says.
+    monkeypatch.setenv("EVENT_SOURCE", "mixpanel")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "not-a-real-key")
+
+    settings = run.fixture_settings()
+
+    assert settings.event_source == "file"
+    assert settings.demo_mode

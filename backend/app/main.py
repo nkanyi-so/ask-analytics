@@ -10,6 +10,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
 from app.assistant import MAX_MODEL_TURNS, AskResult, answer_question
@@ -35,6 +36,7 @@ from app.lookups import (
     Window,
 )
 from app.sources import build_source
+from app.summary import render_summary
 
 
 class OverviewResponse(BaseModel):
@@ -163,6 +165,11 @@ def api_router() -> APIRouter:
             window=window,
             errors=lookups.errors_seen(window, with_previous=True),
         )
+
+    @router.get("/summary", response_class=HTMLResponse)
+    def summary(lookups: Data) -> str:
+        # The Monday summary as HTML. Nothing sends it; a scheduler or a person fetches it.
+        return render_summary(lookups)
 
     @router.post("/ask")
     def ask(body: AskRequest, request: Request, lookups: Data) -> AskResponse:
