@@ -42,8 +42,15 @@ def test_an_unset_admin_token_lets_nobody_in() -> None:
             assert client.get("/api/overview?window=7d", headers=header).status_code == 401
 
 
-def test_health_needs_no_token(client: TestClient) -> None:
-    assert client.get("/health").json() == {"status": "ok"}
+def test_health_needs_no_token_and_says_whether_this_is_demo_mode(client: TestClient) -> None:
+    assert client.get("/health").json() == {"status": "ok", "demo_mode": True}
+
+
+def test_health_reports_a_live_app_as_not_demo_mode() -> None:
+    live = Settings(_env_file=None, admin_token=TEST_TOKEN, anthropic_api_key="not-a-real-key")
+
+    # No lifespan here: building the live client is not needed to read the flag.
+    assert TestClient(create_app(live)).get("/health").json()["demo_mode"] is False
 
 
 def test_overview_is_the_lookups_and_nothing_else(

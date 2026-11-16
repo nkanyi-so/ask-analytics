@@ -52,6 +52,11 @@ class ReliabilityResponse(BaseModel):
     errors: list[ErrorGroup]
 
 
+class HealthResponse(BaseModel):
+    status: str
+    demo_mode: bool
+
+
 class AskRequest(BaseModel):
     question: str = Field(min_length=1, max_length=500)
 
@@ -208,8 +213,9 @@ def create_app(
     )
 
     @app.get("/health")
-    def health() -> dict[str, str]:
-        return {"status": "ok"}
+    def health() -> HealthResponse:
+        # Public and data-free. `demo_mode` lets the page label recorded answers as such.
+        return HealthResponse(status="ok", demo_mode=app.state.settings.demo_mode)
 
     app.include_router(api_router())
     return app
