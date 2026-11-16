@@ -1,27 +1,30 @@
 # Deploying
 
-**None of the platform steps have been run.** CI builds the image and starts it on every pull request; the steps below are written from Railway's and Vercel's documentation as read on 16 Nov 2026 and still need a first real deploy.
+**None of the platform steps have been run.** CI builds the image and starts it on every pull request; the steps below were checked against Railway's and Vercel's documentation on 16 Nov 2026 and still need a first real deploy. Where the documentation does not settle a point, the step says so.
 
 Backend on Railway, from `backend/Dockerfile`. Frontend on Vercel, from `frontend/`.
 
 ## Backend (Railway)
 
-1. New service from the GitHub repo. Leave the root directory as the repo root: the image needs `data/` as well as `backend/`.
+1. New Project, choose the **GitHub repo** option, pick the repo, then **Add variables**. Leave the service's root directory as the repo root: the image needs `data/` as well as `backend/`.
 2. Service variables:
 
 | Variable | Value |
 |---|---|
-| `RAILWAY_DOCKERFILE_PATH` | `backend/Dockerfile` |
+| `RAILWAY_DOCKERFILE_PATH` | `/backend/Dockerfile` (Railway's own example of a Dockerfile in a subdirectory has the leading slash) |
 | `ADMIN_TOKEN` | a new random string of at least 32 characters; not the one in your local `.env` |
 | `ANTHROPIC_API_KEY` | your key |
 | `ANTHROPIC_MODEL` | leave unset for `claude-haiku-5-5` |
 | `FRONTEND_ORIGIN` | the Vercel URL, once you have it |
 | `ASK_RATE_PER_MINUTE`, `ASK_DAILY_BUDGET_USD` | optional; defaults are 5 and 2 |
 
-3. Settings, Deploy: health check path `/health`.
-4. Settings, Networking: generate a public domain. Vercel reaches the backend over the internet, so it must have one; the admin token is what keeps strangers out.
+3. Variable changes are staged, not applied: click **Deploy** to apply them.
+4. In the service settings, set the health check path to `/health`.
+5. In the service settings, under Networking, Public Networking, choose **Generate Domain**. Vercel reaches the backend over the internet, so it must have one; the admin token is what keeps strangers out.
 
 Railway injects `PORT` and the image listens on it. Do not set `EVENT_SOURCE` or `DEPLOYED`.
+
+Not settled by Railway's documentation: whether the Docker build context is the repo root when the Dockerfile is in a subdirectory. The image needs it to be. If the first build fails on `COPY data/events.jsonl`, that is the cause.
 
 No Railway config file is committed. Railway's `railway.toml` format stops working for existing services on 1 December 2026 and cannot be used for new ones, so the settings above are made in the dashboard.
 
@@ -39,11 +42,12 @@ The start-up log names every problem at once. CI builds the image and checks the
 
 ## Frontend (Vercel)
 
-1. New project from the same repo, with Root Directory set to `frontend`.
+1. Create New, Project, import the same repo. On the import screen, click **Edit** next to Root Directory and set it to `frontend`.
 2. Environment variables: `BACKEND_URL` (the Railway domain, with `https://`) and `ADMIN_TOKEN` (the same value as on Railway). Neither name starts with `NEXT_PUBLIC_`, and neither may.
-3. Keep "Automatically expose System Environment Variables" on. The Ask route trusts a visitor's address only when `VERCEL=1`.
+3. In the project's Environment Variables page, make sure **Enable access to System Environment Variables** is ticked. The Ask route trusts a visitor's address only when `VERCEL=1`, and Vercel sets that only with this option on.
+4. A changed environment variable only applies to new deployments: redeploy after any change.
 
-Then set `FRONTEND_ORIGIN` on Railway to the Vercel URL and redeploy the backend.
+Then set `FRONTEND_ORIGIN` on Railway to the Vercel URL and click Deploy there to apply it.
 
 ## Check after the first deploy
 
