@@ -1,0 +1,44 @@
+[project]
+name = "ask-analytics-backend"
+version = "0.1.0"
+description = "Lookups, API and assistant for the ask-analytics demo."
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.163.1",
+    "pydantic-settings>=2.16.3",
+    "uvicorn>=0.54.0",
+]
+
+[dependency-groups]
+dev = [
+    "httpx2>=2.16.1",
+    "mypy>=2.4.1",
+    "pytest>=9.2.0",
+    "ruff>=0.17.5",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "--strict-markers -q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["*.md"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "S", "C4", "PT", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests assert freely and use obviously fake tokens.
+"tests/**" = ["S101", "S105", "S106"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = ["app"]
+plugins = ["pydantic.mypy"]

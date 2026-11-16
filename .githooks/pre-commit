@@ -1,0 +1,6 @@
+#!/bin/bash
+# Blocks any commit unless the project gate passes. Enabled with: git config core.hooksPath .githooks
+# Does nothing until Phase 0 has created the Makefile.
+if [ -f Makefile ]; then
+  make check || { echo "pre-commit: make check failed. Fix the cause before committing." >&2; exit 1; }
+fi
