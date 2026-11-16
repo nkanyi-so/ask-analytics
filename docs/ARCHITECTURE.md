@@ -101,7 +101,11 @@ Return types are frozen dataclasses or pydantic models. The same objects feed th
 
 ## Registry
 
-`TOOL_IDS` is a `Literal` of the eight tool ids. `HEADLINE: dict[ToolId, HeadlineEvent]` must be total over it; the type checker enforces that. One test adds a ninth tool to a copy of the catalog without a headline event and asserts that `mypy` fails on it.
+`ToolId` is a `Literal` of the eight tool ids and `HeadlineEvent` a `Literal` of the eight headline events. `catalog_entry(tool: ToolId) -> CatalogEntry` is a `match` over every id that ends in `assert_never`, and `CatalogEntry.headline_event` is a required field. So the type checker rejects a tool id with no case, a case with no headline event, and a headline event that is not one of the eight.
+
+An earlier draft of this section said a `dict[ToolId, HeadlineEvent]` "must be total" and that the type checker enforces it. It does not: mypy accepts a dict that is missing a key. The exhaustive `match` is what makes the claim true.
+
+`tests/test_registry.py` copies `registry.py`, adds a ninth tool id without a case (and, separately, removes or falsifies a headline event), runs `mypy --strict` on the copy and asserts that it fails. It also checks that the unaltered copy passes, and that the catalog matches the tools in the data.
 
 ## API
 
