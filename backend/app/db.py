@@ -27,7 +27,8 @@ from sqlalchemy import (
 )
 from sqlalchemy.pool import StaticPool
 
-from app.sources.base import EventSource
+from app.registry import CATALOG
+from app.sources.base import EventSource, Workspace
 
 metadata = MetaData()
 
@@ -92,12 +93,31 @@ class Database:
             yield connection
 
 
+def check_workspace(workspace: Workspace) -> None:
+    """Refuse data the typed registry or the lookups cannot account for.
+
+    The type check proves every tool in the registry has a headline event. This is
+    what extends that proof to the numbers: a source may not bring its own tools.
+    """
+    in_data = {(tool.id, tool.name, tool.headline_event) for tool in workspace.tools}
+    in_registry = {(entry.id, entry.name, entry.headline_event) for entry in CATALOG}
+    if in_data != in_registry:
+        raise ValueError(f"Tools in the data do not match the registry: {in_data ^ in_registry}")
+    tool_ids = {tool.id for tool in workspace.tools}
+    for event in workspace.events:
+        if event.tool_id is not None and event.tool_id not in tool_ids:
+            raise ValueError(f"Event {event.id} names an unknown tool: {event.tool_id!r}")
+        if event.name == "error" and (event.tool_id is None or event.error_source is None):
+            raise ValueError(f"Error event {event.id} needs both a tool and an error source")
+
+
 def load_database(source: EventSource) -> Database:
     """Read a source once and hold it in an in-memory SQLite database."""
     if sqlite3.threadsafety != 3:
         # 3 means "serialized": one connection may be used from several threads.
         raise RuntimeError("This Python's SQLite is not built for sharing a connection.")
     workspace = source.load()
+    check_workspace(workspace)
     # One shared connection: an in-memory SQLite database lives and dies with its
     # connection, and the API reads it from several threads.
     engine = create_engine(
@@ -111,5 +131,6 @@ def load_database(source: EventSource) -> Database:
             (users, workspace.users),
             (events, workspace.events),
         ):
-            connection.execute(table.insert(), [asdict(row) for row in rows])
+            if rows:  # an insert with no rows would add one row of defaults
+                connection.execute(table.insert(), [asdict(row) for row in rows])
     return Database(engine=engine, as_of=workspace.as_of)

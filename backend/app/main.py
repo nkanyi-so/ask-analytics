@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from datetime import date
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Request
+from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -71,8 +71,39 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     yield
 
 
+def api_router() -> APIRouter:
+    # The token check sits on the router, so a route added here cannot forget it.
+    router = APIRouter(prefix="/api", dependencies=[Depends(require_admin)])
+    Data = Annotated[Lookups, Depends(get_lookups)]
+
+    @router.get("/overview")
+    def overview(window: Window, lookups: Data) -> OverviewResponse:
+        return OverviewResponse(
+            as_of=lookups.as_of,
+            window=window,
+            usage_by_tool=lookups.usage_by_tool(window, with_previous=True),
+            activity_by_person=lookups.activity_by_person(window, with_previous=True),
+            activity_by_client=lookups.activity_by_client(window, with_previous=True),
+            roster=lookups.roster(window, with_previous=True),
+        )
+
+    @router.get("/reliability")
+    def reliability(window: Window, lookups: Data) -> ReliabilityResponse:
+        return ReliabilityResponse(
+            as_of=lookups.as_of,
+            window=window,
+            errors=lookups.errors_seen(window, with_previous=True),
+        )
+
+    return router
+
+
 def create_app(settings: Settings | None = None) -> FastAPI:
-    app = FastAPI(title="ask-analytics", lifespan=lifespan)
+    # No /docs or /openapi.json: only the frontend's server calls this API, and a
+    # public deployment has no reason to publish its shape.
+    app = FastAPI(
+        title="ask-analytics", lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None
+    )
     app.state.settings = settings or get_settings()
     # The browser never calls this API (the frontend's server does), so this is a
     # second lock: only the frontend origin, only the methods the API has.
@@ -87,28 +118,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def health() -> dict[str, str]:
         return {"status": "ok"}
 
-    admin = [Depends(require_admin)]
-    Data = Annotated[Lookups, Depends(get_lookups)]
-
-    @app.get("/api/overview", dependencies=admin)
-    def overview(window: Window, lookups: Data) -> OverviewResponse:
-        return OverviewResponse(
-            as_of=lookups.as_of,
-            window=window,
-            usage_by_tool=lookups.usage_by_tool(window, with_previous=True),
-            activity_by_person=lookups.activity_by_person(window, with_previous=True),
-            activity_by_client=lookups.activity_by_client(window, with_previous=True),
-            roster=lookups.roster(window, with_previous=True),
-        )
-
-    @app.get("/api/reliability", dependencies=admin)
-    def reliability(window: Window, lookups: Data) -> ReliabilityResponse:
-        return ReliabilityResponse(
-            as_of=lookups.as_of,
-            window=window,
-            errors=lookups.errors_seen(window, with_previous=True),
-        )
-
+    app.include_router(api_router())
     return app
 
 

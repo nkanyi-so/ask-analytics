@@ -195,15 +195,155 @@ Carried forward: Phase 2 adds a test that runs lookups from several threads.
 
 ## Phase 2: lookups, registry, API
 
-- [ ] The five lookups as SQL group-bys, with the `Window` type, pinned time and `with_previous`.
-- [ ] Tests: every lookup, every window, equals ground truth exactly.
-- [ ] Typed headline registry and the test proving a tool without a headline event fails `mypy`.
-- [ ] TTL cache. API routes with the admin-token dependency. Health endpoint.
-- [ ] Tests: 401 without the token; cached call does not hit the database twice.
+- [x] The five lookups as SQL group-bys, with the `Window` type, pinned time and `with_previous`.
+- [x] Tests: every lookup, every window, equals ground truth exactly.
+- [x] Typed headline registry and the test proving a tool without a headline event fails `mypy`.
+- [x] TTL cache. API routes with the admin-token dependency. Health endpoint.
+- [x] Tests: 401 without the token; cached call does not hit the database twice.
 
 **Gate:** all lookup tests equal ground truth. The registry failure test passes. `curl` output for `/health`, `/api/overview?window=7d` with and without the token is in the log.
 
 **Log:**
+
+16 Nov 2026. Branch `phase-2-lookups`, pull request #3.
+
+*What was built.* `backend/app/registry.py` (typed catalog), `backend/app/lookups.py` (the five lookups as SQL group-bys, the `Window` type, `with_previous`, and the cached `Lookups` class the API and the assistant share), `backend/app/cache.py` (ten-minute TTL cache), and the routes in `backend/app/main.py`: `GET /health`, `GET /api/overview`, `GET /api/reliability`.
+
+*Docs changed.* The Registry section of `docs/ARCHITECTURE.md` is rewritten. The original said mypy enforces that a `dict[ToolId, HeadlineEvent]` is total. It does not. The registry is now an exhaustive `match` ending in `assert_never`, with a required `headline_event` field, and the section says why.
+
+*A bug found while building.* The first full `make check` after the lookups passed, the second failed: `ValueError: not enough values to unpack (expected 4, got 0)`. The in-memory database is one shared connection, and two threads reading it at once corrupted each other's results. The Phase 1 review had flagged the risk. `Database.connect()` now takes a lock, every lookup goes through it, and the thread test was widened to 400 calls over all five lookups. With the lock bypassed that test fails; with it, it passed five runs in a row:
+
+```
+$ uv run pytest tests/test_lookups.py -k threads      # lock bypassed
+1 failed, 34 deselected in 0.50s
+$ uv run pytest tests/test_lookups.py -k threads      # with the lock
+1 passed, 34 deselected in 2.88s
+```
+
+*Gate evidence.*
+
+All lookup tests equal ground truth, and the registry failure tests pass. Every lookup, every window, with and without the previous window:
+
+```
+$ cd backend && uv run pytest tests/test_lookups.py tests/test_registry.py -o addopts="" -v
+tests/test_lookups.py::test_lookup_with_previous_equals_ground_truth[usage_by_tool-today] PASSED
+tests/test_lookups.py::test_lookup_with_previous_equals_ground_truth[usage_by_tool-7d] PASSED
+tests/test_lookups.py::test_lookup_with_previous_equals_ground_truth[usage_by_tool-30d] PASSED
+tests/test_lookups.py::test_lookup_with_previous_equals_ground_truth[activity_by_person-today] PASSED
+tests/test_lookups.py::test_lookup_with_previous_equals_ground_truth[activity_by_person-7d] PASSED
+tests/test_lookups.py::test_lookup_with_previous_equals_ground_truth[activity_by_person-30d] PASSED
+tests/test_lookups.py::test_lookup_with_previous_equals_ground_truth[activity_by_client-today] PASSED
+tests/test_lookups.py::test_lookup_with_previous_equals_ground_truth[activity_by_client-7d] PASSED
+tests/test_lookups.py::test_lookup_with_previous_equals_ground_truth[activity_by_client-30d] PASSED
+tests/test_lookups.py::test_lookup_with_previous_equals_ground_truth[errors_seen-today] PASSED
+tests/test_lookups.py::test_lookup_with_previous_equals_ground_truth[errors_seen-7d] PASSED
+tests/test_lookups.py::test_lookup_with_previous_equals_ground_truth[errors_seen-30d] PASSED
+tests/test_lookups.py::test_lookup_with_previous_equals_ground_truth[roster-today] PASSED
+tests/test_lookups.py::test_lookup_with_previous_equals_ground_truth[roster-7d] PASSED
+tests/test_lookups.py::test_lookup_with_previous_equals_ground_truth[roster-30d] PASSED
+tests/test_lookups.py::test_lookup_without_previous_equals_ground_truth[usage_by_tool-today] PASSED
+tests/test_lookups.py::test_lookup_without_previous_equals_ground_truth[usage_by_tool-7d] PASSED
+tests/test_lookups.py::test_lookup_without_previous_equals_ground_truth[usage_by_tool-30d] PASSED
+tests/test_lookups.py::test_lookup_without_previous_equals_ground_truth[activity_by_person-today] PASSED
+tests/test_lookups.py::test_lookup_without_previous_equals_ground_truth[activity_by_person-7d] PASSED
+tests/test_lookups.py::test_lookup_without_previous_equals_ground_truth[activity_by_person-30d] PASSED
+tests/test_lookups.py::test_lookup_without_previous_equals_ground_truth[activity_by_client-today] PASSED
+tests/test_lookups.py::test_lookup_without_previous_equals_ground_truth[activity_by_client-7d] PASSED
+tests/test_lookups.py::test_lookup_without_previous_equals_ground_truth[activity_by_client-30d] PASSED
+tests/test_lookups.py::test_errors_without_previous_lists_only_groups_with_errors[today] PASSED
+tests/test_lookups.py::test_errors_without_previous_lists_only_groups_with_errors[7d] PASSED
+tests/test_lookups.py::test_errors_without_previous_lists_only_groups_with_errors[30d] PASSED
+tests/test_lookups.py::test_roster_without_previous_equals_ground_truth[today] PASSED
+tests/test_lookups.py::test_roster_without_previous_equals_ground_truth[7d] PASSED
+tests/test_lookups.py::test_roster_without_previous_equals_ground_truth[30d] PASSED
+tests/test_lookups.py::test_one_person_filter_returns_just_their_row PASSED
+tests/test_lookups.py::test_unknown_person_gives_no_rows PASSED
+tests/test_lookups.py::test_tool_filter_on_errors PASSED
+tests/test_lookups.py::test_time_is_pinned_to_as_of_not_the_wall_clock PASSED
+tests/test_lookups.py::test_lookups_are_safe_from_several_threads PASSED
+tests/test_registry.py::test_the_unaltered_registry_type_checks PASSED
+tests/test_registry.py::test_a_ninth_tool_without_a_headline_event_fails_mypy PASSED
+tests/test_registry.py::test_a_catalog_entry_without_a_headline_event_fails_mypy PASSED
+tests/test_registry.py::test_a_made_up_headline_event_fails_mypy PASSED
+tests/test_registry.py::test_catalog_covers_eight_tools_with_distinct_headline_events PASSED
+tests/test_registry.py::test_catalog_matches_the_tools_in_the_data PASSED
+============================== 41 passed in 4.50s ==============================
+```
+
+`curl` against the running backend (`uv run uvicorn app.main:app --port 8000`, token from `.env`, never printed):
+
+```
+$ curl -s -i localhost:8000/health
+HTTP/1.1 200 OK
+server: uvicorn
+content-length: 15
+content-type: application/json
+vary: Origin
+
+{"status":"ok"}
+
+$ curl -s -i "localhost:8000/api/overview?window=7d"
+HTTP/1.1 401 Unauthorized
+server: uvicorn
+content-length: 44
+content-type: application/json
+vary: Origin
+
+{"detail":"Missing or invalid admin token."}
+
+$ curl -s -H "Authorization: Bearer $ADMIN_TOKEN" "localhost:8000/api/overview?window=7d" | python3 -m json.tool | head -19
+HTTP 200, 16676 bytes
+{
+    "as_of": "2026-10-30",
+    "window": "7d",
+    "usage_by_tool": [
+        {
+            "tool_id": "call_agenda",
+            "tool_name": "Call agenda",
+            "headline_event": "agenda_created",
+            "headline_count": 46,
+            "active_people": 26,
+            "errors": 1,
+            "headline_count_previous": 54,
+            "headline_count_change": -8,
+            "active_people_previous": 28,
+            "active_people_change": -2,
+            "errors_previous": 0,
+            "errors_change": 1
+        },
+```
+
+The four lookup sections of that live reply were compared with `ground_truth.json` for `7d`: `{'usage_by_tool': True, 'activity_by_person': True, 'activity_by_client': True, 'roster': True}`.
+
+`make check` after the review fixes:
+
+```
+$ make check
+All checks passed!
+Success: no issues found in 12 source files
+103 passed in 6.53s
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+$ echo $?
+0
+```
+
+*Review.* The `reviewer` agent reported no blocking findings. It bypassed the lock itself and saw the thread test fail three times out of three, probed the window edges with synthetic events (midnight on `AS_OF` counts; midnight the next day does not), and ran every lookup on an empty events table without a crash. Its eight non-blocking findings were all fixed in this phase:
+
+1. The token check now sits on the `/api` router, so a route added later cannot forget it. A test walks the router's table and requires a 401 from every route.
+2. `/docs`, `/redoc` and `/openapi.json` are no longer served.
+3. The typed registry now reaches the numbers: `load_database` refuses a source whose tools differ from the registry. Before, only a test tied the two together.
+4. The cache test now checks each argument is part of the key (window, `with_previous`, `user_id`, `tool_id`).
+5. The names in `affected` are sorted in Python, not by the database, so the order survives a move to Postgres.
+6. A source with no events yet loads instead of crashing.
+7. Events on an unknown tool, and error events without a tool or a source, are rejected at load with a clear message.
+8. The cache drops expired entries and is capped at 512, since part of a key can come from a question.
+
+Carried from Phase 0 and done here: an unset `ADMIN_TOKEN` lets nobody in (tested with `Bearer `, `Bearer` and no header).
+
+Known and accepted: cached results are shared lists. The models are frozen, and nothing sorts or filters them in place.
+
+**Gate: passed.**
 
 ---
 

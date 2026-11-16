@@ -329,12 +329,12 @@ def _affected_names(
         .join(users, users.c.id == events.c.user_id)
         .where(_error_filter(span, tool_id))
         .distinct()
-        .order_by(users.c.name)
     )
     names: dict[GroupKey, list[str]] = {}
     for source, tool, name in connection.execute(query):
         names.setdefault((source, tool), []).append(name)
-    return names
+    # Sorted here rather than by the database: collations differ between engines.
+    return {key: sorted(group) for key, group in names.items()}
 
 
 def errors_seen(
