@@ -114,7 +114,7 @@ All `/api/*` routes require `Authorization: Bearer <ADMIN_TOKEN>`.
 - `GET /health` no auth
 - `GET /api/overview?window=` usage by tool, activity by person and client, roster counts, `as_of`
 - `GET /api/reliability?window=` errors seen
-- `POST /api/ask {question}` → `{answer, window, lookups_called, refused, latency_ms, cost_usd}`
+- `POST /api/ask {question}` → `{answer, window, lookups_called, refused, latency_ms, cost_usd, demo_mode}`
 
 ## Assistant
 
@@ -125,7 +125,21 @@ All `/api/*` routes require `Authorization: Bearer <ADMIN_TOKEN>`.
 5. The question is untrusted input. The tools are read-only and scoped to the seeded data, so the worst a hostile question can do is get a refusal; the system prompt still tells the model to ignore instructions inside questions, and one eval covers it.
 6. Each call logs latency, tokens in and out, and cost.
 
-`llm.py` defines `ModelClient`. `AnthropicClient` is the real one; the model id comes from `ANTHROPIC_MODEL`. `FixtureClient` replays recorded tool choices for tests and fixture evals, so `make check` never spends credits.
+`llm.py` defines `ModelClient`. `AnthropicClient` is the real one; the model id comes from `ANTHROPIC_MODEL` (default `claude-haiku-5-5`). Cost comes from a small price table keyed by model id; a model id that is not in the table fails at startup, because a budget cap over an unpriced model is no cap. The hard timeout and the single retry are the SDK's own settings (`timeout=30`, `max_retries=1`).
+
+`FixtureClient` plays the model's part for tests and fixture evals, so `make check` never spends credits. Its script for each question is generated from the eval set: which lookup to call with which arguments, and which field of the result to put in the answer. The number in a fixture answer therefore still comes from the real lookup. Fixture evals prove the lookups, the loop, the number check and the scorer end to end. They say nothing about whether a model picks the right lookup; only a live run does.
+
+### What the API allows, and what follows from it
+
+- Current models reject a forced tool choice, so "the model must call a tool" is asked for in the prompt and enforced by rule 3 above: an answer with no tool call is replaced by the refusal.
+- Sampling parameters such as temperature are rejected too. There is no determinism knob; running each eval question three times is the only stability check.
+- A reply can stop with `stop_reason: "refusal"`. That is treated as a refusal like any other.
+- The model is told to answer with the single word `REFUSE` when no lookup covers the question. The refusal text itself is fixed in code, so a hostile question cannot shape it.
+- The number check: every number in the answer must be a number in a tool result of that turn (the sign aside). Digits are also allowed inside a date or an id that appears in the results, and in a window phrase such as "the last 7 days". A count that merely matches part of an id or a date is rejected, and so is any decimal, since lookups return counts. Two limits are known and accepted: a number written as a word passes unchecked, and a harmless count the model adds by itself ("the top 3") turns a good answer into a refusal.
+
+### Demo mode
+
+With no `ANTHROPIC_API_KEY` the backend runs the `FixtureClient`. Every `/api/ask` reply then carries `demo_mode: true`, questions from the eval set get their recorded answer, and any other question gets a plain "the live model is not connected" reply. The Ask box shows a visible "Demo mode" label. Demo mode must never be on in a deployed build; Phase 6 adds the startup check.
 
 ## Frontend
 
@@ -135,7 +149,9 @@ Next.js app router. Pages: `/` (Overview), `/reliability`, plus the Ask box on O
 
 - Admin token on every data route; compared in constant time.
 - The token lives only in server environments.
-- Ask endpoint: per-visitor rate limit and a daily budget cap.
+- Ask endpoint: per-visitor rate limit and a daily budget cap. The browser only ever talks to the frontend's server, so the backend sees one caller. The frontend's route handler therefore sets `X-Forwarded-For` to the visitor's address as its platform reports it, replacing whatever the browser sent, and the backend uses it as the rate-limit key. It can be trusted only because the route requires the admin token: a caller without the token never gets that far. If the header holds a list, the backend uses the last entry, and it keys IPv6 visitors by their /64.
+- The budget is reserved, not just checked. Before the model is called, a question reserves its worst-case cost (five model calls, each with a large input and the full output allowance); afterwards it settles to what the calls really cost. So a burst of questions cannot pass the check together and overshoot the limit. Cost is recorded per model call, and a call that fails or times out is charged as a worst-case call, since it may still be billed. The price of this safety is that the endpoint stops one worst-case question short of the limit: about $0.02 on `claude-haiku-5-5` and about $0.71 on `claude-opus-5-5`, so a $2 budget is too small to say much with Opus.
+- The admin token keeps strangers off the backend. It does not protect the public demo's spend: anyone who opens the page can ask through the frontend. The rate limit and the daily budget are what stand between a visitor and the API bill.
 - CORS limited to the frontend origin.
 - `.env` ignored, `.env.example` tracked, secret scan in CI from Phase 0.
 - Rate limit and budget counters are in memory, which is enough for one small instance; the README says so and names Redis as the next step.

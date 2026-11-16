@@ -353,15 +353,103 @@ Known and accepted: cached results are shared lists. The models are frozen, and 
 
 ## Phase 3: assistant and evals
 
-- [ ] `ModelClient`, `AnthropicClient`, `FixtureClient`.
-- [ ] Tool-use loop over the five lookups, the refusal rule, and the after-generation number check.
-- [ ] Cost and latency logging. Rate limit and daily budget on `/api/ask`.
-- [ ] `evals/questions.json` generated from ground truth: thirty answerable in three tiers, ten refusals including three adversarial (see `docs/SPEC.md`). Results reported per tier. `evals/run.py` with fixture and live modes, writing `docs/eval-results.md`.
-- [ ] Tests (fixture client): a correct answer, a refusal, a made-up number replaced by a refusal, the rate limit, the budget cap.
+- [x] `ModelClient`, `AnthropicClient`, `FixtureClient`.
+- [x] Tool-use loop over the five lookups, the refusal rule, and the after-generation number check.
+- [x] Cost and latency logging. Rate limit and daily budget on `/api/ask`.
+- [x] `evals/questions.json` generated from ground truth: thirty answerable in three tiers, ten refusals including three adversarial (see `docs/SPEC.md`). Results reported per tier. `evals/run.py` with fixture and live modes, writing `docs/eval-results.md`.
+- [x] Tests (fixture client): a correct answer, a refusal, a made-up number replaced by a refusal, the rate limit, the budget cap.
+
+- [ ] One live run of `make evals`, with its table in the log. Not done: no API key yet.
 
 **Gate:** fixture evals run inside `make check` and pass. One live run of `make evals` is done only if `ANTHROPIC_API_KEY` is set and the human has said yes; its table goes in the log. If there is no key, say so and leave the live run unticked.
 
 **Log:**
+
+16 Nov 2026. Branch `phase-3-assistant`, pull request #5.
+
+*What was built.* `backend/app/llm.py` (`ModelClient`, `AnthropicClient`, `FixtureClient`, the price table), `backend/app/assistant.py` (system prompt, strict tool schemas for the five lookups, the loop, the refusal rule, the number check, cost and latency logging), `backend/app/limits.py` (per-visitor rate limit, daily budget), `POST /api/ask`, and `backend/evals/` (`build.py` generates `questions.json` and `fixtures.json` from ground truth; `scoring.py`; `run.py` with fixture and live modes). `make seed` now also regenerates the eval files; `make check` now runs the fixture evals.
+
+*Decisions from the plan, as built.*
+
+- Default model `claude-haiku-5-5`. The price table also has `claude-opus-5-5`. A model without a price stops a live app at startup (`test_an_unpriced_model_stops_a_live_app_from_starting`).
+- `make evals` runs the configured model; `make evals MODEL=claude-opus-5-5` runs another. Each model gets its own section in `docs/eval-results.md`.
+- Demo mode: with no `ANTHROPIC_API_KEY` the app answers from fixtures and every `/api/ask` reply carries `demo_mode: true`. A question with no recording gets a plain "live model is not connected" reply, worded differently from a refusal. Phase 6 has a new item: a deployed build must refuse to start in demo mode.
+- Server-side model fallbacks are off.
+
+*Where the library differs from the docs* (now written into ARCHITECTURE, "What the API allows"): the Anthropic SDK is 2.x; current models reject a forced tool choice and sampling parameters, so there is no determinism knob; a reply can stop with `stop_reason: "refusal"`; thinking blocks must go back unchanged, so the assistant turn is appended exactly as received. "Hard timeout, one retry with backoff" is the SDK's own `timeout=30` and `max_retries=1`.
+
+*What fixture evals do and do not show.* The fixture client plays the model from a script: which lookup to call, and which field of the result to put in the answer. The number still comes from the real lookup and is scored against ground truth. That proves the lookups, the loop, the number check and the scorer. It does not show that a model picks the right lookup. Only a live run does.
+
+*Gate evidence.*
+
+Fixture evals run inside `make check` and pass:
+
+```
+$ make check
+All checks passed!
+Success: no issues found in 19 source files
+259 passed in 9.21s
+Evals, fixture mode (no model was called):
+
+| Tier | Questions | Passed | Rate |
+|---|---|---|---|
+| direct | 12 | 12 | 100% |
+| indirect | 10 | 10 | 100% |
+| comparison | 8 | 8 | 100% |
+| refusal | 10 | 10 | 100% |
+| all | 40 | 40 | 100% |
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+$ echo $?
+0
+```
+
+The tests the plan names, by name:
+
+```
+tests/test_assistant.py::test_a_correct_answer_carries_the_number_from_the_lookup PASSED
+tests/test_assistant.py::test_a_question_no_lookup_covers_is_refused_and_names_what_can_be_answered PASSED
+tests/test_assistant.py::test_a_made_up_number_is_replaced_by_the_refusal_and_logged PASSED
+tests/test_api.py::test_rate_limit_is_per_visitor_and_returns_a_clear_message PASSED
+tests/test_api.py::test_daily_budget_stops_the_endpoint_before_the_model_is_called PASSED
+```
+
+`/api/ask` on the running backend, in demo mode (token from `.env`, never printed):
+
+```
+$ ask "How many invoices were issued in the last 7 days?"
+{"answer":"In the last 7 days, 10 invoices were issued.","window":"7d","lookups_called":[{"name":"usage_by_tool","window":"7d","args":{"window":"7d","with_previous":false}}],"refused":false,"latency_ms":4,"cost_usd":0.0,"demo_mode":true}
+$ ask "What will usage look like next month?"
+{"answer":"I can't answer that from this dashboard. I can answer questions about usage by tool, activity by person, activity by client, errors seen, and the roster (who is in, who never showed up, who went quiet), for today, the last 7 days or the last 30 days.","window":null,"lookups_called":[],"refused":true,"latency_ms":0,"cost_usd":0.0,"demo_mode":true}
+$ ask "What is the weather like?"
+{"answer":"Demo mode: the live model is not connected, and this question has no recorded answer. Try one of the suggested questions.","window":null,"lookups_called":[],"refused":true,"latency_ms":0,"cost_usd":0.0,"demo_mode":true}
+$ curl -s -o /dev/null -w '%{http_code}' -X POST localhost:8000/api/ask -d '{"question":"x"}'     # no token
+401
+$ # four more questions from the same visitor, with ASK_RATE_PER_MINUTE=5
+200 200 429 429
+```
+
+Cost and latency are logged per model call (stderr of the backend):
+
+```
+2026-11-16 11:45:42,439 INFO ask_analytics.assistant model_call model=fixture latency_ms=0 input_tokens=0 output_tokens=0 cost_usd=0.000000 stop_reason=tool_use
+2026-11-16 11:45:42,448 INFO ask_analytics.assistant model_call model=fixture latency_ms=0 input_tokens=0 output_tokens=0 cost_usd=0.000000 stop_reason=end_turn
+```
+
+**Live run: not done, box left unticked.** `ANTHROPIC_API_KEY` is empty, as agreed, so `make evals` was not run and no model was called at any point in this phase. `docs/eval-results.md` says "None yet" under live runs. SPEC's "`make evals` produces a results table" is therefore not met yet. A test checks that a live run without a key stops before any client is built.
+
+*Review.* The `reviewer` agent found four blocking problems. All four were real and are fixed:
+
+1. **The number check let small invented counts through.** It collected every run of digits in the raw result text, so digits inside ids (`u001` to `u040`) and dates (`2026-10-30`) excused any count from 1 to 40, plus 10, 30 and 2026. Most counts in this data are in that range. Now only JSON numbers in the results count. Digits are otherwise allowed only inside a date or an id that is itself in the results, or in a window phrase. New tests: "12 errors" fails against a roster result; "10 invoices" fails against a result whose only 10 is the month in `as_of`.
+2. **A model error after billed calls was never charged to the budget.** Cost is now reported per model call, and a call that fails or times out is charged as a worst-case call.
+3. **A burst of questions could overshoot the budget**, because the check looked only at what was already spent. A question now reserves its worst-case cost before the model is called and settles afterwards. Worst case per question is about $0.02 on Haiku and $0.71 on Opus, so the endpoint stops that far short of the limit rather than going over it.
+4. **The eval scorer passed a wrong direction when the answer echoed both words** ("more or less? It went up"). The direction word must now be near the number, and the opposite word must not be.
+
+Non-blocking, fixed: the visitor key uses the last `X-Forwarded-For` entry and groups IPv6 by /64; one model outage no longer aborts a live eval run; `REFUSE` anywhere in a reply is a refusal; superscript digits are read as digits; dates and window phrases are stripped before eval numbers are matched; "what is failing most" is scored on the count alone, since naming the tool or the error source is equally right.
+
+Known and accepted, noted in `docs/eval-results.md`: a few expected numbers are small (1, 3, 5), and "Who has gone quiet?" measures the choice of window as much as the count.
+
+**Gate: passed, with the live run outstanding.**
 
 ---
 
@@ -393,6 +481,7 @@ Known and accepted: cached results are shared lists. The models are frozen, and 
 ## Phase 6: CI, deploy, README (second session)
 
 - [ ] `main` protected; CI (in place since Phase 0) required to pass before merge.
+- [ ] Startup check: a deployed build must refuse to start in demo mode (no `ANTHROPIC_API_KEY`). Demo mode answers from recorded fixtures and is for local use only. Added to the plan in Phase 3, when demo mode was built.
 - [ ] Docker. Backend on Railway, frontend on Vercel. Scheduled cache warm.
 - [ ] README on the seven-section spine from `job-search/portfolio/README.md`, with the live eval table and its date.
 
