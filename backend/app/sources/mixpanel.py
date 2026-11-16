@@ -10,6 +10,8 @@ Three things about Mixpanel shape this file:
 - Older projects shift `time` and the export's date range into the project's timezone.
   So each event carries its own timestamp as a property, which is what is read back,
   and the date range is padded by a day on each side.
+- A property that looks like a date comes back as a date-time (`2026-07-01` becomes
+  `2026-07-01T00:00:00`), so dates are read in either form. Found on the first real run.
 - The roster has people with no events, and the lookups need clients and tools too.
   They travel as `workspace_*` events, so one export returns the whole workspace.
 """
@@ -154,6 +156,15 @@ def to_records(workspace: Workspace, days: int) -> list[dict[str, Any]]:
     return records
 
 
+def _day(value: str) -> date:
+    """A date as Mixpanel returns it.
+
+    Mixpanel recognises a property that looks like a date and stores it as a date-time:
+    `2026-07-01` goes in and `2026-07-01T00:00:00` comes out. Both forms are read.
+    """
+    return datetime.fromisoformat(value).date()
+
+
 def from_lines(lines: Iterator[str], expected_as_of: date) -> Workspace:
     """Rebuild the workspace from export lines, dropping duplicates."""
     as_of: date | None = None
@@ -168,13 +179,13 @@ def from_lines(lines: Iterator[str], expected_as_of: date) -> Workspace:
         name, p = record["event"], record["properties"]
         try:
             if name == META:
-                as_of = date.fromisoformat(p["as_of"])
+                as_of = _day(p["as_of"])
             elif name == CLIENT:
                 clients.setdefault(p["id"], Client(p["id"], p["name"]))
             elif name == TOOL:
                 tools.setdefault(p["id"], Tool(p["id"], p["name"], p["headline_event"]))
             elif name == USER:
-                invited_at = date.fromisoformat(p["invited_at"])
+                invited_at = _day(p["invited_at"])
                 users.setdefault(
                     p["id"], User(p["id"], p["name"], p["client_id"], p["role"], invited_at)
                 )

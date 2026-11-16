@@ -74,6 +74,8 @@ Chosen with `EVENT_SOURCE=mixpanel`; meant for local use, never the hosted demo.
 - **The export can hold duplicates.** Mixpanel says so. Every record has a stable `$insert_id`, which makes a repeated push harmless, and the source drops duplicates by the event's own id.
 - **Timezones.** Projects created before 2023 shift `time` and the export's date range into the project's timezone. So each event carries its own timestamp as a property, which is what is read back, and the date range is padded by a day on each side.
 - **`MIXPANEL_AS_OF`.** The export needs a date range before anything is read, so the day the data runs to is a setting. The data carries it too (`workspace_meta`), and a mismatch stops the load.
+- **Dates come back changed.** A property that is just a date (`2026-07-01`) is returned as a date-time (`2026-07-01T00:00:00`). Dates are read in either form.
+- **The first export after an import is slow.** It took almost two minutes once, then seconds. A load right after a first push can hit the deadline; wait a few minutes.
 - **Failure.** 429, 502, 503 and dropped connections are retried twice, after 2 and 4 seconds, as Mixpanel asks. A 400 or 401 is not retried. A load has 60 seconds in total, retries and waits included: no single wait is allowed to outlast what is left, and once the time is up the load stops and is not retried. An event with one of our names that we did not send stops the load, so use a project that holds nothing else.
 
 ## Time
