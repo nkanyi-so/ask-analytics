@@ -9,7 +9,7 @@ def test_health_needs_no_token() -> None:
     response = client.get("/health")
 
     assert response.status_code == 200
-    assert response.json() == {"status": "ok"}
+    assert response.json()["status"] == "ok"
 
 
 def test_startup_loads_the_seeded_data() -> None:

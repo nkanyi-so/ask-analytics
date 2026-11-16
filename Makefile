@@ -30,6 +30,7 @@ check:
 	cd frontend && npm run lint
 	cd frontend && npm run typecheck
 	cd frontend && npm test
+	cd frontend && npm run build
 
 # Live model run: every question three times, table written to docs/eval-results.md.
 # Spends API credits: never run without being asked. `make evals MODEL=claude-opus-5-5`
