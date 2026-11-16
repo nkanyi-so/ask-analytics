@@ -20,8 +20,8 @@ dev:
 	wait
 
 check:
-	cd backend && uv run ruff format --check .
-	cd backend && uv run ruff check .
+	cd backend && uv run ruff format --config pyproject.toml --check . ../scripts
+	cd backend && uv run ruff check --config pyproject.toml . ../scripts
 	cd backend && uv run mypy
 	cd backend && uv run pytest
 	cd frontend && npm run lint

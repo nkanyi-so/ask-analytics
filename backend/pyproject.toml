@@ -6,6 +6,7 @@ requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.163.1",
     "pydantic-settings>=2.16.3",
+    "sqlalchemy>=2.1.8",
     "uvicorn>=0.54.0",
 ]
 
@@ -22,7 +23,8 @@ package = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["."]
+# ".." so tests can import scripts/seed.py from the repo root.
+pythonpath = [".", ".."]
 addopts = "--strict-markers -q"
 
 [tool.ruff]
@@ -33,6 +35,9 @@ extend-exclude = ["*.md"]
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "SIM", "S", "C4", "PT", "RUF"]
 
+[tool.ruff.lint.isort]
+known-first-party = ["app", "scripts", "evals"]
+
 [tool.ruff.lint.per-file-ignores]
 # Tests assert freely and use obviously fake tokens.
 "tests/**" = ["S101", "S105", "S106"]
@@ -40,5 +45,5 @@ select = ["E", "F", "I", "B", "UP", "SIM", "S", "C4", "PT", "RUF"]
 [tool.mypy]
 python_version = "3.12"
 strict = true
-files = ["app"]
+files = ["app", "../scripts"]
 plugins = ["pydantic.mypy"]

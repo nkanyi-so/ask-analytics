@@ -111,14 +111,85 @@ Known and accepted: `make dev` keeps the other process running if one dies at st
 
 ## Phase 1: seed and source
 
-- [ ] `scripts/seed.py`: deterministic generator for clients, users, tools and sixty days of events, containing every pattern listed in `docs/SPEC.md`.
-- [ ] `data/ground_truth.json`: `as_of`, the seed value, and expected results for every lookup in every window, computed independently of `lookups.py` (plain Python over the events, no SQL).
-- [ ] `EventSource` protocol and the file source. `db.py` loads a source into SQLite at startup.
-- [ ] Tests: same seed gives byte-identical output; each required pattern is present.
+- [x] `scripts/seed.py`: deterministic generator for clients, users, tools and sixty days of events, containing every pattern listed in `docs/SPEC.md`.
+- [x] `data/ground_truth.json`: `as_of`, the seed value, and expected results for every lookup in every window, computed independently of `lookups.py` (plain Python over the events, no SQL).
+- [x] `EventSource` protocol and the file source. `db.py` loads a source into SQLite at startup.
+- [x] Tests: same seed gives byte-identical output; each required pattern is present.
 
 **Gate:** `make seed` twice gives identical checksums. Pattern tests pass. `make check` exits 0.
 
 **Log:**
+
+16 Nov 2026. Branch `phase-1-seed`, pull request #2.
+
+*What was built.* `scripts/seed.py` (generator and ground truth, standard library only), `backend/app/sources/` (the `EventSource` protocol, the file source, and `build_source`, the only place that knows which source is in use), `backend/app/db.py` (schema, indexes, one load into in-memory SQLite at startup). The workspace: 6 clients, 40 people, 8 tools, 9,039 events from 1 Sep to 30 Oct 2026. `AS_OF` is Friday 30 Oct 2026. `data/events.jsonl` is 1.4 MB.
+
+*Docs changed first.* `docs/ARCHITECTURE.md` gained "The data file" and "Definitions". The definitions are the ones agreed in the plan; the lookups (Phase 2) and the ground truth implement them separately. Two things differ from the original text and are now written down: the roster travels in the data file as `client`, `tool` and `user` lines, because people who never logged in have no events; and the app reads `AS_OF` from the source, not from `ground_truth.json`, which exists only to check answers.
+
+*Carried from Phase 0.* `make check` now formats, lints and type-checks `scripts/` with the backend's config, and the format hook uses the same config.
+
+*Gate evidence.*
+
+`make seed` twice gives identical checksums:
+
+```
+$ make seed && shasum -a 256 data/events.jsonl data/ground_truth.json
+seed 20261030: 9094 lines, as of 2026-10-30
+bbbe2aeb3de95a78ec704ebe1e3208d4fcc986b46d72940b3c854fc47f8049fd  data/events.jsonl
+aba457bbee3efe870c176c4228ec50341c4e63b167edd11b016c6627790fdce6  data/ground_truth.json
+$ make seed && shasum -a 256 data/events.jsonl data/ground_truth.json
+seed 20261030: 9094 lines, as of 2026-10-30
+bbbe2aeb3de95a78ec704ebe1e3208d4fcc986b46d72940b3c854fc47f8049fd  data/events.jsonl
+aba457bbee3efe870c176c4228ec50341c4e63b167edd11b016c6627790fdce6  data/ground_truth.json
+```
+
+Pattern tests pass. Each one reads the raw event lines, not the seed's own ground-truth code:
+
+```
+$ cd backend && uv run pytest tests/test_seed.py -o addopts="" -v
+tests/test_seed.py::test_same_seed_gives_byte_identical_output PASSED
+tests/test_seed.py::test_a_different_seed_gives_different_events PASSED
+tests/test_seed.py::test_tracked_data_files_are_what_the_seed_produces PASSED
+tests/test_seed.py::test_workspace_shape PASSED
+tests/test_seed.py::test_every_tool_has_one_distinct_headline_event PASSED
+tests/test_seed.py::test_events_cover_sixty_days_ending_on_as_of PASSED
+tests/test_seed.py::test_events_use_only_known_names_and_ids PASSED
+tests/test_seed.py::test_one_tool_nobody_uses PASSED
+tests/test_seed.py::test_one_person_stopped_logging_in PASSED
+tests/test_seed.py::test_quiet_person_is_the_only_one_gone_quiet_over_thirty_days PASSED
+tests/test_seed.py::test_three_people_never_logged_in PASSED
+tests/test_seed.py::test_error_spike_in_the_last_week_from_one_source PASSED
+tests/test_seed.py::test_weekdays_are_busier_than_weekends PASSED
+tests/test_seed.py::test_usage_is_uneven_across_clients PASSED
+tests/test_seed.py::test_today_is_not_empty PASSED
+============================== 15 passed in 0.34s ==============================
+```
+
+What the patterns look like in the data (from `ground_truth.json`): contact enrichment has 104 headline events in days 1 to 30 and 0 in the last 30; `u014` was last seen on 25 Sep and is the only person gone quiet over 30 days; `u011`, `u027` and `u037` never logged in; the invoice generator has 86 `pdf_renderer` errors in the last 7 days against 0 the week before, hitting 21 people, while its invoices fell from 51 to 10.
+
+`make check` exits 0:
+
+```
+$ make check
+16 files already formatted
+All checks passed!
+Success: no issues found in 9 source files
+37 passed in 0.92s
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+$ echo $?
+0
+```
+
+*Review.* The `reviewer` agent ran on `git diff main...HEAD`. It recomputed usage by tool, activity by person and activity by client for every window on its own and found no mismatch with the ground truth. One blocking finding, fixed:
+
+- **Blocking: the ground truth for `errors_seen` only fitted calls with `with_previous`, while a comment said it fitted both.** Groups at zero are listed only because they had errors in the previous window. The comment and ARCHITECTURE now say that the plain call leaves those groups out, and a test checks that every zero row has a previous count.
+
+Non-blocking, fixed: the tie-break for error groups (count, then source, then tool id) and the `affected` name list are now in ARCHITECTURE; "went quiet" has no previous value for `30d`, because nothing precedes that previous window and a zero there would be an artefact (the fields are empty, and the definition says so); the loader refuses to run unless this Python's SQLite allows one connection across threads; the file source reads as UTF-8.
+
+Carried forward: Phase 2 adds a test that runs lookups from several threads.
+
+**Gate: passed.**
 
 ---
 
