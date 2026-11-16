@@ -1,0 +1,39 @@
+"""Settings from the environment. Names match `.env.example` at the repo root."""
+
+from functools import lru_cache
+from pathlib import Path
+from typing import Literal
+
+from pydantic import field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_MODEL = "claude-haiku-5-5"
+
+
+class Settings(BaseSettings):
+    # extra="ignore": the same .env also carries frontend-only names (BACKEND_URL).
+    model_config = SettingsConfigDict(env_file=REPO_ROOT / ".env", extra="ignore")
+
+    admin_token: str = ""
+    anthropic_api_key: str = ""
+    anthropic_model: str = DEFAULT_MODEL
+    event_source: Literal["file", "mixpanel"] = "file"
+    ask_rate_per_minute: int = 5
+    ask_daily_budget_usd: float = 2.0
+    frontend_origin: str = "http://localhost:3000"
+
+    @field_validator("anthropic_model", mode="before")
+    @classmethod
+    def _empty_model_means_default(cls, value: object) -> object:
+        return value or DEFAULT_MODEL
+
+    @property
+    def demo_mode(self) -> bool:
+        """No key means recorded answers only. Must never be true in a deployed build."""
+        return not self.anthropic_api_key
+
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()
