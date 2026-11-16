@@ -701,10 +701,72 @@ Non-blocking, all fixed: the person is read back from an explicit `user_id` prop
 ## Phase 6: CI, deploy, README (second session)
 
 - [ ] `main` protected; CI (in place since Phase 0) required to pass before merge.
-- [ ] Startup check: a deployed build must refuse to start in demo mode (no `ANTHROPIC_API_KEY`). Demo mode answers from recorded fixtures and is for local use only. Added to the plan in Phase 3, when demo mode was built.
-- [ ] Docker. Backend on Railway, frontend on Vercel. Scheduled cache warm.
-- [ ] README on the seven-section spine from `job-search/portfolio/README.md`, with the live eval table and its date.
+- [x] Startup check: a deployed build must refuse to start in demo mode (no `ANTHROPIC_API_KEY`). Demo mode answers from recorded fixtures and is for local use only. Added to the plan in Phase 3, when demo mode was built.
+- [ ] Docker. Backend on Railway, frontend on Vercel. Scheduled cache warm. *Docker and the cache warm are done; the deploy is not.*
+- [ ] README on the seven-section spine from `job-search/portfolio/README.md`, with the live eval table and its date. *Written, with the live rows empty and the "Before" section marked as a draft.*
 
 **Gate:** hosted page loads in under two seconds. CI is green on `main`. No key in the repo or its history.
 
 **Log:**
+
+16 Nov 2026. Branch `phase-6-deploy-readme`, stacked on the Phase 5 branch. **Partial, out of order, at the human's request**: Phase 5's gate is still open (it waits for Mixpanel keys), and the human asked for the Phase 6 parts that need neither Mixpanel nor a hosting account. The gate below is not passed and cannot be until there is a deploy.
+
+*Done.*
+
+- **Startup check.** A deployed build refuses to start in demo mode, without an admin token of at least 32 characters, or on any source but the file (`check_deployable` in `backend/app/main.py`). "Deployed" means the Docker image (it sets `DEPLOYED=1`) or anything running on Railway (which sets `RAILWAY_ENVIRONMENT_NAME`). The refusal names every problem at once and prints no secret.
+- **Scheduled cache warm.** In the backend's own process: at startup, then every five minutes, it recomputes the fifteen results the dashboard and the summary use and stores them fresh. No platform scheduler. SPEC's "one scheduled warm" assumed a cron; this needs none and cannot be forgotten at deploy time.
+- **Docker.** `backend/Dockerfile` (built from the repo root, runtime packages only, non-root user) and an allow-list `.dockerignore`, so `.env` and git history cannot enter an image. A new CI job, `image`, builds it and checks that it refuses demo mode and serves when configured.
+- **README** on the seven-section spine, and `docs/deploy.md`.
+
+*Not done, and why.*
+
+- [ ] **`main` protected.** GitHub refused: "Upgrade to GitHub Pro or make this repository public to enable this feature." The repo is private on the free plan. Do it when the repo goes public: require the `check`, `secrets` and `image` jobs.
+- [ ] **Deploy** to Railway and Vercel. Needs the human's accounts. `docs/deploy.md` has the steps; none have been run.
+- [ ] **README's live eval table.** The live rows say "not run yet". No key, no run.
+- [ ] **README's "Before" section** is a draft written from project notes, marked as such in the file. The human should rewrite it in their own words before the repo is public.
+
+*Where the platforms differ from the docs.* PLAN says "Scheduled cache warm" next to the deploy; it is in-process instead (above). Railway's `railway.toml` stops working for existing services on 1 December 2026 and cannot be used for new ones, so no Railway config file is committed and the settings are listed for the dashboard. Docker is not installed on the development machine, so the image has only ever been built by CI.
+
+*Evidence.*
+
+The app from a runtime-only install (`uv sync --no-default-groups`, the same package set as the image), with `DEPLOYED=1` and no key:
+
+```
+RuntimeError: Refusing to start a deployed build: ANTHROPIC_API_KEY is not set (demo mode is for local use only).
+ERROR:    Application startup failed. Exiting.
+```
+
+The same with a placeholder key (no model is called by starting):
+
+```
+{"status":"ok","demo_mode":false}
+overview without token: 401
+```
+
+Tests by name:
+
+```
+tests/test_deploy.py::test_a_deployed_build_refuses_to_start_in_demo_mode PASSED
+tests/test_deploy.py::test_running_on_railway_counts_as_deployed_even_without_the_image PASSED
+tests/test_deploy.py::test_the_first_visitor_after_a_start_reads_only_from_the_cache PASSED
+tests/test_deploy.py::test_a_warm_replaces_entries_before_they_expire PASSED
+tests/test_deploy.py::test_the_schedule_keeps_running_after_a_failed_warm PASSED
+```
+
+`make check`:
+
+```
+$ make check
+All checks passed!
+Success: no issues found in 23 source files
+319 passed in 14.59s
+| all | 40 | 40 | 100% |
+ Test Files  3 passed (3)
+      Tests  30 passed (30)
+$ echo $?
+0
+```
+
+*Review.* The `reviewer` agent found nothing blocking in the code, the Dockerfile or the CI job, and two false sentences in the README, both corrected: demo mode answers all forty eval questions, not only the three suggested ones; and `make check` does not run CI's image build or secret scan. Also fixed: the deployed check now covers a Railway service built without the Dockerfile; a token of spaces is refused; the test fixture is no longer affected by a `DEPLOYED` left in a developer's shell; the image layer no longer keeps uv's cache.
+
+**Gate: not passed.** Nothing is hosted.

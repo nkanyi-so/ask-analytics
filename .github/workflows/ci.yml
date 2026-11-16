@@ -23,6 +23,45 @@ jobs:
       - run: cd frontend && npm ci
       - run: make check
 
+  image:
+    # Builds the API image and proves the two things a deployed build must do:
+    # refuse to start in demo mode, and serve when fully configured.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: docker build -f backend/Dockerfile -t ask-analytics-api .
+      - name: A throwaway admin token for this job
+        run: echo "TOKEN=$(openssl rand -hex 24)" >> "$GITHUB_ENV"
+      - name: No secret file and no test tooling in the image
+        run: |
+          docker run --rm ask-analytics-api sh -c '
+            test ! -e /srv/.env && test ! -e /srv/backend/.env &&
+            ! python -c "import pytest" 2>/dev/null &&
+            ! python -c "import mcp" 2>/dev/null &&
+            test "$(id -u)" != 0'
+      - name: Refuses to start in demo mode
+        run: |
+          if docker run --rm -e ADMIN_TOKEN="$TOKEN" ask-analytics-api > refusal.log 2>&1; then
+            echo "The image started without ANTHROPIC_API_KEY" >&2; exit 1
+          fi
+          grep -q "Refusing to start a deployed build" refusal.log
+          grep -q "demo mode is for local use only" refusal.log
+      - name: Serves when fully configured
+        run: |
+          # A placeholder key: nothing in this job asks a question, so no model is called.
+          docker run -d --name api -p 8000:8000 \
+            -e ADMIN_TOKEN="$TOKEN" \
+            -e ANTHROPIC_API_KEY=placeholder-not-a-real-key \
+            ask-analytics-api
+          for attempt in $(seq 1 30); do
+            curl -sf localhost:8000/health > health.json && break
+            sleep 1
+          done
+          docker logs api
+          grep -q '"demo_mode":false' health.json
+          test "$(curl -s -o /dev/null -w '%{http_code}' 'localhost:8000/api/overview?window=7d')" = 401
+          test "$(curl -s -o /dev/null -w '%{http_code}' -H "Authorization: Bearer $TOKEN" 'localhost:8000/api/overview?window=7d')" = 200
+
   secrets:
     runs-on: ubuntu-latest
     env:

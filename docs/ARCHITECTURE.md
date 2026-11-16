@@ -114,6 +114,10 @@ Rows are complete and ordered: every tool, person and client appears even at zer
 
 Return types are frozen dataclasses or pydantic models. The same objects feed the API, the assistant's tool results and the ground-truth generator's checks.
 
+### Cache and the scheduled warm
+
+Results are cached for ten minutes, keyed by lookup, window and arguments. The backend warms the cache at startup and again every five minutes, in its own process: it recomputes the fifteen results the dashboard and the summary ask for (five lookups, three windows, with the previous window) and stores them fresh, replacing entries before they expire. So no visitor pays for a cold read, and no platform scheduler is involved. A warm that fails is logged and the next one still runs. Questions that ask for something else (one person, one tool's errors) are computed on first use and cached as before.
+
 ## Registry
 
 `ToolId` is a `Literal` of the eight tool ids and `HeadlineEvent` a `Literal` of the eight headline events. `catalog_entry(tool: ToolId) -> CatalogEntry` is a `match` over every id that ends in `assert_never`, and `CatalogEntry.headline_event` is a required field. So the type checker rejects a tool id with no case, a case with no headline event, and a headline event that is not one of the eight.
@@ -159,7 +163,7 @@ All `/api/*` routes require `Authorization: Bearer <ADMIN_TOKEN>`.
 
 ### Demo mode
 
-With no `ANTHROPIC_API_KEY` the backend runs the `FixtureClient`. Every `/api/ask` reply then carries `demo_mode: true`, questions from the eval set get their recorded answer, and any other question gets a plain "the live model is not connected" reply. The Ask box shows a visible "Demo mode" label. Demo mode must never be on in a deployed build; Phase 6 adds the startup check.
+With no `ANTHROPIC_API_KEY` the backend runs the `FixtureClient`. Every `/api/ask` reply then carries `demo_mode: true`, questions from the eval set get their recorded answer, and any other question gets a plain "the live model is not connected" reply. The Ask box shows a visible "Demo mode" label. Demo mode must never be on in a deployed build. The Docker image sets `DEPLOYED=1`, and Railway sets `RAILWAY_ENVIRONMENT_NAME` in every container; with either, the app refuses to start without `ANTHROPIC_API_KEY`, without an admin token of at least 32 characters, or with any source but the file (`check_deployable` in `main.py`).
 
 ## Frontend
 

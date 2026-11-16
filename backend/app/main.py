@@ -1,5 +1,7 @@
 """FastAPI app. Routes stay thin: every number comes from `lookups.py`."""
 
+import asyncio
+import contextlib
 import ipaddress
 import logging
 import secrets
@@ -129,17 +131,59 @@ def build_model_client(settings: Settings) -> ModelClient:
     return AnthropicClient(settings.anthropic_api_key, settings.anthropic_model)
 
 
+MIN_TOKEN_LENGTH = 32
+# Shorter than the cache's ten minutes, so a warmed entry never expires between runs.
+WARM_EVERY_SECONDS = 300.0
+
+
+def check_deployable(settings: Settings) -> None:
+    """Stop a deployed build that would mislead visitors or be open to them.
+
+    Demo mode answers from recorded fixtures and is for local use only: a public page
+    that looks live but is not would be a lie. The other two are what a hosted demo
+    is specified to be: a real token, and the file source that needs no analytics keys.
+    """
+    if not settings.is_deployed:
+        return
+    problems = []
+    if settings.demo_mode:
+        problems.append("ANTHROPIC_API_KEY is not set (demo mode is for local use only)")
+    if len(settings.admin_token.strip()) < MIN_TOKEN_LENGTH:
+        problems.append(f"ADMIN_TOKEN is missing or shorter than {MIN_TOKEN_LENGTH} characters")
+    if settings.event_source != "file":
+        problems.append("EVENT_SOURCE must be file (the hosted demo reads no analytics service)")
+    if problems:
+        raise RuntimeError("Refusing to start a deployed build: " + "; ".join(problems) + ".")
+
+
+async def keep_warm(lookups: Lookups, every_seconds: float) -> None:
+    """The scheduled cache warm. One failed run is logged and the next one still happens."""
+    while True:
+        await asyncio.sleep(every_seconds)
+        try:
+            await asyncio.to_thread(lookups.warm)
+        except Exception:
+            logging.getLogger("ask_analytics.warm").exception("cache warm failed")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings: Settings = app.state.settings
     configure_logging()
+    check_deployable(settings)
     # Read the source once; every request after this reads the in-memory database.
     database = load_database(build_source(settings))
     app.state.database = database
     app.state.lookups = Lookups(database, TTLCache())
     if app.state.model_client is None:
         app.state.model_client = build_model_client(settings)
+    # Warm now, so the first visitor after a start reads from the cache, then keep it warm.
+    app.state.lookups.warm()
+    warming = asyncio.create_task(keep_warm(app.state.lookups, app.state.warm_every_seconds))
     yield
+    warming.cancel()
+    with contextlib.suppress(asyncio.CancelledError):
+        await warming
 
 
 def api_router() -> APIRouter:
@@ -208,6 +252,7 @@ def create_app(
     app.state.settings = settings or get_settings()
     # None means "build it at startup from the settings"; tests pass their own.
     app.state.model_client = model_client
+    app.state.warm_every_seconds = WARM_EVERY_SECONDS
     app.state.rate_limiter = RateLimiter(app.state.settings.ask_rate_per_minute)
     app.state.budget = DailyBudget(app.state.settings.ask_daily_budget_usd)
     # The browser never calls this API (the frontend's server does), so this is a
