@@ -5,11 +5,15 @@ string (docs/decisions/0001-sqlite-for-the-demo.md).
 """
 
 import sqlite3
-from dataclasses import asdict, dataclass
+import threading
+from collections.abc import Iterator
+from contextlib import contextmanager
+from dataclasses import asdict, dataclass, field
 from datetime import date
 
 from sqlalchemy import (
     Column,
+    Connection,
     Date,
     DateTime,
     Engine,
@@ -74,6 +78,18 @@ class Database:
 
     engine: Engine
     as_of: date
+    _lock: threading.Lock = field(default_factory=threading.Lock, repr=False, compare=False)
+
+    @contextmanager
+    def connect(self) -> Iterator[Connection]:
+        """One reader at a time.
+
+        The in-memory database is a single shared connection, and two threads reading
+        results from it at once corrupt each other's cursors. Lookups take milliseconds
+        and are cached, so waiting in line costs nothing that matters here.
+        """
+        with self._lock, self.engine.connect() as connection:
+            yield connection
 
 
 def load_database(source: EventSource) -> Database:
