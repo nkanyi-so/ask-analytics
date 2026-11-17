@@ -12,7 +12,7 @@ from datetime import date, datetime, time, timedelta
 from typing import Literal, get_args
 
 from pydantic import BaseModel, ConfigDict
-from sqlalchemy import ColumnElement, Connection, and_, case, distinct, func, select
+from sqlalchemy import ColumnElement, Connection, and_, case, distinct, extract, func, select
 
 from app.cache import TTLCache
 from app.db import Database, clients, events, tools, users
@@ -451,6 +451,115 @@ def roster(db: Database, window: Window, with_previous: bool = False) -> Roster:
     )
 
 
+# --- the series behind the charts -----------------------------------------------------
+
+
+class Bucket(Row):
+    """One bar of a chart: an hour of today, or a day of a longer window."""
+
+    label: str
+    active_people: int
+    outputs: int
+    errors: int
+    outputs_by_tool: dict[str, int]
+
+
+class ActivityOverTime(Row):
+    unit: Literal["hour", "day"]
+    buckets: list[Bucket]
+    outputs: int
+    outputs_previous: int
+    outputs_change: int
+    errors: int
+    errors_previous: int
+    errors_change: int
+
+
+IS_OUTPUT = events.c.name == tools.c.headline_event
+WITH_TOOLS = events.outerjoin(tools, events.c.tool_id == tools.c.id)
+
+
+def _bucket_labels(span: Span, by_hour: bool) -> list[str]:
+    if by_hour:
+        return [f"{hour:02d}:00" for hour in range(24)]
+    days = (span[1] - span[0]).days
+    return [(span[0] + timedelta(days=n)).date().isoformat() for n in range(days)]
+
+
+def _label(value: object, by_hour: bool) -> str:
+    """The database's bucket value as the label the chart uses."""
+    return f"{int(str(value)):02d}:00" if by_hour else str(value)[:10]
+
+
+def _window_totals(connection: Connection, span: Span) -> tuple[int, int]:
+    query = select(count_if(IS_OUTPUT), count_if(events.c.name == "error")).select_from(WITH_TOOLS)
+    outputs, errors = connection.execute(query.where(in_span(span))).one()
+    return outputs, errors
+
+
+def activity_over_time(db: Database, window: Window) -> ActivityOverTime:
+    """Activity bucket by bucket, for the dashboard's charts.
+
+    By hour for `today`, by day for the longer windows. Every bucket is present, even
+    at zero. It also carries the window's totals with the previous window and the
+    change, because no other lookup counts outputs or errors across all tools. This
+    lookup feeds charts only: the assistant is not given it.
+    """
+    span = window_span(db.as_of, window)
+    by_hour = window == "today"
+    bucket = extract("hour", events.c.ts) if by_hour else func.date(events.c.ts)
+    per_bucket = (
+        select(
+            bucket,
+            func.count(distinct(case((events.c.name == "login", events.c.user_id)))),
+            count_if(IS_OUTPUT),
+            count_if(events.c.name == "error"),
+        )
+        .select_from(WITH_TOOLS)
+        .where(in_span(span))
+        .group_by(bucket)
+    )
+    per_tool = (
+        select(bucket, tools.c.id, func.count())
+        .select_from(events.join(tools, events.c.tool_id == tools.c.id))
+        .where(in_span(span), IS_OUTPUT)
+        .group_by(bucket, tools.c.id)
+    )
+    with db.connect() as connection:
+        measures = {_label(key, by_hour): rest for key, *rest in connection.execute(per_bucket)}
+        tool_ids = [row[0] for row in connection.execute(select(tools.c.id).order_by(tools.c.id))]
+        by_tool: dict[str, dict[str, int]] = {}
+        for key, tool_id, count in connection.execute(per_tool):
+            by_tool.setdefault(_label(key, by_hour), {})[tool_id] = count
+        outputs, errors = _window_totals(connection, span)
+        outputs_previous, errors_previous = _window_totals(
+            connection, window_span(db.as_of, window, previous=True)
+        )
+    buckets = []
+    for label in _bucket_labels(span, by_hour):
+        active, made, failed = measures.get(label, (0, 0, 0))
+        tools_here = by_tool.get(label, {})
+        buckets.append(
+            Bucket(
+                label=label,
+                active_people=active,
+                outputs=made,
+                errors=failed,
+                outputs_by_tool={tool_id: tools_here.get(tool_id, 0) for tool_id in tool_ids},
+            )
+        )
+    return ActivityOverTime(
+        unit="hour" if by_hour else "day",
+        buckets=buckets,
+        outputs=outputs,
+        outputs_previous=outputs_previous,
+        outputs_change=outputs - outputs_previous,
+        errors=errors,
+        errors_previous=errors_previous,
+        errors_change=errors - errors_previous,
+    )
+
+
 # --- cached access -------------------------------------------------------------------
 
 
@@ -513,6 +622,11 @@ class Lookups:
             "roster", (window, with_previous), lambda: roster(self._db, window, with_previous)
         )
 
+    def activity_over_time(self, window: Window) -> ActivityOverTime:
+        return self._cached(
+            "activity_over_time", (window,), lambda: activity_over_time(self._db, window)
+        )
+
     def warm(self) -> None:
         """Recompute what the dashboard and the summary ask for and store it fresh.
 
@@ -528,6 +642,7 @@ class Lookups:
                 ("activity_by_client", window, True): activity_by_client(self._db, window, True),
                 ("errors_seen", window, None, True): errors_seen(self._db, window, None, True),
                 ("roster", window, True): roster(self._db, window, True),
+                ("activity_over_time", window): activity_over_time(self._db, window),
             }
             for key, value in fresh.items():
                 self._cache.put(key, value)

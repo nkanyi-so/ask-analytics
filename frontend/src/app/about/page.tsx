@@ -8,16 +8,14 @@ export const metadata: Metadata = { title: "About" };
 
 export default function AboutPage(): ReactNode {
   return (
-    <main className="view prose">
-      <div className="view-head">
-        <h1>About this demo</h1>
-        <p>
-          A rebuild, on made-up data, of usage reporting I built for a client&apos;s internal platform. The
-          tools, the people and every number here are invented. The method is the real one.
-        </p>
-      </div>
+    <main className="view">
+      <h1 className="visually-hidden">About this demo</h1>
+      <p className="lede">
+        A rebuild, on made-up data, of usage reporting I built for a client&apos;s internal platform. The
+        tools, the people and every number here are invented. The method is the real one.
+      </p>
 
-      <section aria-labelledby="problem">
+      <section className="card prose-card" aria-labelledby="problem">
         <h2 id="problem">The question it answers</h2>
         <p>
           A company gives its people a set of internal tools. Months later someone asks: who is actually
@@ -25,13 +23,13 @@ export default function AboutPage(): ReactNode {
           every tool counts success differently and anyone who never logged in does not appear at all.
         </p>
         <p>
-          The <Link href="/">Overview</Link> gives one number per tool, the count of times it did its job,
-          next to the people who were invited and never showed up. <Link href="/reliability">Reliability</Link>{" "}
-          shows what is failing and who it reached.
+          The <Link href="/">Overview</Link> gives the numbers that answer it, each one a button that opens
+          the chart and the tables behind it, including the people who were invited and never showed up.{" "}
+          <Link href="/reliability">Reliability</Link> shows what is failing and who it reached.
         </p>
       </section>
 
-      <section aria-labelledby="honest">
+      <section className="card prose-card" aria-labelledby="honest">
         <h2 id="honest">Why the assistant cannot make a number up</h2>
         <p>
           Language models are fluent and will state a figure with confidence whether or not it is true. So
@@ -58,7 +56,7 @@ export default function AboutPage(): ReactNode {
         <p>Each answer in the Ask panel shows this working: the lookup, what came back, and the check.</p>
       </section>
 
-      <section aria-labelledby="tested">
+      <section className="card prose-card" aria-labelledby="tested">
         <h2 id="tested">How it is tested</h2>
         <p>
           Forty questions with answers that are known in advance, because the data is generated and the
@@ -116,7 +114,7 @@ export default function AboutPage(): ReactNode {
         </p>
       </section>
 
-      <section aria-labelledby="real">
+      <section className="card prose-card" aria-labelledby="real">
         <h2 id="real">What is real and what is not</h2>
         <ul className="how">
           <li>

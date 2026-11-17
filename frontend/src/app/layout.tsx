@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { Hanken_Grotesk } from "next/font/google";
 import { Suspense, type ReactNode } from "react";
 
 import { Shell } from "@/components/Shell";
@@ -7,8 +6,9 @@ import { getHealth } from "@/lib/backend";
 
 import "./globals.css";
 
-// One family for everything. Self-hosted at build time: no request leaves the page.
-const sans = Hanken_Grotesk({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
+// A stored choice of theme is applied before the first paint, so the page never flashes
+// the other one. With no stored choice, the page follows the system setting (see tokens.css).
+const APPLY_THEME = `try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}`;
 
 export const metadata: Metadata = {
   title: { default: "ask-analytics", template: "%s · ask-analytics" },
@@ -32,7 +32,11 @@ async function demoMode(): Promise<boolean | null> {
 
 export default async function RootLayout({ children }: { children: ReactNode }): Promise<ReactNode> {
   return (
-    <html lang="en" className={sans.variable}>
+    // The script below may set data-theme before React wakes up; that difference is expected.
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: APPLY_THEME }} />
+      </head>
       <body>
         {/* The frame reads the address bar, which needs a boundary on the server. */}
         <Suspense>

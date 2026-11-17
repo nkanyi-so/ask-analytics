@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { endpointFor, figuresIn, isLookup, rowsOf, shownFor, type Asked } from "./evidence";
-import type { OverviewResponse, ReliabilityResponse, Roster, ToolUsage } from "./types";
+import type { ActivityOverTime, OverviewResponse, ReliabilityResponse, Roster, ToolUsage } from "./types";
 
 function tool(id: string, name: string, event: string, count: number, previous: number, errors = 1): ToolUsage {
   return {
@@ -37,6 +37,18 @@ const ROSTER: Roster = {
   went_quiet_count_change: 0,
 };
 
+// The chart series plays no part in the working; an empty one satisfies the type.
+const TREND: ActivityOverTime = {
+  unit: "day",
+  buckets: [],
+  outputs: 0,
+  outputs_previous: 0,
+  outputs_change: 0,
+  errors: 0,
+  errors_previous: 0,
+  errors_change: 0,
+};
+
 const OVERVIEW: OverviewResponse = {
   as_of: "2026-10-30",
   window: "7d",
@@ -48,11 +60,13 @@ const OVERVIEW: OverviewResponse = {
   activity_by_person: [],
   activity_by_client: [],
   roster: ROSTER,
+  trend: TREND,
 };
 
 const RELIABILITY: ReliabilityResponse = {
   as_of: "2026-10-30",
   window: "7d",
+  trend: TREND,
   errors: [
     {
       source: "pdf_renderer",

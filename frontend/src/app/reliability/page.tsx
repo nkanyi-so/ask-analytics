@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
-import { Card } from "@/components/Card";
-import { Change } from "@/components/Change";
+import { BarChart } from "@/components/BarChart";
+import { ChangePill } from "@/components/ChangePill";
 import { getReliability } from "@/lib/backend";
-import { beforeLabel, formatCount, formatDay, windowLabel } from "@/lib/format";
+import { beforeLabel, formatCount, inWindow } from "@/lib/format";
 import { parseWindow } from "@/lib/windows";
 
 export const metadata: Metadata = { title: "Reliability" };
@@ -18,79 +18,89 @@ export default async function ReliabilityPage({
 }): Promise<ReactNode> {
   const window = parseWindow((await searchParams).window);
   const reliability = await getReliability(window);
+  const { trend } = reliability;
   const against = beforeLabel(window);
+  const per = trend.unit;
 
   return (
     <main className="view">
-      <div className="view-head">
-        <h1>Reliability</h1>
-        <p>
-          What is failing, and who it reached, in {windowLabel(window)}. Data runs to{" "}
-          <time dateTime={reliability.as_of}>{formatDay(reliability.as_of)}</time>.
-        </p>
-      </div>
+      <h1 className="visually-hidden">Reliability</h1>
+      <section className="card" aria-labelledby="errors-chart">
+        <header className="card-head">
+          <div>
+            <h2 id="errors-chart">Errors</h2>
+            <p>
+              Per {per}, {inWindow(window)}, across every tool.
+            </p>
+          </div>
+          <span className="card-tools">
+            <ChangePill value={trend.errors_change} better="down" against={against} />
+            <span className="pill">{formatCount(trend.errors)} in total</span>
+          </span>
+        </header>
+        <BarChart
+          points={trend.buckets.map((bucket) => ({ label: bucket.label, value: bucket.errors }))}
+          unit={trend.unit}
+          tone="bad"
+          summary={`Errors per ${per}`}
+        />
+      </section>
 
-      <div className="cards">
-        <Card
-          id="errors-heading"
-          title="Errors"
-          note={`Grouped by where they came from and which tool raised them. Change is against ${against}.`}
-          wide
-        >
-          {reliability.errors.length === 0 ? (
-            <p className="empty">No errors in this window.</p>
-          ) : (
-            <table className="data" role="table">
-              <thead role="rowgroup">
-                <tr role="row">
-                  <th role="columnheader" scope="col">
-                    Source
+      <section className="card" aria-labelledby="errors-heading">
+        <header className="card-head">
+          <div>
+            <h2 id="errors-heading">Where they came from</h2>
+            <p>Grouped by source and by the tool that raised them. The change is against {against}.</p>
+          </div>
+        </header>
+        {reliability.errors.length === 0 ? (
+          <p className="empty pad">No errors in this window.</p>
+        ) : (
+          <table className="data" role="table">
+            <thead role="rowgroup">
+              <tr role="row">
+                <th role="columnheader" scope="col">
+                  Source
+                </th>
+                <th role="columnheader" scope="col" className="num">
+                  Errors
+                </th>
+                <th role="columnheader" scope="col" className="num">
+                  Change
+                </th>
+                <th role="columnheader" scope="col" className="num">
+                  People
+                </th>
+                <th role="columnheader" scope="col">
+                  Who it reached
+                </th>
+              </tr>
+            </thead>
+            <tbody role="rowgroup">
+              {reliability.errors.map((group) => (
+                <tr role="row" key={`${group.source}:${group.tool_id}`}>
+                  <th role="rowheader" scope="row">
+                    <span className="cell-name">{group.source.replaceAll("_", " ")}</span>
+                    <small>{group.tool_name}</small>
                   </th>
-                  <th role="columnheader" scope="col">
-                    Tool
-                  </th>
-                  <th role="columnheader" scope="col" className="num">
-                    Errors
-                  </th>
-                  <th role="columnheader" scope="col" className="num">
-                    Change
-                  </th>
-                  <th role="columnheader" scope="col" className="num">
-                    People affected
-                  </th>
-                  <th role="columnheader" scope="col">
-                    Who
-                  </th>
+                  <td role="cell" className="num strong" data-label="Errors">
+                    {formatCount(group.count)}
+                  </td>
+                  <td role="cell" className="num" data-label="Change">
+                    <ChangePill value={group.count_change} better="down" against={against} />
+                  </td>
+                  <td role="cell" className="num" data-label="People">
+                    {formatCount(group.people_affected)}
+                  </td>
+                  <td role="cell" className="wide" data-label="Who it reached">
+                    {group.affected.join(", ")}
+                  </td>
                 </tr>
-              </thead>
-              <tbody role="rowgroup">
-                {reliability.errors.map((group) => (
-                  <tr role="row" key={`${group.source}:${group.tool_id}`}>
-                    <th role="rowheader" scope="row">
-                      {group.source.replaceAll("_", " ")}
-                    </th>
-                    <td role="cell" className="dim" data-label="Tool">
-                      {group.tool_name}
-                    </td>
-                    <td role="cell" className="num" data-label="Errors">
-                      {formatCount(group.count)}
-                    </td>
-                    <td role="cell" className="num dim" data-label="Change">
-                      <Change value={group.count_change} against={against} />
-                    </td>
-                    <td role="cell" className="num" data-label="People affected">
-                      {formatCount(group.people_affected)}
-                    </td>
-                    <td role="cell" className="wide" data-label="Who">
-                      {group.affected.join(", ")}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </Card>
-      </div>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
     </main>
   );
 }

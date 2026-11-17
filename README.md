@@ -24,7 +24,7 @@ Open http://localhost:3000. With no `ANTHROPIC_API_KEY` the Ask box runs in demo
 
 ## Decisions
 
-**1. Where rules end and the model begins.** Every number comes from one of five lookup functions (`backend/app/lookups.py`): SQL group-bys over the events. The model never does arithmetic and never sees a raw event. It picks a lookup and a window, gets the result, and words the answer. "Up or down, and by how much" is answered by the lookup returning the previous window and the change, so the model has nothing to subtract. After the model replies, code checks that every number in the answer is a number in a lookup result from that turn; if not, the answer is replaced with a refusal.
+**1. Where rules end and the model begins.** Every number comes from a lookup function (`backend/app/lookups.py`): SQL group-bys over the events. The assistant can call five of them; a sixth feeds the dashboard's charts only. The model never does arithmetic and never sees a raw event. It picks a lookup and a window, gets the result, and words the answer. "Up or down, and by how much" is answered by the lookup returning the previous window and the change, so the model has nothing to subtract. After the model replies, code checks that every number in the answer is a number in a lookup result from that turn; if not, the answer is replaced with a refusal.
 
 **2. Where the human sits.** Every answer shows which lookup and which window it used, so a reader can check it against the page. A question no lookup covers gets a fixed refusal that names what can be answered. A refusal is treated as a correct result, and the eval set scores it as one.
 

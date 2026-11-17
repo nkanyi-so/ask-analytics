@@ -77,6 +77,27 @@ export interface Roster {
   went_quiet_count_change: number | null;
 }
 
+/** One bar of a chart: an hour of today, or a day of a longer window. */
+export interface Bucket {
+  label: string;
+  active_people: number;
+  outputs: number;
+  errors: number;
+  outputs_by_tool: Record<string, number>;
+}
+
+/** The series behind the charts, with the window's totals across all tools. */
+export interface ActivityOverTime {
+  unit: "hour" | "day";
+  buckets: Bucket[];
+  outputs: number;
+  outputs_previous: number;
+  outputs_change: number;
+  errors: number;
+  errors_previous: number;
+  errors_change: number;
+}
+
 export interface OverviewResponse {
   as_of: string;
   window: Window;
@@ -84,12 +105,14 @@ export interface OverviewResponse {
   activity_by_person: PersonActivity[];
   activity_by_client: ClientActivity[];
   roster: Roster;
+  trend: ActivityOverTime;
 }
 
 export interface ReliabilityResponse {
   as_of: string;
   window: Window;
   errors: ErrorGroup[];
+  trend: ActivityOverTime;
 }
 
 export interface LookupCalled {

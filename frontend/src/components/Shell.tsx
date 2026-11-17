@@ -9,6 +9,7 @@ import { parseWindow, WINDOWS } from "@/lib/windows";
 
 import { AskContext } from "./ask-context";
 import { AskPanel, type AskHandle } from "./AskPanel";
+import { ThemeToggle } from "./ThemeToggle";
 
 /** "auto" follows the screen: docked open where there is room, closed where there is not. */
 type AskState = "auto" | "open" | "closed";
@@ -32,14 +33,22 @@ function useDocked(): boolean {
   );
 }
 
-const VIEWS = [
-  { path: "/", label: "Overview" },
-  { path: "/reliability", label: "Reliability" },
-  { path: "/about", label: "About" },
+// The sidebar's destinations. "Usage" holds two tabs, Overview and Reliability.
+const SECTIONS = [
+  { path: "/", label: "Usage", icon: "M3 3v18h18M7 15v-4M12 15V7M17 15v-6", matches: ["/", "/reliability"] },
+  { path: "/about", label: "About", icon: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 8h.01M11 12h1v5h1", matches: ["/about"] },
 ] as const;
 
-// The window switch has nothing to drive on a view with no figures.
-const NO_WINDOW = new Set<string>(["/about"]);
+const TABS = [
+  { path: "/", label: "Overview" },
+  { path: "/reliability", label: "Reliability" },
+] as const;
+
+const TITLES: Record<string, { title: string; about: string }> = {
+  "/": { title: "Usage", about: "Who is using what." },
+  "/reliability": { title: "Usage", about: "Who is using what." },
+  "/about": { title: "About this demo", about: "What it is, how it works, and how it is tested." },
+};
 
 /** The link's own words, dimmed for the moment between a press and the new numbers. */
 function Pending({ children }: { children: ReactNode }): ReactNode {
@@ -61,6 +70,7 @@ export function Shell({ demoMode, children }: { demoMode: boolean | null; childr
   const docked = useDocked();
   // Laid over the page, the assistant is a dialog: the page behind it is out of reach.
   const overlay = ask === "open" && !docked;
+  const hasTabs = TABS.some((tab) => tab.path === pathname);
 
   const open = useCallback(() => {
     setAsk("open");
@@ -69,7 +79,7 @@ export function Shell({ demoMode, children }: { demoMode: boolean | null; childr
 
   const close = useCallback(() => setAsk("closed"), []);
 
-  // A tile on the dashboard can hand the assistant a question: open it, then ask.
+  // A tool's name on the dashboard can hand the assistant a question: open it, then ask.
   const bridge = useMemo(
     () => ({
       live: demoMode === false,
@@ -77,7 +87,7 @@ export function Shell({ demoMode, children }: { demoMode: boolean | null; childr
         // Already showing when docked and never closed; otherwise open it.
         const showing = globalThis.matchMedia(DOCKED).matches;
         setAsk((state) => (state === "auto" && showing ? "auto" : "open"));
-        // Opened over the page it is a dialog, and the tile behind it goes inert: move
+        // Opened over the page it is a dialog, and the name behind it goes inert: move
         // focus into the panel, as the launcher does.
         setOpened((count) => count + 1);
         panel.current?.ask(question);
@@ -118,40 +128,63 @@ export function Shell({ demoMode, children }: { demoMode: boolean | null; childr
   return (
     <AskContext value={bridge}>
     <div className="shell" data-ask={ask}>
-      <div className="shell-main" inert={overlay}>
-        <div className="site-bar">
-        <header className="site-header">
-          <Link className="brand" href={`/?window=${window}`}>
-            ask-analytics
-          </Link>
-          <nav className="site-nav" aria-label="Views">
-            {VIEWS.map((view) => (
+      <nav className="sidebar" aria-label="Sections" inert={overlay}>
+        <Link className="logo" href={`/?window=${window}`} aria-label="ask-analytics, home">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M5 13l4.5 4.5L19 7" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </Link>
+        <ul>
+          {SECTIONS.map((section) => (
+            <li key={section.path}>
               <Link
-                key={view.path}
-                href={`${view.path}?window=${window}`}
-                aria-current={pathname === view.path ? "page" : undefined}
+                href={section.path === "/" ? `/?window=${window}` : section.path}
+                aria-current={(section.matches as readonly string[]).includes(pathname) ? "page" : undefined}
               >
-                <Pending>{view.label}</Pending>
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d={section.icon} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <Pending>{section.label}</Pending>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      <div className="shell-main" inert={overlay}>
+        <header className="page-head">
+          <div>
+            <p className="page-title">{(TITLES[pathname] ?? TITLES["/"]).title}</p>
+            <p className="page-about">{(TITLES[pathname] ?? TITLES["/"]).about}</p>
+          </div>
+          <div className="page-tools">
+            {hasTabs ? (
+              <nav className="seg" aria-label="Time window">
+                {WINDOWS.map((each) => (
+                  <Link
+                    key={each}
+                    href={`${pathname}?window=${each}`}
+                    aria-current={each === window ? "page" : undefined}
+                    // The numbers change in place; keep the reader where they are.
+                    scroll={false}
+                  >
+                    <Pending>{switchLabel(each)}</Pending>
+                  </Link>
+                ))}
+              </nav>
+            ) : null}
+            <ThemeToggle />
+          </div>
+        </header>
+        {hasTabs ? (
+          <nav className="tabs" aria-label="Views">
+            {TABS.map((tab) => (
+              <Link key={tab.path} href={`${tab.path}?window=${window}`} aria-current={pathname === tab.path ? "page" : undefined}>
+                <Pending>{tab.label}</Pending>
               </Link>
             ))}
           </nav>
-          {NO_WINDOW.has(pathname) ? null : (
-            <nav className="window-switch" aria-label="Time window">
-              {WINDOWS.map((each) => (
-                <Link
-                  key={each}
-                  href={`${pathname}?window=${each}`}
-                  aria-current={each === window ? "page" : undefined}
-                  // The numbers change in place; keep the reader where they are.
-                  scroll={false}
-                >
-                  <Pending>{switchLabel(each)}</Pending>
-                </Link>
-              ))}
-            </nav>
-          )}
-        </header>
-        </div>
+        ) : null}
         {children}
       </div>
 

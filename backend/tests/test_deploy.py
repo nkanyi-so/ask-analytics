@@ -104,6 +104,7 @@ def count_queries(monkeypatch: pytest.MonkeyPatch) -> list[str]:
         "activity_by_client",
         "errors_seen",
         "roster",
+        "activity_over_time",
     ):
         real = getattr(lookup_module, name)
 
@@ -131,7 +132,7 @@ def test_the_first_visitor_after_a_start_reads_only_from_the_cache(
         ):
             assert client.get(path, headers=AUTH).status_code == 200
 
-    assert warmed == 15  # five lookups in three windows
+    assert warmed == 18  # five lookups and the chart series, in three windows
     assert len(ran) == warmed
 
 
@@ -164,6 +165,7 @@ def test_warmed_values_are_what_a_cold_read_returns(database: Database) -> None:
         assert warm.activity_by_client(window, True) == cold.activity_by_client(window, True)
         assert warm.errors_seen(window, None, True) == cold.errors_seen(window, None, True)
         assert warm.roster(window, True) == cold.roster(window, True)
+        assert warm.activity_over_time(window) == cold.activity_over_time(window)
 
 
 def test_the_schedule_keeps_running_after_a_failed_warm() -> None:

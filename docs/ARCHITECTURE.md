@@ -10,7 +10,7 @@ seed (scripts/seed.py)
           │  load once at startup
        SQLite (events, users, clients, tools)
           │
-   lookups.py  ── five functions, SQL group-bys, cached 10 min
+   lookups.py  ── five lookups + one chart series, SQL group-bys, cached 10 min
       │                    │
   API routes           assistant (Anthropic tool use)
       │                    │
@@ -33,7 +33,7 @@ backend/
       mixpanel.py    import API to write, raw export API to read
       mixpanel_push.py  `make mixpanel-push`: sends the seeded workspace
     registry.py      tool catalog and typed headline registry
-    lookups.py       the five lookups and the Window type
+    lookups.py       the five lookups, the chart series and the Window type
     cache.py         TTL cache keyed by (lookup, window, args)
     assistant.py     tool-use loop, refusal rule, cost and latency log
     llm.py           ModelClient protocol, Anthropic client, fixture client
@@ -116,9 +116,21 @@ Rows are complete and ordered: every tool, person and client appears even at zer
 
 Return types are frozen dataclasses or pydantic models. The same objects feed the API, the assistant's tool results and the ground-truth generator's checks.
 
+### The chart series
+
+```python
+activity_over_time(window) -> ActivityOverTime   # unit, buckets, outputs and errors with previous and change
+```
+
+A sixth function in the same file, added for the dashboard's charts. It returns the window cut into buckets (one per hour for `today`, one per day otherwise), and for each bucket the active people, outputs, errors and outputs per tool. It also carries the window's total outputs and errors with the previous window and the change, which the dashboard shows as two of its key numbers.
+
+It is **not an assistant tool** and is not served over MCP: it is absent from `TOOL_SPECS`, so the model cannot call it and the eval set does not cover it. It is checked the same way as the others: `scripts/seed.py` writes the expected series to `data/ground_truth.json` (under `series`) with code that shares nothing with `lookups.py`, and the tests require the lookup to equal it in every window and to add up to the other lookups. `/api/overview` and `/api/reliability` return it as `trend`.
+
+The frontend draws a bar's height from a bucket's value and the chart's largest value. That ratio positions a shape and is never shown as a number, so rule 1 (no aggregation outside the lookups) holds.
+
 ### Cache and the scheduled warm
 
-Results are cached for ten minutes, keyed by lookup, window and arguments. The backend warms the cache at startup and again every five minutes, in its own process: it recomputes the fifteen results the dashboard and the summary ask for (five lookups, three windows, with the previous window) and stores them fresh, replacing entries before they expire. So no visitor pays for a cold read, and no platform scheduler is involved. A warm that fails is logged and the next one still runs. Questions that ask for something else (one person, one tool's errors) are computed on first use and cached as before.
+Results are cached for ten minutes, keyed by lookup, window and arguments. The backend warms the cache at startup and again every five minutes, in its own process: it recomputes the eighteen results the dashboard and the summary ask for (five lookups with the previous window, and the chart series, in three windows) and stores them fresh, replacing entries before they expire. So no visitor pays for a cold read, and no platform scheduler is involved. A warm that fails is logged and the next one still runs. Questions that ask for something else (one person, one tool's errors) are computed on first use and cached as before.
 
 ## Registry
 
@@ -169,13 +181,13 @@ With no `ANTHROPIC_API_KEY` the backend runs the `FixtureClient`. Every `/api/as
 
 ## Frontend
 
-Next.js app router. Two views, `/` (Overview) and `/reliability`, inside one frame (`components/Shell.tsx`) that the root layout mounts once: a header with the views and the window switch (today, 7 days, 30 days), the current view, and the assistant (`components/AskPanel.tsx`) as a panel beside it. Because the frame is not rebuilt when the view changes, the assistant keeps its questions and answers across views. It is docked and open where the screen is 1280 wide or more; below that it opens over the page as a dialog, with the page behind it inert. Overview is key values first (one tile per tool), then cards; Reliability is one card. Server components and the route handlers under `/app/api/*` call the backend with the admin token from the server environment; the browser never sees it. The layout itself asks the backend one thing, whether this is demo mode, and passes only that boolean to the frame.
+Next.js app router. Three views, `/` (Overview), `/reliability` and `/about`, inside one frame (`components/Shell.tsx`) that the root layout mounts once: a sidebar, a page header with the window switch (today, 7 days, 30 days) and the light/dark toggle, tabs, the current view, and the assistant (`components/AskPanel.tsx`) as a panel beside it. Because the frame is not rebuilt when the view changes, the assistant keeps its questions and answers across views. It is docked and open where the screen is 1280 wide or more; below that it opens over the page as a dialog, with the page behind it inert. Overview is four key numbers, each a button that opens the chart and tables behind it (`components/Dashboard.tsx`), then a sortable table of everyone; Reliability is the errors chart and a table of where they came from. Charts are plain elements sized from the `trend` field (`components/BarChart.tsx`). Server components and the route handlers under `/app/api/*` call the backend with the admin token from the server environment; the browser never sees it. The layout itself asks the backend one thing, whether this is demo mode, and passes only that boolean to the frame.
 
 The assistant is a list of separate questions, not a conversation: the backend answers each one with no memory of the last, and the panel says so.
 
 There is a third view, `/about`, which is prose: the problem, the method, the eval results and a link to the source. Its eval figures are copied by hand into `frontend/src/lib/about.ts` from `docs/eval-results.md`, because no endpoint serves them.
 
-With a live model, each tool's tile on Overview is a button that hands the assistant a question ("How is the Invoice generator doing in the last 7 days?") through a small context the frame provides (`components/ask-context.tsx`). The question is sent like any typed one, through the same route, rate limit and budget. The look, the tokens and every screen state are in `docs/DESIGN.md`; all tokens live in `frontend/src/app/tokens.css`.
+With a live model, each tool's name in an Overview table is a button that hands the assistant a question ("How is the Invoice generator doing in the last 7 days?") through a small context the frame provides (`components/ask-context.tsx`). The question is sent like any typed one, through the same route, rate limit and budget. The look, the tokens and every screen state are in `docs/DESIGN.md`; all tokens live in `frontend/src/app/tokens.css`.
 
 ### The working under an answer
 

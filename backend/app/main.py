@@ -29,6 +29,7 @@ from app.llm import (
     worst_case_call_usd,
 )
 from app.lookups import (
+    ActivityOverTime,
     ClientActivity,
     ErrorGroup,
     Lookups,
@@ -48,12 +49,15 @@ class OverviewResponse(BaseModel):
     activity_by_person: list[PersonActivity]
     activity_by_client: list[ClientActivity]
     roster: Roster
+    # For the charts: activity bucket by bucket, and totals across all tools.
+    trend: ActivityOverTime
 
 
 class ReliabilityResponse(BaseModel):
     as_of: date
     window: Window
     errors: list[ErrorGroup]
+    trend: ActivityOverTime
 
 
 class HealthResponse(BaseModel):
@@ -200,6 +204,7 @@ def api_router() -> APIRouter:
             activity_by_person=lookups.activity_by_person(window, with_previous=True),
             activity_by_client=lookups.activity_by_client(window, with_previous=True),
             roster=lookups.roster(window, with_previous=True),
+            trend=lookups.activity_over_time(window),
         )
 
     @router.get("/reliability")
@@ -208,6 +213,7 @@ def api_router() -> APIRouter:
             as_of=lookups.as_of,
             window=window,
             errors=lookups.errors_seen(window, with_previous=True),
+            trend=lookups.activity_over_time(window),
         )
 
     @router.get("/summary", response_class=HTMLResponse)

@@ -842,7 +842,7 @@ $ echo $?
 
 ## Phase 7: design pass
 
-Added on 16 Nov 2026 at the human's request. SPEC calls visual polish "a later layer"; this is that layer. No backend behaviour, API contract or existing test may change.
+Added on 16 Nov 2026 at the human's request. SPEC calls visual polish "a later layer"; this is that layer. No backend behaviour, API contract or existing test may change. (Lifted in part on 17 Nov 2026 for the redesign: see the last log entry and its restated gate.)
 
 - [x] `docs/DESIGN.md` written first and approved: direction, tokens, every screen state.
 - [x] Built with all tokens in `frontend/src/app/tokens.css`.
@@ -998,3 +998,44 @@ An explainer video is produced by `frontend/scripts/explainer.mjs`: it drives th
 *What the video caught.* A frame from the first recording showed the answer's headline number as 24. The model had written "the last 7 days (24 to 30 October 2026)" and the page took the first day of that span as the number. The page's answer reader now treats a span of days as a date, with a test built from that sentence; six varied live questions then gave the right headline each time (10, 382, 91, 2, 21, 632). The recording was also changed so that a line describing an answer is spoken only once the answer is on screen.
 
 **Gate: passed.**
+
+17 Nov 2026, redesign. The human rejected the look above twice: flat, no charts, key numbers that could not be pressed, and a structure unlike the product this is rebuilt from. A static mock in the direction of current product UI was approved, then a light and dark pair of it, with "go ahead and build". With the mock the human approved three things this phase had ruled out, so the gate for this entry is restated below.
+
+*Approved by the human, against the rule at the top of this phase.*
+
+- A sixth lookup, `activity_over_time`, for charts only. It is not an assistant tool and is not served over MCP.
+- An API change: `/api/overview` and `/api/reliability` gain a `trend` field. Nothing was removed or renamed.
+- `CLAUDE.md` rule 1 reworded from "the five lookup functions" to the five the assistant can call plus the chart series.
+
+*What was built.* Backend: `activity_over_time` in `lookups.py` (hour buckets for today, day buckets otherwise; totals of outputs and errors with previous and change), warmed with the rest; its expected values in `data/ground_truth.json` under `series`, written by `scripts/seed.py` with code that shares nothing with the lookup. `make seed` regenerated the file: only `series` was added, and `data/events.jsonl` and the eval files are byte-identical. Frontend: a new frame (sidebar, page header with the window switch and a light/dark toggle, tabs), four key numbers as toggle buttons that open a detail card with a bar chart and the tables behind the number, a sortable people table, change pills coloured by meaning, a restyled Ask panel, the system font, and a rewritten `tokens.css` and `globals.css`. Components `Change`, `Card`, `ShowAll` and `AskAbout` are gone. `docs/DESIGN.md` is rewritten to describe this design.
+
+*Tests.* Existing tests were extended, none weakened: API shape tests expect `trend`; the frontend contract test covers `Bucket` and `ActivityOverTime`; the warm test now counts eighteen warmed results and compares the warmed series with a cold read. New: the series equals ground truth in every window and adds up to `usage_by_tool` and `errors_seen`.
+
+*Review.* Three blocking findings, all fixed: the warm test did not prove the series was warmed (it counted only the five lookups); this phase's rule and gate contradicted the diff (this entry); SPEC still ruled charts out of scope. Non-blocking, fixed: stale text in ARCHITECTURE, Shell comments and the explainer script; the theme toggle now exposes its state (`aria-pressed`); a chosen theme also sets `color-scheme`; phone table labels have a fallback for browsers without alt-text syntax; the detail card is labelled by its heading; unused tokens and a dead class removed.
+
+*Found by looking.* At 1280 with the assistant docked, the two tables in the detail card ran into each other: the rule that put them side by side asked about the screen's width, not the card's. It is now a container query. "Per hour, in today" became "Per hour, today".
+
+*Restated gate for this entry.* `make check` exits 0. No existing test, eval or type check weakened. The assistant's five tools and the eval set unchanged. Every state in DESIGN.md has a screenshot, or DESIGN.md says why not. Contrast passes AA. Every control is reachable by keyboard with a visible focus ring. The detector reports no anti-patterns.
+
+*Evidence.*
+
+```
+$ make check
+All checks passed!
+Success: no issues found in 23 source files
+342 passed in 16.66s
+| all | 40 | 40 | 100% |
+ Test Files  6 passed (6)
+      Tests  58 passed (58)
+$ echo $?
+0
+
+$ git diff --stat main -- data/events.jsonl backend/evals
+(no output)
+```
+
+Screenshots: 174 in demo mode (29 states at 375, 768 and 1280, light and dark); ten kept in `docs/design/`. The live-only state (a tool's name asking the assistant) was not re-photographed, to spend nothing. `npx impeccable detect` on Overview, Reliability and About: 0 anti-patterns; two advisories on the charts, left as they are and explained in DESIGN.md. Behaviour checks in a real browser: every tab stop at 1440 shows a focus ring; pressing a key number marks it pressed and swaps the detail card; sorting sets `aria-sort`; "Show everyone" takes the table from 8 rows to 40; the theme choice survives a reload; no sideways scroll at 320, 375, 768, 1024, 1279, 1280 or 1440 on any view or detail card; below 1280 the assistant is a dialog that keeps Tab inside it, stops the page scrolling, and returns focus to its button on Escape.
+
+Not done, on the human's instruction: the explainer video was not remade. `screenshots/explainer.mp4` shows the previous design.
+
+**Gate (restated): passed.**

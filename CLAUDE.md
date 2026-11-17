@@ -14,7 +14,7 @@ Source of truth, in this order: `docs/SPEC.md` (what), `docs/ARCHITECTURE.md` (h
 
 ## Architecture rules
 
-1. **One source of numbers.** Every number on the page and every number the assistant says comes from the five lookup functions in `backend/app/lookups.py`. No aggregation anywhere else: not in routes, not in the frontend, not in prompts.
+1. **One source of numbers.** Every number on the page and every number the assistant says comes from the lookup functions in `backend/app/lookups.py`: the five the assistant can call, plus `activity_over_time`, which feeds the dashboard's charts and is not an assistant tool. No aggregation anywhere else: not in routes, not in the frontend, not in prompts.
 2. **The model never does arithmetic and never sees raw events.** It picks a lookup and a window, gets the result, and words the answer. If no lookup covers the question, it refuses and names what it can answer.
 3. **Sources sit behind one interface.** `EventSource` has a file implementation now and a Mixpanel one later. Nothing outside `backend/app/sources/` knows which is in use.
 4. **Time is pinned.** "Today" is `AS_OF` from the seed metadata, never the wall clock. This is what makes exact-match evals possible.

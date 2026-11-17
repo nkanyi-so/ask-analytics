@@ -33,6 +33,8 @@ A public rebuild of the usage observability I built for a client's internal plat
    - activity by client (active people, outputs)
    - errors seen (by source and tool, people affected)
    - roster (who is in, who never showed up, who went quiet)
+
+   Added in the design pass (Phase 7): a chart-only series, activity over time, returning the window in hourly or daily buckets. The dashboard draws its charts from it. The assistant cannot call it.
 4. **Typed headline registry** with a test proving that a tool without a headline event fails the type check.
 5. **API** with admin-token auth, a health endpoint, and results cached for ten minutes.
 6. **Assistant**: Anthropic tool use over the five lookups. It names the window it used, shows which lookup it called, and refuses questions no lookup covers while naming what it can answer.
@@ -49,7 +51,7 @@ A public rebuild of the usage observability I built for a client's internal plat
 
 ## Out of scope
 
-A real multi-tenant product. User management. Charts beyond stat tiles and one table per tab. Any real client's vocabulary or data. Visual polish beyond clean and readable (that is a later layer).
+A real multi-tenant product. User management. Charts beyond one bar chart per key number and the small per-tool series beside it (the first draft had none; the design pass added these). A charting library. Any real client's vocabulary or data. Visual polish beyond clean and readable (that is a later layer).
 
 ## Evals
 

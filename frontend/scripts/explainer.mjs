@@ -5,7 +5,8 @@
 // It drives the real app in a browser and records the screen, speaks each scene with
 // the macOS `say` voice, shows the same words as captions, and joins the two with
 // ffmpeg. Needs macOS (`say`) and ffmpeg. Run it against a live backend: it asks three
-// real questions (well under one cent). In demo mode the tiles are not clickable.
+// real questions (well under one cent). In demo mode a tool's name is not clickable.
+// The recording in screenshots/explainer.mp4 predates the 17 Nov 2026 redesign.
 import { execFileSync } from "node:child_process";
 import { mkdirSync, rmSync } from "node:fs";
 import { join, resolve } from "node:path";
@@ -52,7 +53,7 @@ async function point(page, selector) {
     const el = target ? document.querySelector(target) : null;
     if (!el) return;
     el.setAttribute("data-explainer", "");
-    el.style.outline = "3px solid var(--accent)";
+    el.style.outline = "3px solid var(--brand)";
     el.style.outlineOffset = "6px";
     el.scrollIntoView({ behavior: "smooth", block: "center" });
   }, selector);
@@ -73,12 +74,12 @@ const SCENES = [
     },
   },
   {
-    say: "This page answers that. The top row is the people. Thirty-five were active this week. Two have gone quiet. And three were invited and never showed up at all.",
-    act: (page) => point(page, ".stats"),
+    say: "This page answers that. The top row is the key numbers for the week. Thirty-five people were active. And three were invited and never showed up at all.",
+    act: (page) => point(page, ".kpis"),
   },
   {
-    say: "Then one box per tool. The big number is how many times that tool did its job. Ten invoices issued. Ninety-one emails sent. And one tool that nobody touched.",
-    act: (page) => point(page, ".tiles"),
+    say: "Press a number and what is behind it opens: a chart per day, and each tool underneath. Ten invoices issued. Ninety-one emails sent. And one tool that nobody touched.",
+    act: (page) => point(page, "#kpi-detail"),
   },
   {
     // Spelt out for the voice; the caption shows it as written.
@@ -110,7 +111,7 @@ const SCENES = [
     say: "You can also just click a tool, and it asks for you.",
     act: async (page) => {
       await point(page, null);
-      await page.getByRole("button", { name: "Ask about this tool: Invoice generator" }).click();
+      await page.getByRole("button", { name: "Invoice generator", exact: true }).click();
     },
   },
   {

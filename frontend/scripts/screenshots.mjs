@@ -56,6 +56,12 @@ function replyWith(status, detail) {
   };
 }
 
+/** Press one of the key numbers on the Overview, opening its detail card. */
+async function pick(page, label) {
+  await home(page);
+  await page.getByRole("button", { name: new RegExp(`^${label}`) }).click();
+}
+
 const goto = (path) => (page) => page.goto(`${BASE}${path}`, { waitUntil: "networkidle" });
 
 /** name -> { run, whole }. `whole` captures the full page; otherwise one screen, grown to fit the answer. */
@@ -176,16 +182,26 @@ const STATES = {
     whole: true,
     run: async (page) => {
       await home(page);
-      await page.getByRole("button", { name: /^Show all/ }).click();
+      await page.getByRole("button", { name: "Show everyone" }).last().click();
     },
   },
-  "20-tile-asks-the-assistant": {
+  "20-a-tool-asks-the-assistant": {
     // Live mode only: in demo mode a question written on the spot has no recorded answer.
     needs: "LIVE",
     run: async (page) => {
       await home(page);
-      await page.getByRole("button", { name: "Ask about this tool: Invoice generator" }).click();
+      await page.getByRole("button", { name: "Invoice generator", exact: true }).click();
       await page.locator(".working").waitFor();
+    },
+  },
+  "21-number-active-people": { whole: true, run: (page) => pick(page, "Active people") },
+  "22-number-errors": { whole: true, run: (page) => pick(page, "Errors") },
+  "23-number-never-showed-up": { whole: true, run: (page) => pick(page, "Never showed up") },
+  "24-overview-30-days-active": {
+    whole: true,
+    run: async (page) => {
+      await page.goto(`${BASE}/?window=30d`, { waitUntil: "networkidle" });
+      await page.getByRole("button", { name: /^Active people/ }).click();
     },
   },
   "17-panel-closed": {

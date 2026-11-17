@@ -70,14 +70,6 @@ async function ask(question: string): Promise<Outcome> {
   return { kind: "failed", message, retry: response.status >= 500 };
 }
 
-function Tick(): ReactNode {
-  return (
-    <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path d="M2.5 8.5l3.5 3.5 7.5-8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
 /** The answer's own words, with the numbers the page found in the result marked. */
 function Marked({ segments, figures }: { segments: Segment[]; figures: Set<number> }): ReactNode {
   return segments.map((segment, index) =>
@@ -172,8 +164,8 @@ function Answered({ body, evidence }: { body: AskResponse; evidence: (EvidenceRo
   const anyMarked = [...numbers].some((value) => figures.has(value));
 
   return (
-    <div className="answered arrive">
-      <div>
+    <div className="answer arrive">
+      <div className="answer-top">
         {hero === null ? (
           <p className="hero-words">
             <Marked segments={segments} figures={figures} />
@@ -196,12 +188,9 @@ function Answered({ body, evidence }: { body: AskResponse; evidence: (EvidenceRo
           {body.lookups_called.map((call, index) => (
             <LookupSteps key={index} call={call} shown={shown[index]} />
           ))}
-          <li>
+          <li className="ok">
             <div>
-              <div className="step-title">
-                <Tick />
-                Checked
-              </div>
+              <div className="step-title">Checked</div>
               <div className="step-detail">
                 Before an answer is sent, every number in it must be in a lookup result. An answer with any
                 other number is replaced by a refusal.
@@ -224,7 +213,7 @@ function Refused({ body }: { body: AskResponse }): ReactNode {
   // In demo mode the backend says so in its own words when a question has no recording.
   const unrecorded = body.demo_mode && body.answer.startsWith("Demo mode");
   return (
-    <div className="notice arrive">
+    <div className="answer notice arrive">
       <p className="hero-words">
         {unrecorded ? "There is no recorded answer for that question." : "That can't be answered from this data."}
       </p>
@@ -244,11 +233,15 @@ function EntryView({ entry, onRetry }: { entry: Entry; onRetry: () => void }): R
   const { outcome } = entry;
   return (
     <li className="entry">
-      <p className="entry-question">
+      <p className="question">
         <span className="visually-hidden">You asked: </span>
         {entry.question}
       </p>
-      {outcome.kind === "loading" ? <p className="entry-wait">Looking it up. This usually takes a few seconds.</p> : null}
+      {outcome.kind === "loading" ? (
+        <div className="answer waiting">
+          <p>Looking it up. This usually takes a few seconds.</p>
+        </div>
+      ) : null}
       {outcome.kind === "answer" ? (
         outcome.body.refused ? (
           <Refused body={outcome.body} />
@@ -257,7 +250,7 @@ function EntryView({ entry, onRetry }: { entry: Entry; onRetry: () => void }): R
         )
       ) : null}
       {outcome.kind === "limit" ? (
-        <div className="notice">
+        <div className="answer notice">
           <p className="hero-words">
             {outcome.budget ? "The assistant has stopped for today." : "Too many questions for now."}
           </p>
@@ -266,7 +259,7 @@ function EntryView({ entry, onRetry }: { entry: Entry; onRetry: () => void }): R
         </div>
       ) : null}
       {outcome.kind === "failed" ? (
-        <div className="notice">
+        <div className="answer notice">
           <p className="hero-words">
             {outcome.retry ? "The assistant could not be reached." : "That question could not be sent."}
           </p>
@@ -376,14 +369,17 @@ export function AskPanel({ demoMode, opened, modal, handle, onClose }: AskPanelP
     >
       <div className="ask-head">
         <div>
-          <h2 id="ask-title">Ask</h2>
+          <h2 id="ask-title">
+            Ask{" "}
+            {demoMode === null ? null : <span className={demoMode ? "pill" : "pill good"}>{demoMode ? "Demo" : "Live"}</span>}
+          </h2>
           <p className="ask-mode">
             {demoMode === true
               ? "Demo mode: recorded answers, live model not connected."
               : "It can look a number up. It cannot make one up."}
           </p>
         </div>
-        <button className="icon-button" type="button" onClick={onClose} aria-label="Close the Ask panel">
+        <button className="round-button" type="button" onClick={onClose} aria-label="Close the Ask panel">
           <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M3.5 3.5l9 9m0-9l-9 9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
           </svg>

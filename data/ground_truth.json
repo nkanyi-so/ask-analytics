@@ -3624,5 +3624,1018 @@
   "quiet_user": "u014",
   "unused_tool": "contact_enrichment"
  },
- "seed": 20261030
+ "seed": 20261030,
+ "series": {
+  "activity_over_time": {
+   "30d": {
+    "buckets": [
+     {
+      "active_people": 30,
+      "errors": 1,
+      "label": "2026-10-01",
+      "outputs": 87,
+      "outputs_by_tool": {
+       "call_agenda": 9,
+       "contact_enrichment": 0,
+       "email_drafter": 20,
+       "invoice_generator": 7,
+       "media_plan_builder": 10,
+       "meeting_notes": 15,
+       "proposal_writer": 11,
+       "report_summariser": 15
+      }
+     },
+     {
+      "active_people": 29,
+      "errors": 2,
+      "label": "2026-10-02",
+      "outputs": 88,
+      "outputs_by_tool": {
+       "call_agenda": 13,
+       "contact_enrichment": 0,
+       "email_drafter": 16,
+       "invoice_generator": 12,
+       "media_plan_builder": 8,
+       "meeting_notes": 20,
+       "proposal_writer": 9,
+       "report_summariser": 10
+      }
+     },
+     {
+      "active_people": 5,
+      "errors": 0,
+      "label": "2026-10-03",
+      "outputs": 18,
+      "outputs_by_tool": {
+       "call_agenda": 4,
+       "contact_enrichment": 0,
+       "email_drafter": 1,
+       "invoice_generator": 3,
+       "media_plan_builder": 2,
+       "meeting_notes": 5,
+       "proposal_writer": 1,
+       "report_summariser": 2
+      }
+     },
+     {
+      "active_people": 2,
+      "errors": 0,
+      "label": "2026-10-04",
+      "outputs": 2,
+      "outputs_by_tool": {
+       "call_agenda": 0,
+       "contact_enrichment": 0,
+       "email_drafter": 0,
+       "invoice_generator": 0,
+       "media_plan_builder": 1,
+       "meeting_notes": 0,
+       "proposal_writer": 0,
+       "report_summariser": 1
+      }
+     },
+     {
+      "active_people": 27,
+      "errors": 1,
+      "label": "2026-10-05",
+      "outputs": 81,
+      "outputs_by_tool": {
+       "call_agenda": 8,
+       "contact_enrichment": 0,
+       "email_drafter": 21,
+       "invoice_generator": 13,
+       "media_plan_builder": 6,
+       "meeting_notes": 12,
+       "proposal_writer": 9,
+       "report_summariser": 12
+      }
+     },
+     {
+      "active_people": 25,
+      "errors": 1,
+      "label": "2026-10-06",
+      "outputs": 80,
+      "outputs_by_tool": {
+       "call_agenda": 6,
+       "contact_enrichment": 0,
+       "email_drafter": 18,
+       "invoice_generator": 17,
+       "media_plan_builder": 5,
+       "meeting_notes": 14,
+       "proposal_writer": 9,
+       "report_summariser": 11
+      }
+     },
+     {
+      "active_people": 27,
+      "errors": 4,
+      "label": "2026-10-07",
+      "outputs": 75,
+      "outputs_by_tool": {
+       "call_agenda": 13,
+       "contact_enrichment": 0,
+       "email_drafter": 16,
+       "invoice_generator": 7,
+       "media_plan_builder": 7,
+       "meeting_notes": 17,
+       "proposal_writer": 5,
+       "report_summariser": 10
+      }
+     },
+     {
+      "active_people": 26,
+      "errors": 3,
+      "label": "2026-10-08",
+      "outputs": 80,
+      "outputs_by_tool": {
+       "call_agenda": 8,
+       "contact_enrichment": 0,
+       "email_drafter": 20,
+       "invoice_generator": 12,
+       "media_plan_builder": 8,
+       "meeting_notes": 20,
+       "proposal_writer": 4,
+       "report_summariser": 8
+      }
+     },
+     {
+      "active_people": 23,
+      "errors": 3,
+      "label": "2026-10-09",
+      "outputs": 66,
+      "outputs_by_tool": {
+       "call_agenda": 6,
+       "contact_enrichment": 0,
+       "email_drafter": 11,
+       "invoice_generator": 12,
+       "media_plan_builder": 8,
+       "meeting_notes": 12,
+       "proposal_writer": 2,
+       "report_summariser": 15
+      }
+     },
+     {
+      "active_people": 2,
+      "errors": 0,
+      "label": "2026-10-10",
+      "outputs": 8,
+      "outputs_by_tool": {
+       "call_agenda": 1,
+       "contact_enrichment": 0,
+       "email_drafter": 1,
+       "invoice_generator": 1,
+       "media_plan_builder": 0,
+       "meeting_notes": 2,
+       "proposal_writer": 1,
+       "report_summariser": 2
+      }
+     },
+     {
+      "active_people": 4,
+      "errors": 0,
+      "label": "2026-10-11",
+      "outputs": 7,
+      "outputs_by_tool": {
+       "call_agenda": 1,
+       "contact_enrichment": 0,
+       "email_drafter": 1,
+       "invoice_generator": 1,
+       "media_plan_builder": 0,
+       "meeting_notes": 2,
+       "proposal_writer": 1,
+       "report_summariser": 1
+      }
+     },
+     {
+      "active_people": 27,
+      "errors": 3,
+      "label": "2026-10-12",
+      "outputs": 75,
+      "outputs_by_tool": {
+       "call_agenda": 18,
+       "contact_enrichment": 0,
+       "email_drafter": 14,
+       "invoice_generator": 9,
+       "media_plan_builder": 6,
+       "meeting_notes": 12,
+       "proposal_writer": 6,
+       "report_summariser": 10
+      }
+     },
+     {
+      "active_people": 26,
+      "errors": 3,
+      "label": "2026-10-13",
+      "outputs": 68,
+      "outputs_by_tool": {
+       "call_agenda": 9,
+       "contact_enrichment": 0,
+       "email_drafter": 20,
+       "invoice_generator": 4,
+       "media_plan_builder": 6,
+       "meeting_notes": 14,
+       "proposal_writer": 5,
+       "report_summariser": 10
+      }
+     },
+     {
+      "active_people": 24,
+      "errors": 3,
+      "label": "2026-10-14",
+      "outputs": 79,
+      "outputs_by_tool": {
+       "call_agenda": 17,
+       "contact_enrichment": 0,
+       "email_drafter": 19,
+       "invoice_generator": 11,
+       "media_plan_builder": 6,
+       "meeting_notes": 13,
+       "proposal_writer": 5,
+       "report_summariser": 8
+      }
+     },
+     {
+      "active_people": 24,
+      "errors": 1,
+      "label": "2026-10-15",
+      "outputs": 68,
+      "outputs_by_tool": {
+       "call_agenda": 15,
+       "contact_enrichment": 0,
+       "email_drafter": 12,
+       "invoice_generator": 10,
+       "media_plan_builder": 7,
+       "meeting_notes": 14,
+       "proposal_writer": 3,
+       "report_summariser": 7
+      }
+     },
+     {
+      "active_people": 24,
+      "errors": 2,
+      "label": "2026-10-16",
+      "outputs": 75,
+      "outputs_by_tool": {
+       "call_agenda": 13,
+       "contact_enrichment": 0,
+       "email_drafter": 15,
+       "invoice_generator": 10,
+       "media_plan_builder": 11,
+       "meeting_notes": 10,
+       "proposal_writer": 5,
+       "report_summariser": 11
+      }
+     },
+     {
+      "active_people": 3,
+      "errors": 2,
+      "label": "2026-10-17",
+      "outputs": 6,
+      "outputs_by_tool": {
+       "call_agenda": 0,
+       "contact_enrichment": 0,
+       "email_drafter": 0,
+       "invoice_generator": 2,
+       "media_plan_builder": 0,
+       "meeting_notes": 3,
+       "proposal_writer": 1,
+       "report_summariser": 0
+      }
+     },
+     {
+      "active_people": 2,
+      "errors": 0,
+      "label": "2026-10-18",
+      "outputs": 6,
+      "outputs_by_tool": {
+       "call_agenda": 0,
+       "contact_enrichment": 0,
+       "email_drafter": 3,
+       "invoice_generator": 0,
+       "media_plan_builder": 0,
+       "meeting_notes": 2,
+       "proposal_writer": 1,
+       "report_summariser": 0
+      }
+     },
+     {
+      "active_people": 24,
+      "errors": 1,
+      "label": "2026-10-19",
+      "outputs": 70,
+      "outputs_by_tool": {
+       "call_agenda": 12,
+       "contact_enrichment": 0,
+       "email_drafter": 13,
+       "invoice_generator": 9,
+       "media_plan_builder": 10,
+       "meeting_notes": 15,
+       "proposal_writer": 3,
+       "report_summariser": 8
+      }
+     },
+     {
+      "active_people": 22,
+      "errors": 3,
+      "label": "2026-10-20",
+      "outputs": 72,
+      "outputs_by_tool": {
+       "call_agenda": 4,
+       "contact_enrichment": 0,
+       "email_drafter": 19,
+       "invoice_generator": 13,
+       "media_plan_builder": 6,
+       "meeting_notes": 12,
+       "proposal_writer": 4,
+       "report_summariser": 14
+      }
+     },
+     {
+      "active_people": 22,
+      "errors": 0,
+      "label": "2026-10-21",
+      "outputs": 70,
+      "outputs_by_tool": {
+       "call_agenda": 10,
+       "contact_enrichment": 0,
+       "email_drafter": 18,
+       "invoice_generator": 8,
+       "media_plan_builder": 5,
+       "meeting_notes": 11,
+       "proposal_writer": 7,
+       "report_summariser": 11
+      }
+     },
+     {
+      "active_people": 25,
+      "errors": 0,
+      "label": "2026-10-22",
+      "outputs": 77,
+      "outputs_by_tool": {
+       "call_agenda": 15,
+       "contact_enrichment": 0,
+       "email_drafter": 15,
+       "invoice_generator": 8,
+       "media_plan_builder": 7,
+       "meeting_notes": 15,
+       "proposal_writer": 9,
+       "report_summariser": 8
+      }
+     },
+     {
+      "active_people": 23,
+      "errors": 2,
+      "label": "2026-10-23",
+      "outputs": 76,
+      "outputs_by_tool": {
+       "call_agenda": 13,
+       "contact_enrichment": 0,
+       "email_drafter": 18,
+       "invoice_generator": 11,
+       "media_plan_builder": 8,
+       "meeting_notes": 8,
+       "proposal_writer": 6,
+       "report_summariser": 12
+      }
+     },
+     {
+      "active_people": 3,
+      "errors": 5,
+      "label": "2026-10-24",
+      "outputs": 4,
+      "outputs_by_tool": {
+       "call_agenda": 0,
+       "contact_enrichment": 0,
+       "email_drafter": 1,
+       "invoice_generator": 0,
+       "media_plan_builder": 0,
+       "meeting_notes": 1,
+       "proposal_writer": 0,
+       "report_summariser": 2
+      }
+     },
+     {
+      "active_people": 1,
+      "errors": 0,
+      "label": "2026-10-25",
+      "outputs": 2,
+      "outputs_by_tool": {
+       "call_agenda": 0,
+       "contact_enrichment": 0,
+       "email_drafter": 1,
+       "invoice_generator": 0,
+       "media_plan_builder": 0,
+       "meeting_notes": 1,
+       "proposal_writer": 0,
+       "report_summariser": 0
+      }
+     },
+     {
+      "active_people": 22,
+      "errors": 28,
+      "label": "2026-10-26",
+      "outputs": 59,
+      "outputs_by_tool": {
+       "call_agenda": 7,
+       "contact_enrichment": 0,
+       "email_drafter": 13,
+       "invoice_generator": 3,
+       "media_plan_builder": 9,
+       "meeting_notes": 11,
+       "proposal_writer": 3,
+       "report_summariser": 13
+      }
+     },
+     {
+      "active_people": 23,
+      "errors": 15,
+      "label": "2026-10-27",
+      "outputs": 76,
+      "outputs_by_tool": {
+       "call_agenda": 8,
+       "contact_enrichment": 0,
+       "email_drafter": 25,
+       "invoice_generator": 3,
+       "media_plan_builder": 8,
+       "meeting_notes": 13,
+       "proposal_writer": 5,
+       "report_summariser": 14
+      }
+     },
+     {
+      "active_people": 23,
+      "errors": 14,
+      "label": "2026-10-28",
+      "outputs": 56,
+      "outputs_by_tool": {
+       "call_agenda": 10,
+       "contact_enrichment": 0,
+       "email_drafter": 10,
+       "invoice_generator": 1,
+       "media_plan_builder": 6,
+       "meeting_notes": 12,
+       "proposal_writer": 5,
+       "report_summariser": 12
+      }
+     },
+     {
+      "active_people": 26,
+      "errors": 21,
+      "label": "2026-10-29",
+      "outputs": 73,
+      "outputs_by_tool": {
+       "call_agenda": 10,
+       "contact_enrichment": 0,
+       "email_drafter": 23,
+       "invoice_generator": 1,
+       "media_plan_builder": 5,
+       "meeting_notes": 14,
+       "proposal_writer": 11,
+       "report_summariser": 9
+      }
+     },
+     {
+      "active_people": 25,
+      "errors": 11,
+      "label": "2026-10-30",
+      "outputs": 74,
+      "outputs_by_tool": {
+       "call_agenda": 11,
+       "contact_enrichment": 0,
+       "email_drafter": 18,
+       "invoice_generator": 2,
+       "media_plan_builder": 10,
+       "meeting_notes": 15,
+       "proposal_writer": 9,
+       "report_summariser": 9
+      }
+     }
+    ],
+    "errors": 129,
+    "errors_change": 97,
+    "errors_previous": 32,
+    "outputs": 1678,
+    "outputs_change": -20,
+    "outputs_previous": 1698,
+    "unit": "day"
+   },
+   "7d": {
+    "buckets": [
+     {
+      "active_people": 3,
+      "errors": 5,
+      "label": "2026-10-24",
+      "outputs": 4,
+      "outputs_by_tool": {
+       "call_agenda": 0,
+       "contact_enrichment": 0,
+       "email_drafter": 1,
+       "invoice_generator": 0,
+       "media_plan_builder": 0,
+       "meeting_notes": 1,
+       "proposal_writer": 0,
+       "report_summariser": 2
+      }
+     },
+     {
+      "active_people": 1,
+      "errors": 0,
+      "label": "2026-10-25",
+      "outputs": 2,
+      "outputs_by_tool": {
+       "call_agenda": 0,
+       "contact_enrichment": 0,
+       "email_drafter": 1,
+       "invoice_generator": 0,
+       "media_plan_builder": 0,
+       "meeting_notes": 1,
+       "proposal_writer": 0,
+       "report_summariser": 0
+      }
+     },
+     {
+      "active_people": 22,
+      "errors": 28,
+      "label": "2026-10-26",
+      "outputs": 59,
+      "outputs_by_tool": {
+       "call_agenda": 7,
+       "contact_enrichment": 0,
+       "email_drafter": 13,
+       "invoice_generator": 3,
+       "media_plan_builder": 9,
+       "meeting_notes": 11,
+       "proposal_writer": 3,
+       "report_summariser": 13
+      }
+     },
+     {
+      "active_people": 23,
+      "errors": 15,
+      "label": "2026-10-27",
+      "outputs": 76,
+      "outputs_by_tool": {
+       "call_agenda": 8,
+       "contact_enrichment": 0,
+       "email_drafter": 25,
+       "invoice_generator": 3,
+       "media_plan_builder": 8,
+       "meeting_notes": 13,
+       "proposal_writer": 5,
+       "report_summariser": 14
+      }
+     },
+     {
+      "active_people": 23,
+      "errors": 14,
+      "label": "2026-10-28",
+      "outputs": 56,
+      "outputs_by_tool": {
+       "call_agenda": 10,
+       "contact_enrichment": 0,
+       "email_drafter": 10,
+       "invoice_generator": 1,
+       "media_plan_builder": 6,
+       "meeting_notes": 12,
+       "proposal_writer": 5,
+       "report_summariser": 12
+      }
+     },
+     {
+      "active_people": 26,
+      "errors": 21,
+      "label": "2026-10-29",
+      "outputs": 73,
+      "outputs_by_tool": {
+       "call_agenda": 10,
+       "contact_enrichment": 0,
+       "email_drafter": 23,
+       "invoice_generator": 1,
+       "media_plan_builder": 5,
+       "meeting_notes": 14,
+       "proposal_writer": 11,
+       "report_summariser": 9
+      }
+     },
+     {
+      "active_people": 25,
+      "errors": 11,
+      "label": "2026-10-30",
+      "outputs": 74,
+      "outputs_by_tool": {
+       "call_agenda": 11,
+       "contact_enrichment": 0,
+       "email_drafter": 18,
+       "invoice_generator": 2,
+       "media_plan_builder": 10,
+       "meeting_notes": 15,
+       "proposal_writer": 9,
+       "report_summariser": 9
+      }
+     }
+    ],
+    "errors": 94,
+    "errors_change": 86,
+    "errors_previous": 8,
+    "outputs": 344,
+    "outputs_change": -33,
+    "outputs_previous": 377,
+    "unit": "day"
+   },
+   "today": {
+    "buckets": [
+     {
+      "active_people": 0,
+      "errors": 0,
+      "label": "00:00",
+      "outputs": 0,
+      "outputs_by_tool": {
+       "call_agenda": 0,
+       "contact_enrichment": 0,
+       "email_drafter": 0,
+       "invoice_generator": 0,
+       "media_plan_builder": 0,
+       "meeting_notes": 0,
+       "proposal_writer": 0,
+       "report_summariser": 0
+      }
+     },
+     {
+      "active_people": 0,
+      "errors": 0,
+      "label": "01:00",
+      "outputs": 0,
+      "outputs_by_tool": {
+       "call_agenda": 0,
+       "contact_enrichment": 0,
+       "email_drafter": 0,
+       "invoice_generator": 0,
+       "media_plan_builder": 0,
+       "meeting_notes": 0,
+       "proposal_writer": 0,
+       "report_summariser": 0
+      }
+     },
+     {
+      "active_people": 0,
+      "errors": 0,
+      "label": "02:00",
+      "outputs": 0,
+      "outputs_by_tool": {
+       "call_agenda": 0,
+       "contact_enrichment": 0,
+       "email_drafter": 0,
+       "invoice_generator": 0,
+       "media_plan_builder": 0,
+       "meeting_notes": 0,
+       "proposal_writer": 0,
+       "report_summariser": 0
+      }
+     },
+     {
+      "active_people": 0,
+      "errors": 0,
+      "label": "03:00",
+      "outputs": 0,
+      "outputs_by_tool": {
+       "call_agenda": 0,
+       "contact_enrichment": 0,
+       "email_drafter": 0,
+       "invoice_generator": 0,
+       "media_plan_builder": 0,
+       "meeting_notes": 0,
+       "proposal_writer": 0,
+       "report_summariser": 0
+      }
+     },
+     {
+      "active_people": 0,
+      "errors": 0,
+      "label": "04:00",
+      "outputs": 0,
+      "outputs_by_tool": {
+       "call_agenda": 0,
+       "contact_enrichment": 0,
+       "email_drafter": 0,
+       "invoice_generator": 0,
+       "media_plan_builder": 0,
+       "meeting_notes": 0,
+       "proposal_writer": 0,
+       "report_summariser": 0
+      }
+     },
+     {
+      "active_people": 0,
+      "errors": 0,
+      "label": "05:00",
+      "outputs": 0,
+      "outputs_by_tool": {
+       "call_agenda": 0,
+       "contact_enrichment": 0,
+       "email_drafter": 0,
+       "invoice_generator": 0,
+       "media_plan_builder": 0,
+       "meeting_notes": 0,
+       "proposal_writer": 0,
+       "report_summariser": 0
+      }
+     },
+     {
+      "active_people": 0,
+      "errors": 0,
+      "label": "06:00",
+      "outputs": 0,
+      "outputs_by_tool": {
+       "call_agenda": 0,
+       "contact_enrichment": 0,
+       "email_drafter": 0,
+       "invoice_generator": 0,
+       "media_plan_builder": 0,
+       "meeting_notes": 0,
+       "proposal_writer": 0,
+       "report_summariser": 0
+      }
+     },
+     {
+      "active_people": 0,
+      "errors": 0,
+      "label": "07:00",
+      "outputs": 0,
+      "outputs_by_tool": {
+       "call_agenda": 0,
+       "contact_enrichment": 0,
+       "email_drafter": 0,
+       "invoice_generator": 0,
+       "media_plan_builder": 0,
+       "meeting_notes": 0,
+       "proposal_writer": 0,
+       "report_summariser": 0
+      }
+     },
+     {
+      "active_people": 7,
+      "errors": 0,
+      "label": "08:00",
+      "outputs": 2,
+      "outputs_by_tool": {
+       "call_agenda": 0,
+       "contact_enrichment": 0,
+       "email_drafter": 0,
+       "invoice_generator": 0,
+       "media_plan_builder": 1,
+       "meeting_notes": 0,
+       "proposal_writer": 0,
+       "report_summariser": 1
+      }
+     },
+     {
+      "active_people": 11,
+      "errors": 0,
+      "label": "09:00",
+      "outputs": 10,
+      "outputs_by_tool": {
+       "call_agenda": 0,
+       "contact_enrichment": 0,
+       "email_drafter": 4,
+       "invoice_generator": 1,
+       "media_plan_builder": 0,
+       "meeting_notes": 1,
+       "proposal_writer": 3,
+       "report_summariser": 1
+      }
+     },
+     {
+      "active_people": 7,
+      "errors": 3,
+      "label": "10:00",
+      "outputs": 23,
+      "outputs_by_tool": {
+       "call_agenda": 7,
+       "contact_enrichment": 0,
+       "email_drafter": 4,
+       "invoice_generator": 0,
+       "media_plan_builder": 2,
+       "meeting_notes": 5,
+       "proposal_writer": 2,
+       "report_summariser": 3
+      }
+     },
+     {
+      "active_people": 0,
+      "errors": 3,
+      "label": "11:00",
+      "outputs": 21,
+      "outputs_by_tool": {
+       "call_agenda": 2,
+       "contact_enrichment": 0,
+       "email_drafter": 8,
+       "invoice_generator": 0,
+       "media_plan_builder": 1,
+       "meeting_notes": 6,
+       "proposal_writer": 3,
+       "report_summariser": 1
+      }
+     },
+     {
+      "active_people": 0,
+      "errors": 4,
+      "label": "12:00",
+      "outputs": 13,
+      "outputs_by_tool": {
+       "call_agenda": 1,
+       "contact_enrichment": 0,
+       "email_drafter": 1,
+       "invoice_generator": 1,
+       "media_plan_builder": 4,
+       "meeting_notes": 2,
+       "proposal_writer": 1,
+       "report_summariser": 3
+      }
+     },
+     {
+      "active_people": 0,
+      "errors": 1,
+      "label": "13:00",
+      "outputs": 4,
+      "outputs_by_tool": {
+       "call_agenda": 1,
+       "contact_enrichment": 0,
+       "email_drafter": 1,
+       "invoice_generator": 0,
+       "media_plan_builder": 1,
+       "meeting_notes": 1,
+       "proposal_writer": 0,
+       "report_summariser": 0
+      }
+     },
+     {
+      "active_people": 0,
+      "errors": 0,
+      "label": "14:00",
+      "outputs": 1,
+      "outputs_by_tool": {
+       "call_agenda": 0,
+       "contact_enrichment": 0,
+       "email_drafter": 0,
+       "invoice_generator": 0,
+       "media_plan_builder": 1,
+       "meeting_notes": 0,
+       "proposal_writer": 0,
+       "report_summariser": 0
+      }
+     },
+     {
+      "active_people": 0,
+      "errors": 0,
+      "label": "15:00",
+      "outputs": 0,
+      "outputs_by_tool": {
+       "call_agenda": 0,
+       "contact_enrichment": 0,
+       "email_drafter": 0,
+       "invoice_generator": 0,
+       "media_plan_builder": 0,
+       "meeting_notes": 0,
+       "proposal_writer": 0,
+       "report_summariser": 0
+      }
+     },
+     {
+      "active_people": 0,
+      "errors": 0,
+      "label": "16:00",
+      "outputs": 0,
+      "outputs_by_tool": {
+       "call_agenda": 0,
+       "contact_enrichment": 0,
+       "email_drafter": 0,
+       "invoice_generator": 0,
+       "media_plan_builder": 0,
+       "meeting_notes": 0,
+       "proposal_writer": 0,
+       "report_summariser": 0
+      }
+     },
+     {
+      "active_people": 0,
+      "errors": 0,
+      "label": "17:00",
+      "outputs": 0,
+      "outputs_by_tool": {
+       "call_agenda": 0,
+       "contact_enrichment": 0,
+       "email_drafter": 0,
+       "invoice_generator": 0,
+       "media_plan_builder": 0,
+       "meeting_notes": 0,
+       "proposal_writer": 0,
+       "report_summariser": 0
+      }
+     },
+     {
+      "active_people": 0,
+      "errors": 0,
+      "label": "18:00",
+      "outputs": 0,
+      "outputs_by_tool": {
+       "call_agenda": 0,
+       "contact_enrichment": 0,
+       "email_drafter": 0,
+       "invoice_generator": 0,
+       "media_plan_builder": 0,
+       "meeting_notes": 0,
+       "proposal_writer": 0,
+       "report_summariser": 0
+      }
+     },
+     {
+      "active_people": 0,
+      "errors": 0,
+      "label": "19:00",
+      "outputs": 0,
+      "outputs_by_tool": {
+       "call_agenda": 0,
+       "contact_enrichment": 0,
+       "email_drafter": 0,
+       "invoice_generator": 0,
+       "media_plan_builder": 0,
+       "meeting_notes": 0,
+       "proposal_writer": 0,
+       "report_summariser": 0
+      }
+     },
+     {
+      "active_people": 0,
+      "errors": 0,
+      "label": "20:00",
+      "outputs": 0,
+      "outputs_by_tool": {
+       "call_agenda": 0,
+       "contact_enrichment": 0,
+       "email_drafter": 0,
+       "invoice_generator": 0,
+       "media_plan_builder": 0,
+       "meeting_notes": 0,
+       "proposal_writer": 0,
+       "report_summariser": 0
+      }
+     },
+     {
+      "active_people": 0,
+      "errors": 0,
+      "label": "21:00",
+      "outputs": 0,
+      "outputs_by_tool": {
+       "call_agenda": 0,
+       "contact_enrichment": 0,
+       "email_drafter": 0,
+       "invoice_generator": 0,
+       "media_plan_builder": 0,
+       "meeting_notes": 0,
+       "proposal_writer": 0,
+       "report_summariser": 0
+      }
+     },
+     {
+      "active_people": 0,
+      "errors": 0,
+      "label": "22:00",
+      "outputs": 0,
+      "outputs_by_tool": {
+       "call_agenda": 0,
+       "contact_enrichment": 0,
+       "email_drafter": 0,
+       "invoice_generator": 0,
+       "media_plan_builder": 0,
+       "meeting_notes": 0,
+       "proposal_writer": 0,
+       "report_summariser": 0
+      }
+     },
+     {
+      "active_people": 0,
+      "errors": 0,
+      "label": "23:00",
+      "outputs": 0,
+      "outputs_by_tool": {
+       "call_agenda": 0,
+       "contact_enrichment": 0,
+       "email_drafter": 0,
+       "invoice_generator": 0,
+       "media_plan_builder": 0,
+       "meeting_notes": 0,
+       "proposal_writer": 0,
+       "report_summariser": 0
+      }
+     }
+    ],
+    "errors": 11,
+    "errors_change": -10,
+    "errors_previous": 21,
+    "outputs": 74,
+    "outputs_change": 1,
+    "outputs_previous": 73,
+    "unit": "hour"
+   }
+  }
+ }
 }

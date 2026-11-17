@@ -397,6 +397,59 @@ def truth_roster(data: Record, window: str) -> Record:
     return roster
 
 
+def truth_activity_over_time(data: Record, window: str) -> Record:
+    """Activity bucket by bucket, for the dashboard's charts: by hour for today, else by day."""
+    first, last = window_days(window)
+    events = in_days(data["events"], (first, last))
+    previous = in_days(data["events"], window_days(window, previous=True))
+    tool_ids = sorted(tool["id"] for tool in data["tools"])
+
+    def is_output(event: Record) -> bool:
+        return event["tool_id"] is not None and event["name"] == HEADLINE[event["tool_id"]]
+
+    if window == "today":
+        unit, labels = "hour", [f"{hour:02d}:00" for hour in range(24)]
+
+        def bucket_of(event: Record) -> str:
+            return str(event["ts"])[11:13] + ":00"
+    else:
+        unit = "day"
+        labels = [(first + timedelta(days=n)).isoformat() for n in range((last - first).days + 1)]
+
+        def bucket_of(event: Record) -> str:
+            return str(event["ts"])[:10]
+
+    buckets = []
+    for label in labels:
+        inside = [e for e in events if bucket_of(e) == label]
+        buckets.append(
+            {
+                "label": label,
+                "active_people": len({e["user_id"] for e in inside if e["name"] == "login"}),
+                "outputs": sum(1 for e in inside if is_output(e)),
+                "errors": sum(1 for e in inside if e["name"] == "error"),
+                "outputs_by_tool": {
+                    tool_id: sum(1 for e in inside if is_output(e) and e["tool_id"] == tool_id)
+                    for tool_id in tool_ids
+                },
+            }
+        )
+    outputs = sum(1 for e in events if is_output(e))
+    outputs_previous = sum(1 for e in previous if is_output(e))
+    errors = sum(1 for e in events if e["name"] == "error")
+    errors_previous = sum(1 for e in previous if e["name"] == "error")
+    return {
+        "unit": unit,
+        "buckets": buckets,
+        "outputs": outputs,
+        "outputs_previous": outputs_previous,
+        "outputs_change": outputs - outputs_previous,
+        "errors": errors,
+        "errors_previous": errors_previous,
+        "errors_change": errors - errors_previous,
+    }
+
+
 def ground_truth(data: Record) -> Record:
     lookups = {
         "usage_by_tool": truth_usage_by_tool,
@@ -423,6 +476,13 @@ def ground_truth(data: Record) -> Record:
         "lookups": {
             name: {window: compute(data, window) for window in WINDOW_LENGTHS}
             for name, compute in lookups.items()
+        },
+        # The dashboard's charts. Not one of the assistant's five lookups, so it is kept
+        # apart from them: it takes no `with_previous` and always carries its totals.
+        "series": {
+            "activity_over_time": {
+                window: truth_activity_over_time(data, window) for window in WINDOW_LENGTHS
+            }
         },
     }
 

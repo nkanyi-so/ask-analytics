@@ -66,3 +66,32 @@ const COUNT = new Intl.NumberFormat("en-US");
 export function formatCount(value: number): string {
   return COUNT.format(value);
 }
+
+const WEEKDAY = new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", timeZone: "UTC" });
+
+/** A chart bucket's label for the axis: "Sat 24" for a day, "09" for an hour. */
+export function bucketLabel(label: string, unit: "hour" | "day"): string {
+  return unit === "hour" ? label.slice(0, 2) : WEEKDAY.format(new Date(`${label}T00:00:00Z`));
+}
+
+/** "Juno Dunmore" as "JD", for the circle beside a name. */
+export function initials(name: string): string {
+  const words = name.split(/\s+/).filter(Boolean);
+  return ((words[0]?.[0] ?? "") + (words.at(-1)?.[0] ?? "")).toUpperCase();
+}
+
+const VERSUS_LABELS: Record<Window, string> = {
+  today: "vs the day before",
+  "7d": "vs prior 7 days",
+  "30d": "vs prior 30 days",
+};
+
+/** The short form beside a change pill: "vs prior 7 days". */
+export function versusLabel(window: Window): string {
+  return VERSUS_LABELS[window];
+}
+
+/** The window inside a sentence: "today", or "in the last 7 days". */
+export function inWindow(window: Window): string {
+  return window === "today" ? "today" : `in ${windowLabel(window)}`;
+}
