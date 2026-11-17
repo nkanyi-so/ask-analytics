@@ -11,7 +11,7 @@ import "./globals.css";
 const sans = Hanken_Grotesk({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
 
 export const metadata: Metadata = {
-  title: "ask-analytics",
+  title: { default: "ask-analytics", template: "%s · ask-analytics" },
   description:
     "Usage numbers for a seeded workspace, and an assistant that can only answer with numbers the page can derive.",
 };

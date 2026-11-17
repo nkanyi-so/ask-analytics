@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { Card } from "@/components/Card";
@@ -5,6 +6,8 @@ import { Change } from "@/components/Change";
 import { getReliability } from "@/lib/backend";
 import { beforeLabel, formatCount, formatDay, windowLabel } from "@/lib/format";
 import { parseWindow } from "@/lib/windows";
+
+export const metadata: Metadata = { title: "Reliability" };
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
@@ -22,9 +25,8 @@ export default async function ReliabilityPage({
       <div className="view-head">
         <h1>Reliability</h1>
         <p>
-          What is failing, and who it reached, in {windowLabel(window)}. Data to{" "}
-          <time dateTime={reliability.as_of}>{formatDay(reliability.as_of)}</time>; seeded demo data, not a
-          live system.
+          What is failing, and who it reached, in {windowLabel(window)}. Data runs to{" "}
+          <time dateTime={reliability.as_of}>{formatDay(reliability.as_of)}</time>.
         </p>
       </div>
 

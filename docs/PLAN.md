@@ -962,3 +962,38 @@ No sideways scroll on either view at 320, 375, 768, 1024, 1279, 1280 or 1440 (me
 
 **Gate: passed.**
 
+*Third entry, 17 Nov 2026: made to explain itself, and raised.* Writing a narrated explainer for someone who had never seen the app showed what the page did not say for itself. The human then asked for those gaps to be closed and for the interface to be looked at again against the standard of a major company's product, without being bound by earlier decisions. With the human's agreement this pass also changed backend wording (the prompt) and added tests.
+
+*For a stranger.* One plain line at the top of the dashboard, linking to a new About view (the problem, the method, the eval results, the source). The assistant's empty state says "An assistant that cannot make a number up" and offers a question it should refuse next to the three it can answer. "Seeded" became "made-up"; "one headline number per tool" became "one number per tool". The model is told to write dates, time ranges and event names the way a person would.
+
+*For finish.* A header that stays in reach. Four lead figures without boxes. Tiles with half the text. With a live model, a tile is a button that asks the assistant about that tool. "Not showing up" as its own card. The long table starts at eight rows. Links dim between the press and the new view. The assistant slides in when it opens over the page. Page titles, and an icon in the browser tab.
+
+*What the eval caught.* The reworded prompt took the live score from 100% to 92% (run 6). Both causes were the number check refusing correct answers that used the new wording: a span of days written once ("17 to 23 October"), and "all eight tools", a number the model took from its instructions. Both fixed with tests; run 7 scored 100%. The `reviewer` agent then found the first fix too loose: any two dates in a result made a span, so in an answer about people an invented count could pass in front of a real date ("28 – 30 October"). Narrowed to a window's own first and last day, with a test; run 8 scored 100%. Details in `docs/eval-results.md`.
+
+*Review of this pass.* Four blocking findings, all fixed: the loose span rule above; ARCHITECTURE not describing the new rule; a tile on a small screen opening the assistant as a dialog without moving focus into it; and two stale claims on the About view. Non-blocking, fixed: a tile's question was dropped if another was still being answered (it now waits in the field); the tile's spoken name now contains its visible hint; anchors no longer scroll under the header.
+
+*Evidence.*
+
+```
+$ make check
+All checks passed!
+Success: no issues found in 23 source files
+336 passed
+| all | 40 | 40 | 100% |
+ Test Files  6 passed (6)
+      Tests  53 passed (53)
+$ echo $?
+0
+
+$ make evals
+| all | 40 | 40 | 100% | 120 of 120 |
+Failures (any run):
+None.
+```
+
+Screenshots: 156 in demo mode (26 states) and 36 live. `npx impeccable detect` on the source and on all three views at 1280 and 390: nothing reported (its first run on About flagged lines of about 89 characters; the reading width is now about 70). Keyboard and overlay checks as in the second entry, all passing, plus: nothing takes focus on load at 375, 768 or 1280; "Show all" takes the table from 8 visible rows to 40.
+
+An explainer video is produced by `frontend/scripts/explainer.mjs`: it drives the live app, speaks each scene and captions it. It is written to `screenshots/explainer.mp4`, which is not tracked.
+
+**Gate: passed.**
+

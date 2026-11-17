@@ -54,7 +54,8 @@ One family, **Hanken Grotesk**, loaded through `next/font` (self-hosted at build
 | `--text-hero-words` | 1.75rem / 1.15 | 600, tracking −0.02em | the hero when it is a sentence; notices |
 | `--text-title` | 1.75rem / 1.2 | 600 | page title |
 | `--text-answer` | 1.125rem / 1.45 | 400 | the answer sentence |
-| `--text-figure` | 2rem / 1.1 | 600, tracking −0.02em | tile values, the People figures |
+| `--text-stat` | 2.5rem / 1.1 | 600, tracking −0.02em | the four lead figures |
+| `--text-figure` | 2rem / 1.1 | 600, tracking −0.02em | tile values |
 | `--text-heading` | 1.125rem / 1.35 | 600 | section headings |
 | `--text-body` | 1rem / 1.55 | 400 | body, table cells |
 | `--text-small` | 0.875rem / 1.45 | 400 | secondary lines, the working |
@@ -65,7 +66,8 @@ All figures use tabular lining numerals. Labels are sentence case. Text lines st
 ## Space, shape, motion
 
 - **Spacing** on a 4px base: `--space-1` 4, `-2` 8, `-3` 12, `-4` 16, `-5` 24, `-6` 32, `-7` 48, `-9` 96. Blocks of the dashboard are `--space-7` apart; tiles and cards are `--space-3` apart.
-- **Width**: the dashboard column is 72rem at most; the assistant is 26rem; text measure 40rem; side gutter 16px on a phone and 32px above 768.
+- **Width**: the dashboard column is 72rem at most; the assistant is 26rem; text measure 34rem (about 70 characters); side gutter 16px on a phone and 32px above 768.
+- **Feedback**: borders and backgrounds change over 120ms on hover; a pressed link dims until its view arrives; the assistant slides 24px and fades in over 240ms when it opens over the page. None of it runs with "reduce motion" on.
 - **Radius** by rank, not one value everywhere: `--radius-control` 10px (inputs, buttons, suggested questions), `--radius-card` 14px (tiles and cards), `--radius-pill` 999px (the window switch, the launcher).
 - **Elevation**: none. Rank comes from surface and space. No shadows, no gradients. When the assistant lies over the page on a small screen, the page behind is dimmed, not shadowed.
 - **Motion**: one moment. When an answer arrives it rises 8px and fades in over 240ms, and the working follows 60ms later. The number does not count up, because a count-up shows numbers that are not in the data. With "reduce motion" on, nothing moves.
@@ -75,8 +77,9 @@ All figures use tabular lining numerals. Labels are sentence case. Text lines st
 
 Two parts in one frame, mounted once so neither is rebuilt when the view changes.
 
-- **The dashboard**, left. A header with the two views and the window switch, which drives every figure under it. Then key values first: one tile per tool, eight tiles in two even rows. Then cards: People beside Clients, and Everyone full width. Reliability is one full-width card. One tile style, one card style, one table style, repeated.
-- **The assistant**, right. A full-height column with a title, a running list of questions and answers, and the field at the bottom. Suggested questions sit in its empty state. It is docked and open on arrival where there is room, because a visitor with two minutes will not go looking for a launcher.
+- **The dashboard**, left. A header that stays in reach, with the three views and the window switch, which drives every figure under it. One line says what this is and links to About. Then the lead figures, four numbers about people with no boxes round them. Then one tile per tool, eight in two even rows: the name, the number with its change beside it, what it counts, and two small figures. Then cards: Clients beside "Not showing up" (the people a usage chart cannot show), and Everyone full width, short until asked for in full. Reliability is one full-width card. About is prose at a reading width. One tile style, one card style, one table style, repeated.
+- **The assistant**, right. A full-height column with a title, a running list of questions and answers, and the field at the bottom. Its empty state says the one thing a stranger needs: "An assistant that cannot make a number up." Under that, three questions to try and one it should refuse. It is docked and open on arrival where there is room, because a visitor with two minutes will not go looking for a launcher.
+- **The two are joined.** With a live model, each tool's tile is a button: press it and the assistant is asked how that tool is doing. In demo mode the tiles are not buttons, because a question written on the spot has no recorded answer.
 
 ```
 1280 and wider: docked. The dashboard reflows beside it; nothing is covered.
@@ -111,6 +114,10 @@ line of labelled figures.
 The three steps are numbered because they are a real sequence: look up, read the result, check.
 
 **It looks like a chat and is not one.** The backend answers each question with no memory of the last, so "and what about last month?" would not work. The assistant is therefore a list of separate questions and answers, titled "Ask" and not "Chat", and the line under the field says "Each question stands alone." Real follow-ups would need the backend to accept earlier turns; that is a later piece of work.
+
+**What a stranger could not tell, and what was done about it (third pass).** Writing an explainer for someone who had never seen the app showed what the page did not say for itself: what this is, why an assistant that cannot invent a number matters, that it refuses, and how any of it is proven. So: one plain line at the top of the dashboard; the claim in plain words in the assistant; a question it should refuse, offered next to the three it can answer; an About view with the problem, the method, the test results and a link to the source; plainer words ("made-up data", "one number per tool"); and the model is told to write dates, time ranges and event names the way a person would.
+
+**What was raised to make it feel finished.** A header that stays put, with a hairline. Lead figures without boxes, so the eye has somewhere to land before the tiles. Tiles with half the text they had. A tile that hands its question to the assistant. A long table that starts short. A moment of feedback on a link between the press and the new numbers. The assistant sliding in when it opens over the page. Page titles and an icon in the browser tab.
 
 **What changed from the first build, and why.** The first build was one column: question, a very large answer, then tables. It read like a document. The product this is rebuilt from has a dashboard and an assistant side by side, and that composition is what is borrowed here: structure only, no names, terms or data. Two things differ from the original on purpose. Its assistant floats over the dashboard and covers about two fifths of it; this one is docked, so nothing is covered. And its answers show no trace of how they were reached; this one keeps the working, because the working is the point.
 
@@ -149,6 +156,9 @@ Every state below gets a screenshot at 375, 768 and 1280, in light and dark.
 15. **Backend unreachable.** The view shows what happened and a "Try again" button. The frame and the assistant still render.
 16. **Focus**, photographed on the field, a suggested question and the window switch.
 17. **Assistant closed** on a wide screen: the dashboard at full width, with the button to reopen it.
+18. **About.**
+19. **Everyone, shown in full**, after "Show all 40 people".
+20. **A tile asking the assistant** (live model only). This is also the photographed case of an answer that used two lookups.
 
 **Every interactive element**: default, hover, focus-visible, waiting. Focus is photographed (three shots). Hover is not: it only darkens a suggestion or lifts the button slightly, and was checked by eye. While an answer is awaited the field is read-only and the Ask button is marked `aria-disabled`, not disabled, so keyboard focus stays where it was.
 
@@ -169,9 +179,11 @@ Every state below gets a screenshot at 375, 768 and 1280, in light and dark.
 - **Phone tables** are a name and one wrapped line of labelled figures per row. One line per figure made the page eleven screens long.
 - **Live answers are the model's words.** It writes things like "the 7d window" and "(email_sent)". The page shows them as written; changing them means changing the prompt, which is backend behaviour and outside this pass.
 
-## Screenshots
+## Screenshots and the explainer
 
-`frontend/scripts/screenshots.mjs` takes every state at 375, 768 and 1280 in light and dark: 144 in demo mode (24 states) and 30 against the live model. Ten are kept in `docs/design/`; the full set is written to `screenshots/`, which is not tracked. Live shots across both builds took 72 real questions, about $0.04.
+`frontend/scripts/screenshots.mjs` takes every state at 375, 768 and 1280 in light and dark: 156 in demo mode (26 states) and 36 against the live model. Ten are kept in `docs/design/`; the full set is written to `screenshots/`, which is not tracked.
+
+`frontend/scripts/explainer.mjs` records a narrated walk through the live app for someone who has never seen it: it drives a real browser, speaks each scene with the macOS voice, shows the same words as captions and joins sound to picture with ffmpeg. It writes `screenshots/explainer.mp4`. Rerun it after any change to the interface.
 
 ## Process, after approval
 

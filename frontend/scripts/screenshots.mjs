@@ -171,6 +171,23 @@ const STATES = {
       await page.getByRole("link", { name: "30 days" }).focus();
     },
   },
+  "18-about": { whole: true, run: goto("/about") },
+  "19-everyone-shown-in-full": {
+    whole: true,
+    run: async (page) => {
+      await home(page);
+      await page.getByRole("button", { name: /^Show all/ }).click();
+    },
+  },
+  "20-tile-asks-the-assistant": {
+    // Live mode only: in demo mode a question written on the spot has no recorded answer.
+    needs: "LIVE",
+    run: async (page) => {
+      await home(page);
+      await page.getByRole("button", { name: "Ask about this tool: Invoice generator" }).click();
+      await page.locator(".working").waitFor();
+    },
+  },
   "17-panel-closed": {
     run: async (page) => {
       await home(page);

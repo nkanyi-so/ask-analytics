@@ -45,7 +45,7 @@ Forty questions: twelve direct, ten indirect (the wording names no lookup, windo
 |---|---|---|---|---|---|---|
 | Fixture | none | 16 Nov 2026 | 12 of 12 | 10 of 10 | 8 of 8 | 10 of 10 |
 | Live, first run | `claude-haiku-5-5` | 16 Nov 2026 | 8 of 12 | 9 of 10 | 1 of 8 | 10 of 10 |
-| Live, fifth run | `claude-haiku-5-5` | 16 Nov 2026 | 12 of 12 | 10 of 10 | 8 of 8 | 10 of 10 |
+| Live, latest run | `claude-haiku-5-5` | 17 Nov 2026 | 12 of 12 | 10 of 10 | 8 of 8 | 10 of 10 |
 | Live | `claude-opus-5-5` | not run yet | | | | |
 
 Read the fixture row for what it is. The fixture client plays the model from a script, so it proves the lookups, the loop, the number check and the scorer. It says nothing about whether a model picks the right lookup. The live rows do. A live run asks every question three times, and a question passes only if all three runs pass.

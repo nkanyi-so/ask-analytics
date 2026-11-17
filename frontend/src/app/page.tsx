@@ -1,24 +1,21 @@
+import type { Metadata } from "next";
+import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { AskAbout } from "@/components/AskAbout";
 import { Card } from "@/components/Card";
 import { Change } from "@/components/Change";
+import { ShowAll } from "@/components/ShowAll";
 import { getOverview } from "@/lib/backend";
 import { beforeLabel, formatCount, formatDay, windowLabel } from "@/lib/format";
 import type { RosterPerson } from "@/lib/types";
-import { parseWindow } from "@/lib/windows";
+import { parseWindow, type Window } from "@/lib/windows";
+
+export const metadata: Metadata = { title: "Overview" };
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
-function Names({ label, people }: { label: string; people: RosterPerson[] }): ReactNode {
-  if (people.length === 0) return null;
-  return (
-    <p className="names">
-      <strong>{label}:</strong> {people.map((person) => person.name).join(", ")}
-    </p>
-  );
-}
-
-function Figure({
+function Stat({
   label,
   value,
   change,
@@ -31,16 +28,42 @@ function Figure({
   against: string;
 }): ReactNode {
   return (
-    <div>
-      <p className="figure-value">{formatCount(value)}</p>
-      <p className="figure-label">{label}</p>
+    <div className="stat">
+      <dt>{label}</dt>
+      <dd className="stat-value">{formatCount(value)}</dd>
       {change === undefined ? null : (
-        <p className="figure-change">
+        <dd className="stat-change">
           <Change value={change} against={against} />
-        </p>
+        </dd>
       )}
     </div>
   );
+}
+
+function People({ title, people, never }: { title: string; people: RosterPerson[]; never: string }): ReactNode {
+  return (
+    <div className="roll">
+      <h3>{title}</h3>
+      {people.length === 0 ? (
+        <p className="empty">Nobody.</p>
+      ) : (
+        <ul>
+          {people.map((person) => (
+            <li key={person.user_id}>
+              <span className="roll-name">{person.name}</span>
+              <span className="roll-where">{person.client_name}</span>
+              <span className="roll-when">{person.last_seen === null ? never : `last seen ${formatDay(person.last_seen)}`}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+/** The question a tile asks for you. Written as a person would ask it. */
+function questionAbout(tool: string, window: Window): string {
+  return window === "today" ? `How is the ${tool} doing today?` : `How is the ${tool} doing in ${windowLabel(window)}?`;
 }
 
 export default async function OverviewPage({
@@ -55,36 +78,59 @@ export default async function OverviewPage({
 
   return (
     <main className="view">
+      <p className="demo-note">
+        A demo on made-up data: a usage dashboard, and an AI assistant that cannot invent a number.{" "}
+        <Link href="/about">How it works</Link>
+      </p>
+
       <div className="view-head">
         <h1>Overview</h1>
         <p>
-          Who is using what, across a workspace of {formatCount(roster.invited_count)} people, in{" "}
-          {windowLabel(window)}. Data to <time dateTime={overview.as_of}>{formatDay(overview.as_of)}</time>;
-          seeded demo data, not a live system.
+          Who is using what, in {windowLabel(window)}. Data runs to{" "}
+          <time dateTime={overview.as_of}>{formatDay(overview.as_of)}</time>.
         </p>
       </div>
 
+      <dl className="stats" aria-label="People">
+        <Stat label="Active" value={roster.active_count} change={roster.active_count_change} against={against} />
+        <Stat
+          label="Went quiet"
+          value={roster.went_quiet_count}
+          change={roster.went_quiet_count_change}
+          against={against}
+        />
+        <Stat label="Never showed up" value={roster.never_showed_up_count} against={against} />
+        <Stat label="Invited" value={roster.invited_count} against={against} />
+      </dl>
+
       <section className="block" aria-labelledby="tools-heading">
         <header className="block-head">
-          <h2 id="tools-heading">One headline number per tool</h2>
-          <p>The event that means the tool did its job. Change is against {against}.</p>
+          <h2 id="tools-heading">Tools</h2>
+          <p>One number per tool: how many times it did its job. The change is against {against}.</p>
         </header>
         <ul className="tiles">
           {overview.usage_by_tool.map((tool) => (
             <li className="tile" key={tool.tool_id}>
               {/* The name comes first for a screen reader; the number is shown above it. */}
               <h3 className="tile-name">{tool.tool_name}</h3>
-              <p className="tile-value">{formatCount(tool.headline_count)}</p>
-              <p className="tile-what">{tool.headline_event.replaceAll("_", " ")}</p>
+              <p className="tile-figure">
+                <span className="tile-value">{formatCount(tool.headline_count)}</span>
+                <span className="tile-change">
+                  <Change value={tool.headline_count_change} against={against} />
+                </span>
+              </p>
+              <p className="tile-what">
+                <span>{tool.headline_event.replaceAll("_", " ")}</span>
+                {/* Shown instead of the caption while the tile is pointed at (live mode only). */}
+                <span className="tile-ask-hint" aria-hidden="true">
+                  Ask about this
+                </span>
+              </p>
               <dl className="tile-more">
                 <div>
-                  <dt>Change</dt>
-                  <dd>
-                    <Change value={tool.headline_count_change} against={against} />
-                  </dd>
-                </div>
-                <div>
-                  <dt>Active people</dt>
+                  <dt>
+                    Active<span className="visually-hidden"> people</span>
+                  </dt>
                   <dd>{formatCount(tool.active_people)}</dd>
                 </div>
                 <div>
@@ -92,29 +138,14 @@ export default async function OverviewPage({
                   <dd>{formatCount(tool.errors)}</dd>
                 </div>
               </dl>
+              <AskAbout label={`Ask about this tool: ${tool.tool_name}`} question={questionAbout(tool.tool_name, window)} />
             </li>
           ))}
         </ul>
       </section>
 
       <div className="cards">
-        <Card id="people-heading" title="People" note={`Change is against ${against}.`}>
-          <div className="figures">
-            <Figure label="active" value={roster.active_count} change={roster.active_count_change} against={against} />
-            <Figure
-              label="went quiet"
-              value={roster.went_quiet_count}
-              change={roster.went_quiet_count_change}
-              against={against}
-            />
-            <Figure label="never showed up" value={roster.never_showed_up_count} against={against} />
-            <Figure label="invited" value={roster.invited_count} against={against} />
-          </div>
-          <Names label="Went quiet" people={roster.went_quiet} />
-          <Names label="Never showed up" people={roster.never_showed_up} />
-        </Card>
-
-        <Card id="clients-heading" title="Clients" note="Outputs are headline events, across all tools.">
+        <Card id="clients-heading" title="Clients" note="Outputs across all tools.">
           <table className="data" role="table">
             <thead role="rowgroup">
               <tr role="row">
@@ -153,60 +184,65 @@ export default async function OverviewPage({
           </table>
         </Card>
 
-        <Card
-          id="persons-heading"
-          title="Everyone"
-          note="Each person invited, whether or not they have logged in."
-          wide
-        >
-          <table className="data" role="table">
-            <thead role="rowgroup">
-              <tr role="row">
-                <th role="columnheader" scope="col">
-                  Person
-                </th>
-                <th role="columnheader" scope="col">
-                  Client
-                </th>
-                <th role="columnheader" scope="col">
-                  Role
-                </th>
-                <th role="columnheader" scope="col" className="num">
-                  Logins
-                </th>
-                <th role="columnheader" scope="col" className="num">
-                  Outputs
-                </th>
-                <th role="columnheader" scope="col">
-                  Last seen
-                </th>
-              </tr>
-            </thead>
-            <tbody role="rowgroup">
-              {overview.activity_by_person.map((person) => (
-                <tr role="row" key={person.user_id}>
-                  <th role="rowheader" scope="row">
-                    {person.name}
+        <Card id="missing-heading" title="Not showing up" note="The people a usage chart cannot show, because they left no trace.">
+          <People title="Went quiet" people={roster.went_quiet} never="never logged in" />
+          <People title="Invited, never logged in" people={roster.never_showed_up} never="never logged in" />
+        </Card>
+
+        <Card id="persons-heading" title="Everyone" note="Each person invited, whether or not they have logged in." wide>
+          <ShowAll
+            more={`Show all ${formatCount(roster.invited_count)} people`}
+            fewer="Show fewer"
+          >
+            <table className="data" role="table">
+              <thead role="rowgroup">
+                <tr role="row">
+                  <th role="columnheader" scope="col">
+                    Person
                   </th>
-                  <td role="cell" className="dim" data-label="Client">
-                    {person.client_name}
-                  </td>
-                  <td role="cell" className="dim" data-label="Role">
-                    {person.role}
-                  </td>
-                  <td role="cell" className="num" data-label="Logins">
-                    {formatCount(person.logins)}
-                  </td>
-                  <td role="cell" className="num" data-label="Outputs">
-                    {formatCount(person.outputs)}
-                  </td>
-                  <td role="cell" className="dim" data-label="Last seen">
-                    {person.last_seen === null ? "never" : formatDay(person.last_seen)}
-                  </td>
+                  <th role="columnheader" scope="col">
+                    Client
+                  </th>
+                  <th role="columnheader" scope="col">
+                    Role
+                  </th>
+                  <th role="columnheader" scope="col" className="num">
+                    Logins
+                  </th>
+                  <th role="columnheader" scope="col" className="num">
+                    Outputs
+                  </th>
+                  <th role="columnheader" scope="col">
+                    Last seen
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody role="rowgroup">
+                {overview.activity_by_person.map((person) => (
+                  <tr role="row" key={person.user_id}>
+                    <th role="rowheader" scope="row">
+                      {person.name}
+                    </th>
+                    <td role="cell" className="dim" data-label="Client">
+                      {person.client_name}
+                    </td>
+                    <td role="cell" className="dim" data-label="Role">
+                      {person.role}
+                    </td>
+                    <td role="cell" className="num" data-label="Logins">
+                      {formatCount(person.logins)}
+                    </td>
+                    <td role="cell" className="num" data-label="Outputs">
+                      {formatCount(person.outputs)}
+                    </td>
+                    <td role="cell" className="dim" data-label="Last seen">
+                      {person.last_seen === null ? "never" : formatDay(person.last_seen)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </ShowAll>
         </Card>
       </div>
     </main>

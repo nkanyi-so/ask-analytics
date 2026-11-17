@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useImperativeHandle, useRef, useState, type FormEvent, type ReactNode, type Ref } from "react";
 
 import { heroOf, numbersOf, segmentsOf, type Segment } from "@/lib/answer";
 import { figuresIn, isLookup, LOOKUP_NAMES, shownFor, type EvidenceRow, type Shown } from "@/lib/evidence";
 import { beforeLabel, formatChange, formatCount, windowLabel } from "@/lib/format";
-import { SUGGESTED_QUESTIONS } from "@/lib/suggested";
+import { REFUSED_QUESTION, SUGGESTED_QUESTIONS } from "@/lib/suggested";
 import type { AskResponse, ErrorBody, LookupCalled } from "@/lib/types";
 
 const MAX_LENGTH = 500;
@@ -282,6 +282,12 @@ function EntryView({ entry, onRetry }: { entry: Entry; onRetry: () => void }): R
   );
 }
 
+/** What the frame can tell the assistant to do. */
+export interface AskHandle {
+  /** Ask this as if it had been typed. If a question is still being answered, it waits in the field. */
+  ask: (question: string) => void;
+}
+
 interface AskPanelProps {
   /** `null` when the backend could not say: the panel then makes no claim either way. */
   demoMode: boolean | null;
@@ -289,6 +295,7 @@ interface AskPanelProps {
   opened: number;
   /** True when the panel lies over the page: it is then a dialog, and the page is inert. */
   modal: boolean;
+  handle: Ref<AskHandle>;
   onClose: () => void;
 }
 
@@ -297,7 +304,7 @@ interface AskPanelProps {
  * It is a running list of separate questions, not a conversation: the backend answers
  * each question with no memory of the one before.
  */
-export function AskPanel({ demoMode, opened, modal, onClose }: AskPanelProps): ReactNode {
+export function AskPanel({ demoMode, opened, modal, handle, onClose }: AskPanelProps): ReactNode {
   const [question, setQuestion] = useState("");
   const [entries, setEntries] = useState<Entry[]>([]);
   const field = useRef<HTMLInputElement>(null);
@@ -346,6 +353,15 @@ export function AskPanel({ demoMode, opened, modal, onClose }: AskPanelProps): R
     void run(entry.id, entry.question);
   }
 
+  // A question handed over from the dashboard is asked as if it had been typed. One at
+  // a time: if another is still being answered, this one is kept in the field.
+  useImperativeHandle(handle, () => ({
+    ask: (text: string) => {
+      if (busy) setQuestion(text);
+      else void submit(text);
+    },
+  }));
+
   function onSubmit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
     void submit(question);
@@ -364,7 +380,7 @@ export function AskPanel({ demoMode, opened, modal, onClose }: AskPanelProps): R
           <p className="ask-mode">
             {demoMode === true
               ? "Demo mode: recorded answers, live model not connected."
-              : "Answers only with numbers the dashboard can derive."}
+              : "It can look a number up. It cannot make one up."}
           </p>
         </div>
         <button className="icon-button" type="button" onClick={onClose} aria-label="Close the Ask panel">
@@ -378,9 +394,10 @@ export function AskPanel({ demoMode, opened, modal, onClose }: AskPanelProps): R
       <div className="transcript" ref={transcript} role="log" aria-live="polite" tabIndex={entries.length > 0 ? 0 : -1} aria-label="Questions and answers">
         {entries.length === 0 ? (
           <div className="ask-empty">
+            <p className="ask-pitch">An assistant that cannot make a number up.</p>
             <p>
-              Ask about usage, people, clients or errors. Every answer shows which lookup ran, what it
-              returned, and that the number was checked.
+              Ask in plain English. It can only look a number up, never work one out, and every
+              answer shows which lookup ran and that the number was checked.
             </p>
             <h3>Questions to try</h3>
             <ul className="suggestions">
@@ -391,6 +408,14 @@ export function AskPanel({ demoMode, opened, modal, onClose }: AskPanelProps): R
                   </button>
                 </li>
               ))}
+            </ul>
+            <h3>One it should refuse</h3>
+            <ul className="suggestions">
+              <li>
+                <button type="button" onClick={() => void submit(REFUSED_QUESTION)}>
+                  {REFUSED_QUESTION}
+                </button>
+              </li>
             </ul>
           </div>
         ) : (

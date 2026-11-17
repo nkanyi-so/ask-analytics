@@ -9,6 +9,7 @@ import inspect
 from app import main
 from app.config import REPO_ROOT
 from app.llm import NOT_RECORDED
+from evals import build
 
 PANEL = (REPO_ROOT / "frontend" / "src" / "components" / "AskPanel.tsx").read_text()
 
@@ -28,3 +29,9 @@ def test_the_two_limits_can_be_told_apart_by_the_word_the_panel_looks_for() -> N
 def test_a_question_with_no_recording_starts_with_the_words_the_panel_looks_for() -> None:
     assert NOT_RECORDED.startswith("Demo mode")
     assert 'body.answer.startsWith("Demo mode")' in PANEL
+
+
+def test_the_question_offered_as_one_to_refuse_is_one_the_eval_set_expects_refused() -> None:
+    suggested = (REPO_ROOT / "frontend" / "src" / "lib" / "suggested.ts").read_text()
+
+    assert f'export const REFUSED_QUESTION = "{build.SUGGESTED_REFUSAL}";' in suggested

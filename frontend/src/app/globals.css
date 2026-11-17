@@ -7,6 +7,8 @@
 }
 
 html {
+  /* Room for the header that stays put, so nothing scrolled to hides under it. */
+  scroll-padding-top: calc(var(--header-height) + var(--space-4));
   background: var(--canvas);
   -webkit-text-size-adjust: 100%;
 }
@@ -33,8 +35,15 @@ dd {
   margin: 0;
 }
 
-p {
+p,
+li {
   text-wrap: pretty;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
 }
 
 ol,
@@ -85,12 +94,26 @@ input {
   padding-inline: var(--gutter);
 }
 
+/* The header stays in reach while the dashboard scrolls under it. */
+.site-bar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  border-bottom: var(--hairline) solid var(--line);
+  background: var(--canvas);
+}
+
 .site-header {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-3) var(--space-6);
-  padding-block: var(--space-4);
+  gap: var(--space-2) var(--space-6);
+  min-height: var(--header-height);
+  padding-block: var(--space-2);
+}
+
+.pending {
+  opacity: 0.45;
 }
 
 .brand {
@@ -159,6 +182,7 @@ input {
 
 .launcher {
   position: fixed;
+  z-index: 1;
   right: var(--gutter);
   bottom: var(--gutter);
   height: var(--control-height);
@@ -178,13 +202,23 @@ input {
 .shell[data-ask="open"] .ask {
   position: fixed;
   inset: 0 0 0 auto;
+  z-index: 3;
   display: flex;
   width: min(var(--panel-width), 100vw);
+  animation: slide-in var(--arrive) both;
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(var(--space-5));
+  }
 }
 
 .shell[data-ask="open"] .scrim {
   position: fixed;
   inset: 0;
+  z-index: 2;
   display: block;
   background: var(--scrim);
 }
@@ -214,6 +248,7 @@ input {
     display: flex;
     width: auto;
     height: 100vh;
+    animation: none;
   }
 
   .shell[data-ask="auto"] .launcher,
@@ -284,6 +319,16 @@ input {
   color: var(--ink-2);
 }
 
+.ask-empty .ask-pitch {
+  margin-bottom: var(--space-3);
+  color: var(--ink);
+  font-size: var(--text-hero-words);
+  line-height: var(--leading-display);
+  font-weight: 600;
+  letter-spacing: var(--tracking-display);
+  text-wrap: balance;
+}
+
 .ask-empty h3 {
   margin-top: var(--space-6);
   font-size: var(--text-caption);
@@ -298,6 +343,7 @@ input {
 }
 
 .suggestions button {
+  transition: background var(--quick), border-color var(--quick);
   width: 100%;
   padding: var(--space-3) var(--space-4);
   border: var(--hairline) solid var(--control);
@@ -569,6 +615,44 @@ input {
   color: var(--ink-2);
 }
 
+.demo-note {
+  margin-bottom: var(--space-5);
+  font-size: var(--text-small);
+  color: var(--ink-2);
+}
+
+/* The lead figures: no boxes, just four numbers on one line. */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-5) var(--space-4);
+  margin-top: var(--space-6);
+  padding-block: var(--space-5);
+  border-block: var(--hairline) solid var(--line);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat dt {
+  font-size: var(--text-small);
+  color: var(--ink-2);
+}
+
+.stat-value {
+  font-size: var(--text-stat);
+  line-height: var(--leading-figure);
+  font-weight: 600;
+  letter-spacing: var(--tracking-display);
+}
+
+.stat-change {
+  font-size: var(--text-caption);
+  color: var(--ink-3);
+}
+
 /* Two across on a phone, four across from a tablet up: eight tools, two even rows. */
 .tiles {
   display: grid;
@@ -585,34 +669,77 @@ input {
 }
 
 .tile {
+  position: relative;
   display: flex;
   flex-direction: column;
   padding: var(--space-4) var(--space-4) var(--space-3);
+  transition: border-color var(--quick);
+}
+
+.tile:has(.tile-ask):hover,
+.tile:focus-within {
+  border-color: var(--control);
+}
+
+.tile-name {
+  font-size: var(--text-small);
+  line-height: var(--leading-heading);
+  font-weight: 600;
+}
+
+.tile-figure {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
 }
 
 .tile-value {
-  order: -1;
   font-size: var(--text-figure);
   line-height: var(--leading-figure);
   font-weight: 600;
   letter-spacing: var(--tracking-display);
 }
 
-.tile-name {
-  margin-top: var(--space-2);
-  font-size: var(--text-body);
-  line-height: var(--leading-heading);
-  font-weight: 600;
+.tile-change {
+  font-size: var(--text-small);
+  color: var(--ink-2);
 }
 
+/* The caption and the hint share one line; only one of them shows at a time. */
 .tile-what {
+  display: grid;
   margin-bottom: var(--space-3);
   font-size: var(--text-small);
   color: var(--ink-2);
 }
 
+.tile-what > span {
+  grid-area: 1 / 1;
+  transition: opacity var(--quick);
+}
+
+.tile-ask-hint {
+  color: var(--accent);
+  font-weight: 600;
+  opacity: 0;
+}
+
+.tile:has(.tile-ask:hover) .tile-what > span,
+.tile:has(.tile-ask:focus-visible) .tile-what > span {
+  opacity: 0;
+}
+
+.tile:has(.tile-ask:hover) .tile-what > .tile-ask-hint,
+.tile:has(.tile-ask:focus-visible) .tile-what > .tile-ask-hint {
+  opacity: 1;
+}
+
 /* Pinned to the bottom, so the figures line up across a row whatever the name's length. */
 .tile-more {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
   margin-top: auto;
   padding-top: var(--space-2);
   border-top: var(--hairline) solid var(--line);
@@ -621,13 +748,22 @@ input {
 
 .tile-more div {
   display: flex;
-  justify-content: space-between;
-  gap: var(--space-3);
-  padding-block: var(--space-half);
+  gap: var(--space-1);
+  white-space: nowrap;
 }
 
 .tile-more dt {
   color: var(--ink-3);
+}
+
+/* The whole tile is the button; its words are for a screen reader, its hint for the eye. */
+.tile-ask {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  cursor: pointer;
 }
 
 .cards {
@@ -637,6 +773,7 @@ input {
 }
 
 @media (min-width: 48rem) {
+  .stats,
   .tiles {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
@@ -659,42 +796,109 @@ input {
   margin-bottom: var(--space-4);
 }
 
-.figures {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-5) var(--space-4);
+.roll + .roll {
+  margin-top: var(--space-5);
 }
 
-.figure-value {
-  font-size: var(--text-figure);
-  line-height: var(--leading-figure);
-  font-weight: 600;
-  letter-spacing: var(--tracking-display);
-}
-
-.figure-label {
-  margin-top: var(--space-1);
-  font-size: var(--text-small);
-}
-
-.figure-change {
+.roll h3 {
   font-size: var(--text-caption);
+  font-weight: 500;
   color: var(--ink-3);
 }
 
-.names {
-  margin-top: var(--space-5);
+.roll li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0 var(--space-4);
+  padding-block: var(--space-2);
+  border-bottom: var(--hairline) solid var(--line);
+}
+
+.roll-name {
+  font-weight: 600;
+}
+
+.roll-where {
+  grid-column: 1;
   font-size: var(--text-small);
   color: var(--ink-2);
 }
 
-.names + .names {
-  margin-top: var(--space-2);
+.roll-when {
+  grid-area: 1 / 2 / 3 / 3;
+  align-self: center;
+  font-size: var(--text-small);
+  color: var(--ink-2);
 }
 
-.names strong {
+/* A long table shows its first eight rows until asked for the rest. */
+.show-all[data-all="false"] tbody tr:nth-child(n + 9) {
+  display: none;
+}
+
+.text-button {
+  margin-top: var(--space-3);
+  padding: var(--space-2) 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font-size: var(--text-small);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.text-button:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+/* The About view: prose, at a reading width. */
+.prose section {
+  max-width: var(--measure);
+  margin-top: var(--space-7);
+}
+
+.prose h2 {
+  font-size: var(--text-heading);
+  line-height: var(--leading-heading);
+  font-weight: 600;
+}
+
+.prose section > * + * {
+  margin-top: var(--space-3);
+}
+
+.prose section p,
+.how li {
+  color: var(--ink-2);
+}
+
+.how {
+  display: grid;
+  gap: var(--space-3);
+  counter-reset: how;
+}
+
+.how strong {
   color: var(--ink);
   font-weight: 600;
+}
+
+ol.how > li {
+  position: relative;
+  padding-left: var(--step-gutter);
+  counter-increment: how;
+}
+
+ol.how > li::before {
+  position: absolute;
+  left: 0;
+  content: counter(how);
+  color: var(--ink-3);
+}
+
+.prose .data {
+  margin-block: var(--space-4);
 }
 
 .empty {
@@ -816,7 +1020,14 @@ table.data {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .arrive > * {
+  .arrive > *,
+  .shell[data-ask="open"] .ask {
     animation: none;
+  }
+
+  .tile,
+  .tile-what > span,
+  .suggestions button {
+    transition: none;
   }
 }
