@@ -4,7 +4,7 @@ One trusted number per tool, on a page leadership opens themselves, and a plain-
 
 A public rebuild of the usage observability I built for a client's internal platform. The platform here is synthetic: a seeded workspace of eight tools and forty people over sixty days of activity. Locally the analytics source can be real (Mixpanel); the hosted demo reads a file-backed source, so the public deployment needs no analytics keys and never breaks.
 
-> **Status, 16 Nov 2026.** Runs locally. Not deployed yet. The live eval has been run on `claude-haiku-5-5` (not yet on `claude-opus-5-5`). The Mixpanel source has been run against a real Mixpanel project: all five lookups in every window equal ground truth.
+> **Status, 17 Nov 2026.** Live at https://ask-analytics-five.vercel.app (frontend on Vercel, backend on Railway). The live eval has been run on `claude-haiku-5-5` (not yet on `claude-opus-5-5`). The Mixpanel source has been run against a real Mixpanel project: all five lookups in every window equal ground truth.
 
 ## Run it
 

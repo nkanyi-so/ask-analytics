@@ -1,6 +1,6 @@
 # Deploying
 
-**None of the platform steps have been run.** CI builds the image and starts it on every pull request; the steps below were checked against Railway's and Vercel's documentation on 16 Nov 2026 and still need a first real deploy. Where the documentation does not settle a point, the step says so.
+**First deployed on 17 Nov 2026**, from the command line rather than the dashboards; the commands are under "What was actually run" at the end. The dashboard steps below are the equivalent and were checked against Railway's and Vercel's documentation on 16 Nov 2026.
 
 Backend on Railway, from `backend/Dockerfile`. Frontend on Vercel, from `frontend/`.
 
@@ -24,7 +24,7 @@ Backend on Railway, from `backend/Dockerfile`. Frontend on Vercel, from `fronten
 
 Railway injects `PORT` and the image listens on it. Do not set `EVENT_SOURCE` or `DEPLOYED`.
 
-Not settled by Railway's documentation: whether the Docker build context is the repo root when the Dockerfile is in a subdirectory. The image needs it to be. If the first build fails on `COPY data/events.jsonl`, that is the cause.
+Settled by the first deploy: with `RAILWAY_DOCKERFILE_PATH=/backend/Dockerfile` the Docker build context is the repo root, as the image needs.
 
 No Railway config file is committed. Railway's `railway.toml` format stops working for existing services on 1 December 2026 and cannot be used for new ones, so the settings above are made in the dashboard.
 
@@ -59,3 +59,33 @@ Then set `FRONTEND_ORIGIN` on Railway to the Vercel URL and click Deploy there t
 ## The cache warm
 
 It needs no platform schedule. The backend warms its cache at startup and every five minutes after, inside its own process. If Railway puts the service to sleep when idle, the first request after a sleep pays for a container start, which no cache can help; turn sleeping off for the demo if that matters.
+
+## What was actually run (17 Nov 2026)
+
+Both platforms were set up with their command-line tools, logged in by the owner. Neither service is connected to the GitHub repo, so **a merge to `main` does not deploy**: rerun the two deploy commands.
+
+```
+# Backend, from the repo root
+railway init --name ask-analytics
+railway add --service backend --variables RAILWAY_DOCKERFILE_PATH=/backend/Dockerfile --variables ASK_DAILY_BUDGET_USD=1
+railway variable set ADMIN_TOKEN --stdin --skip-deploys -s backend        # a new 64-character token, not the local one
+railway variable set ANTHROPIC_API_KEY --stdin --skip-deploys -s backend
+railway up --ci -s backend
+railway domain -s backend
+railway variable set FRONTEND_ORIGIN=https://ask-analytics-five.vercel.app -s backend
+
+# Frontend, from frontend/
+vercel link --yes --project ask-analytics
+vercel env add BACKEND_URL production
+vercel env add ADMIN_TOKEN production --sensitive
+vercel deploy --prod --yes
+```
+
+Secrets were piped in and never printed. The deployed admin token exists only on the two platforms; to rotate it, set a new value on both and redeploy both.
+
+To redeploy after a change: `railway up --ci -s backend` from the repo root, and `vercel deploy --prod --yes` from `frontend/`.
+
+Railway needs a paid plan (Hobby) once its trial has ended; project creation is refused otherwise.
+
+Not confirmed: the health check path. It was set with `railway environment edit --service-config backend deploy.healthcheckPath /health`, which printed no confirmation and started no new deployment. Check it under the service's Settings, Deploy, Healthcheck Path.
+
