@@ -62,7 +62,7 @@ It needs no platform schedule. The backend warms its cache at startup and every 
 
 ## What was actually run (17 Nov 2026)
 
-Both platforms were set up with their command-line tools, logged in by the owner. Neither service is connected to the GitHub repo, so **a merge to `main` does not deploy**: rerun the two deploy commands.
+Both platforms were set up with their command-line tools, logged in by the owner. The first deploys were uploads from the working copy. Later the same day both services were connected to the GitHub repo, so **a merge to `main` deploys both** (see "Deploying on merge" below).
 
 ```
 # Backend, from the repo root
@@ -83,9 +83,21 @@ vercel deploy --prod --yes
 
 Secrets were piped in and never printed. The deployed admin token exists only on the two platforms; to rotate it, set a new value on both and redeploy both.
 
-To redeploy after a change: `railway up --ci -s backend` from the repo root, and `vercel deploy --prod --yes` from `frontend/`.
+To deploy by hand without a merge: `railway up --ci -s backend` from the repo root, and `vercel deploy --prod --yes` from the repo root (the project's root directory is now `frontend`, so run it from the repo root, not from `frontend/`).
 
 Railway needs a paid plan (Hobby) once its trial has ended; project creation is refused otherwise.
 
-Not confirmed: the health check path. It was set with `railway environment edit --service-config backend deploy.healthcheckPath /health`, which printed no confirmation and started no new deployment. Check it under the service's Settings, Deploy, Healthcheck Path.
+The health check path could not be set from the command line: `railway environment edit --service-config backend deploy.healthcheckPath /health` reports "No changes to apply" and the service's settings show none. Set it in the dashboard: the service's Settings, Deploy, Healthcheck Path, `/health`.
+
+## Deploying on merge
+
+Each platform's GitHub app must be installed on the account that owns the repo, with access to this repo; the connection is refused otherwise ("User does not have access to the repo").
+
+```
+railway service source connect --repo nkanyi-so/ask-analytics --branch main --service backend
+vercel git connect https://github.com/nkanyi-so/ask-analytics        # from frontend/, where the project is linked
+vercel api /v9/projects/<project-id> -X PATCH -F rootDirectory=frontend
+```
+
+Vercel's production branch is `main`. Vercel also builds a preview for each pull request; previews have no `BACKEND_URL` or `ADMIN_TOKEN` (both are set for production only), so a preview shows the "backend unreachable" view. That is deliberate: the token stays out of preview builds.
 
