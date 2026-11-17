@@ -24,7 +24,7 @@ Open http://localhost:3000. With no `ANTHROPIC_API_KEY` the Ask box runs in demo
 
 ## Decisions
 
-**1. Where rules end and the model begins.** Every number comes from one of five lookup functions (`backend/app/lookups.py`): SQL group-bys over the events. The model never does arithmetic and never sees a raw event. It picks a lookup and a window, gets the result, and words the answer. "Up or down, and by how much" is answered by the lookup returning the previous window and the change, so the model has nothing to subtract. After the model replies, code checks that every number in the answer is a number in a lookup result from that turn; if not, the answer is replaced with a refusal.
+**1. Where rules end and the model begins.** Every number comes from a lookup function (`backend/app/lookups.py`): SQL group-bys over the events. The assistant can call five of them; a sixth feeds the dashboard's charts only. The model never does arithmetic and never sees a raw event. It picks a lookup and a window, gets the result, and words the answer. "Up or down, and by how much" is answered by the lookup returning the previous window and the change, so the model has nothing to subtract. After the model replies, code checks that every number in the answer is a number in a lookup result from that turn; if not, the answer is replaced with a refusal.
 
 **2. Where the human sits.** Every answer shows which lookup and which window it used, so a reader can check it against the page. A question no lookup covers gets a fixed refusal that names what can be answered. A refusal is treated as a correct result, and the eval set scores it as one.
 
@@ -45,7 +45,7 @@ Forty questions: twelve direct, ten indirect (the wording names no lookup, windo
 |---|---|---|---|---|---|---|
 | Fixture | none | 16 Nov 2026 | 12 of 12 | 10 of 10 | 8 of 8 | 10 of 10 |
 | Live, first run | `claude-haiku-5-5` | 16 Nov 2026 | 8 of 12 | 9 of 10 | 1 of 8 | 10 of 10 |
-| Live, fifth run | `claude-haiku-5-5` | 16 Nov 2026 | 12 of 12 | 10 of 10 | 8 of 8 | 10 of 10 |
+| Live, latest run | `claude-haiku-5-5` | 17 Nov 2026 | 12 of 12 | 10 of 10 | 8 of 8 | 10 of 10 |
 | Live | `claude-opus-5-5` | not run yet | | | | |
 
 Read the fixture row for what it is. The fixture client plays the model from a script, so it proves the lookups, the loop, the number check and the scorer. It says nothing about whether a model picks the right lookup. The live rows do. A live run asks every question three times, and a question passes only if all three runs pass.

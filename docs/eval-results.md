@@ -30,7 +30,7 @@ If a first live run scores 100% everywhere, the set is too easy: add harder ques
 <!-- begin:claude-haiku-5-5 -->
 ### `claude-haiku-5-5`
 
-Run on 16 Nov 2026, 18:06 UTC. 40 questions, 3 runs each. Cost: $0.0745.
+Run on 17 Nov 2026, 11:50 UTC. 40 questions, 3 runs each. Cost: $0.0765.
 
 | Tier | Questions | Passed all 3 runs | Rate | Single runs passed |
 |---|---|---|---|---|
@@ -47,7 +47,7 @@ None.
 
 ## How `claude-haiku-5-5` got from 70% to 100%
 
-The table above is the fifth live run. The earlier ones are kept here, because the failures are the useful part. Each run asked all 40 questions three times; "passed" means right on all three.
+The table above is the eighth live run. The earlier ones are kept here, because the failures are the useful part. Each run asked all 40 questions three times; "passed" means right on all three.
 
 **Read the 100% with care.** The fixes below were made while looking at this same set of questions, so the last run is partly fitted to it. It shows that every failure found was understood and fixed. It does not show how the assistant does on questions it has not seen. The next step is a second set of questions, written before looking at any answers and never used for tuning.
 
@@ -59,8 +59,11 @@ The table above is the fifth live run. The earlier ones are kept here, because t
 | 3, 17:45 UTC | 11 of 12 | 10 of 10 | 5 of 8 | 10 of 10 | 36 of 40 (90%) | 114 of 120 | $0.074 |
 | 4, 17:52 UTC | 12 of 12 | 10 of 10 | 8 of 8 | 10 of 10 | 40 of 40 (100%) | 120 of 120 | $0.074 |
 | 5, 18:06 UTC | 12 of 12 | 10 of 10 | 8 of 8 | 10 of 10 | 40 of 40 (100%) | 120 of 120 | $0.075 |
+| 6, 17 Nov | 12 of 12 | 9 of 10 | 6 of 8 | 10 of 10 | 37 of 40 (92%) | 116 of 120 | $0.076 |
+| 7, 17 Nov | 12 of 12 | 10 of 10 | 8 of 8 | 10 of 10 | 40 of 40 (100%) | 120 of 120 | $0.077 |
+| 8, 17 Nov | 12 of 12 | 10 of 10 | 8 of 8 | 10 of 10 | 40 of 40 (100%) | 120 of 120 | $0.077 |
 
-The scorer changed between runs (see below), so the rows are each scored as they were at the time and are not strictly comparable. Run 4 was scored by a scorer that a review then found too lenient; run 5 is the one to trust. Which refusals came from the model and which from the number check is taken from that day's logs, since both produce the same refusal text. The refusal tier was 30 of 30 in every run, before and after every change.
+The scorer changed between runs (see below), so the rows are each scored as they were at the time and are not strictly comparable. Run 4 was scored by a scorer that a review then found too lenient, and run 7 with a number check that a review found too loose; runs 5 and 8 are the ones to trust. Which refusals came from the model and which from the number check is taken from that day's logs, since both produce the same refusal text. The refusal tier was 30 of 30 in every run, before and after every change.
 
 ### Run 0: every call rejected
 
@@ -101,6 +104,23 @@ No failures. But a fresh review of the changes made since run 1 found that two o
 ### Run 5: 100%
 
 No failures, with the stricter check and scorer. Total spent across all five runs and the single test calls in between: about $0.38.
+
+### Run 6: 92%, after a change to the wording
+
+On 17 Nov the prompt was changed for readers, not for the score: the model was told to write a date as "24 October 2026" and a time range as "the last 7 days", and to say what a tool counts in plain words. The eval was rerun because the prompt had changed, and it fell to 92%. All four failing runs were correct answers refused by the number check:
+
+- **A span of days written once.** "against 51 in the previous 7 days (17 to 23 October 2026)" left a bare 17 with no month after it, which the check read as an invented number. *Fix:* a span of days in one month is read as a date when both ends are dates in the results. "18 to 23 October" is still refused, because the 18th is not.
+- **A number from the instructions, not from a lookup.** "outputs from all eight tools combined": the prompt told the model the workspace has eight tools, and it repeated that. The check refused it, correctly, because no lookup result said so. *Fix:* the prompt no longer states how many tools or people there are, and tells the model to say nothing about the workspace that a result did not.
+
+### Run 7: 100%, and the same mistake caught again in review
+
+No failures. But the span fix as first written accepted any two dates in a result as a span, so in an answer about people "28 – 30 October" would have passed with no 28 in the result. That is the run 4 mistake again: a check loosened too far to cure a false refusal. *Fix:* only a window's own first and last day, as the result gives them, make a span. Run 8 below was scored with the narrower rule.
+
+### Run 8: 100%
+
+No failures, with the narrower span rule. This is the run in the table at the top. Runs 6, 7 and 8 cost about $0.23 together.
+
+The lesson of run 6 is the reason the eval exists: a change that looked like copy-editing broke answers, and nothing else would have shown it.
 
 ### What this says about the design
 

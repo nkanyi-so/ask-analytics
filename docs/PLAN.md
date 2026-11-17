@@ -837,3 +837,205 @@ $ echo $?
 *Review.* The `reviewer` agent found nothing blocking in the code, the Dockerfile or the CI job, and two false sentences in the README, both corrected: demo mode answers all forty eval questions, not only the three suggested ones; and `make check` does not run CI's image build or secret scan. Also fixed: the deployed check now covers a Railway service built without the Dockerfile; a token of spaces is refused; the test fixture is no longer affected by a `DEPLOYED` left in a developer's shell; the image layer no longer keeps uv's cache.
 
 **Gate: not passed.** Nothing is hosted.
+
+---
+
+## Phase 7: design pass
+
+Added on 16 Nov 2026 at the human's request. SPEC calls visual polish "a later layer"; this is that layer. No backend behaviour, API contract or existing test may change. (Lifted in part on 17 Nov 2026 for the redesign: see the last log entry and its restated gate.)
+
+- [x] `docs/DESIGN.md` written first and approved: direction, tokens, every screen state.
+- [x] Built with all tokens in `frontend/src/app/tokens.css`.
+- [x] Every state photographed at 375, 768 and 1280 in light and dark; reviewed against DESIGN.md; fixed; repeated once.
+- [x] `npx impeccable detect` run, and what it found fixed.
+
+**Gate:** `make check` exits 0 with no change under `backend/app`, `backend/evals` or any existing test. Every state in DESIGN.md has a screenshot, or DESIGN.md says why not. Contrast passes AA. Every control is reachable by keyboard with a visible focus ring. The detector reports nothing.
+
+**Log:**
+
+16 Nov 2026. Branch `design-pass`. Done at the human's request while Phase 6's gate is still open: that gate waits for a deploy, which the human has put last. Nothing under `backend/app` or `backend/evals` changed, and no existing test was edited.
+
+*What was built.* `docs/DESIGN.md` first, approved before any code. Then: `frontend/src/app/tokens.css` (every colour, size and space), a rewritten `globals.css`, the Ask panel (`components/AskPanel.tsx`), both pages as figures and tables instead of cards, and one new route on the frontend's own server, `GET /api/evidence`, with `lib/evidence.ts` and `lib/answer.ts` behind it. Old components `AskBox`, `Tile` and `PageHeader` are gone.
+
+*The one thing the brief could not have as asked.* "Show what the lookup returned" needs the lookup's result, which the API does not send with an answer, and the brief ruled out API changes. The page re-reads the lookup through the existing endpoints instead. It marks a number in the answer only when the number is in a row shown and the answer uses that measure's words; otherwise it shows the row and marks nothing.
+
+*Gate evidence.*
+
+`make check`, with no change under `backend/app` or `backend/evals`:
+
+```
+$ make check
+All checks passed!
+Success: no issues found in 23 source files
+332 passed
+| all | 40 | 40 | 100% |
+ Test Files  6 passed (6)
+      Tests  53 passed (53)
+$ echo $?
+0
+$ git diff main --stat -- backend/app backend/evals
+$
+```
+
+Screenshots: `frontend/scripts/screenshots.mjs` took 126 in demo mode (21 states, three widths, light and dark) and 18 against the live model (12 real questions, $0.008). Two states have none, and DESIGN.md says why: an answer using two lookups (no recorded answer does, and the live model did not for any question tried) and Reliability with no errors (the seeded data has errors in every window).
+
+Contrast: every text pair computed, lowest 4.69 (captions on the sunken surface, light); control borders 3.37 at lowest. All pass AA.
+
+Keyboard, driven by Playwright:
+
+```
+a "ask-analytics" ring=true
+a "Overview" ring=true
+a "Reliability" ring=true
+input "How many invoices were issued in the las" ring=true
+button "Ask" ring=true
+button "How many invoices were issued in the las" ring=true
+button "Which tool is nobody touching?" ring=true
+button "Did email usage go up or down this week," ring=true
+a "Today" ring=true
+a "7 days" ring=true
+a "30 days" ring=true
+Enter in the field sends the question: Nobody has used Contact enrichment in the last 7 days.
+Ask with nothing typed moves focus to: question
+While waiting, focus stays on: question
+Sideways scroll on Reliability at 800 wide: 0 px (was 83)
+```
+
+`npx impeccable detect`, on the source and on both pages at 1280 and 390 wide: nothing reported. Its first run found two things, both fixed: a thick rule down the side of notices, and the typeface (Instrument Sans, on its overused list; now Hanken Grotesk).
+
+*Self-review of the screenshots, two rounds.* Round one: the question field collapsed on a phone; a full-width accent button was too loud in dark mode; table columns were spread too wide; the rate-limit notice said the same thing three times; notices sat in half of a two-column layout; the Ask button was greyed out on first visit, so the page opened with no accent. Round two: phone tables were eleven screens long (one line per figure), now one wrapped line per row; a heading touched its paragraph on the error page.
+
+*Review.* The `reviewer` agent found three blocking problems, all fixed:
+
+1. **The panel said numbers were marked when none were**, for any answer without a number.
+2. **The refusal line could be untrue.** "No answer passed the check" is one of five reasons a lookup can run and no answer be shown. The line now claims only what is known.
+3. **The new route returned more than the page shows** (ids, the full list of active people), while the docs said otherwise. It now returns titled rows of figures only, and the docs name the one extra thing it serves: previous-window values.
+
+Non-blocking, fixed: a number could be marked as checked against a different measure that happened to share it ("22 errors" against "active people 22"), so marking now needs the measure's words as well; keyboard focus was lost on submit; heading order; phone tables were read twice by screen readers; Reliability scrolled sideways between 768 and 850 wide; hard-coded values moved into the token file; a new test pins the two backend messages the panel reads.
+
+**Gate: passed.**
+
+*Second entry, 17 Nov 2026: recomposed.* The human reviewed the first build and asked for the composition of the product this is rebuilt from: a dashboard of key values, and an assistant in a side panel that is there on every view. Structure only was taken from that product; no names, terms or data. Same branch, same pull request. Still no change under `backend/app` or `backend/evals`, and no existing test edited.
+
+*What changed.* One frame mounted in the root layout (`components/Shell.tsx`) holds the header, the view and the assistant, so the assistant keeps its answers when the view changes. Overview is now eight tiles (one headline number per tool) and three cards; Reliability is one card. The assistant is docked and open at 1280 wide or more, and a dialog over the page below that.
+
+*Two deliberate differences from the original.* Its assistant floats over the dashboard and covers about two fifths of it; this one is docked, so nothing is covered. Its answers show no trace of how they were reached; this one keeps the working.
+
+*Two things given up, with the human's agreement.* The answer is no longer a page-wide headline: its number is still the largest on the screen, but it shares the stage with the dashboard. And the panel looks like a chat but is not one: each question stands alone, because the backend keeps no memory, and the panel says so. Real follow-ups are a later piece of work.
+
+*Evidence.*
+
+```
+$ make check
+All checks passed!
+Success: no issues found in 23 source files
+332 passed
+| all | 40 | 40 | 100% |
+ Test Files  6 passed (6)
+      Tests  53 passed (53)
+$ echo $?
+0
+$ git diff main --stat -- backend/app backend/evals
+$
+```
+
+Screenshots: 144 in demo mode (24 states, three widths, light and dark) and 30 live. Behaviour, driven by Playwright:
+
+```
+1280, docked. Tab order: brand, Overview, Reliability, Today, 7 days, 30 days,
+  Close the Ask panel, three suggested questions, the field, Ask. Every one with a focus ring.
+Enter sends the question: Nobody has used Contact enrichment in the last 7 days.
+After changing view, answers kept: 1
+Escape while docked leaves it open: true
+While waiting, focus stays on: question
+375: nine Tabs land in: panel, browser | role: dialog | page scrolled behind: 0 px
+768: nine Tabs land in: panel, browser | role: dialog | page scrolled behind: 0 px
+768: Escape closes it and focus returns to: Ask a question
+375: Escape closes it and focus returns to: Ask a question
+1280: after Try again, entries: 1 | failure notices left: 0
+No sideways scroll on either view at 320, 375, 768, 1024, 1279, 1280 or 1440 (measured by the reviewer).
+```
+
+`npx impeccable detect` on the source and both pages at 1280 and 390: nothing reported.
+
+*Review.* The `reviewer` agent confirmed the frame at seven widths, that nothing from the token-holding module reaches the browser, and that the server-rendered page contains the dashboard. One blocking finding, fixed: **on a small screen, Tab could move focus to links hidden behind the open assistant.** It is now a dialog there and the page behind it is inert. Non-blocking, fixed: the page scrolled behind the overlay; "Try again" left the failed entry in the list; a tile's number came before its heading for screen readers; the close button was a small touch target; leftover tokens; four claims in DESIGN.md that no longer matched the code.
+
+**Gate: passed.**
+
+*Third entry, 17 Nov 2026: made to explain itself, and raised.* Writing a narrated explainer for someone who had never seen the app showed what the page did not say for itself. The human then asked for those gaps to be closed and for the interface to be looked at again against the standard of a major company's product, without being bound by earlier decisions. With the human's agreement this pass also changed backend wording (the prompt) and added tests.
+
+*For a stranger.* One plain line at the top of the dashboard, linking to a new About view (the problem, the method, the eval results, the source). The assistant's empty state says "An assistant that cannot make a number up" and offers a question it should refuse next to the three it can answer. "Seeded" became "made-up"; "one headline number per tool" became "one number per tool". The model is told to write dates, time ranges and event names the way a person would.
+
+*For finish.* A header that stays in reach. Four lead figures without boxes. Tiles with half the text. With a live model, a tile is a button that asks the assistant about that tool. "Not showing up" as its own card. The long table starts at eight rows. Links dim between the press and the new view. The assistant slides in when it opens over the page. Page titles, and an icon in the browser tab.
+
+*What the eval caught.* The reworded prompt took the live score from 100% to 92% (run 6). Both causes were the number check refusing correct answers that used the new wording: a span of days written once ("17 to 23 October"), and "all eight tools", a number the model took from its instructions. Both fixed with tests; run 7 scored 100%. The `reviewer` agent then found the first fix too loose: any two dates in a result made a span, so in an answer about people an invented count could pass in front of a real date ("28 – 30 October"). Narrowed to a window's own first and last day, with a test; run 8 scored 100%. Details in `docs/eval-results.md`.
+
+*Review of this pass.* Four blocking findings, all fixed: the loose span rule above; ARCHITECTURE not describing the new rule; a tile on a small screen opening the assistant as a dialog without moving focus into it; and two stale claims on the About view. Non-blocking, fixed: a tile's question was dropped if another was still being answered (it now waits in the field); the tile's spoken name now contains its visible hint; anchors no longer scroll under the header.
+
+*Evidence.*
+
+```
+$ make check
+All checks passed!
+Success: no issues found in 23 source files
+336 passed
+| all | 40 | 40 | 100% |
+ Test Files  6 passed (6)
+      Tests  53 passed (53)
+$ echo $?
+0
+
+$ make evals
+| all | 40 | 40 | 100% | 120 of 120 |
+Failures (any run):
+None.
+```
+
+Screenshots: 156 in demo mode (26 states) and 36 live. `npx impeccable detect` on the source and on all three views at 1280 and 390: nothing reported (its first run on About flagged lines of about 89 characters; the reading width is now about 70). Keyboard and overlay checks as in the second entry, all passing, plus: nothing takes focus on load at 375, 768 or 1280; "Show all" takes the table from 8 visible rows to 40.
+
+An explainer video is produced by `frontend/scripts/explainer.mjs`: it drives the live app, speaks each scene and captions it. It is written to `screenshots/explainer.mp4`, which is not tracked.
+
+*What the video caught.* A frame from the first recording showed the answer's headline number as 24. The model had written "the last 7 days (24 to 30 October 2026)" and the page took the first day of that span as the number. The page's answer reader now treats a span of days as a date, with a test built from that sentence; six varied live questions then gave the right headline each time (10, 382, 91, 2, 21, 632). The recording was also changed so that a line describing an answer is spoken only once the answer is on screen.
+
+**Gate: passed.**
+
+17 Nov 2026, redesign. The human rejected the look above twice: flat, no charts, key numbers that could not be pressed, and a structure unlike the product this is rebuilt from. A static mock in the direction of current product UI was approved, then a light and dark pair of it, with "go ahead and build". With the mock the human approved three things this phase had ruled out, so the gate for this entry is restated below.
+
+*Approved by the human, against the rule at the top of this phase.*
+
+- A sixth lookup, `activity_over_time`, for charts only. It is not an assistant tool and is not served over MCP.
+- An API change: `/api/overview` and `/api/reliability` gain a `trend` field. Nothing was removed or renamed.
+- `CLAUDE.md` rule 1 reworded from "the five lookup functions" to the five the assistant can call plus the chart series.
+
+*What was built.* Backend: `activity_over_time` in `lookups.py` (hour buckets for today, day buckets otherwise; totals of outputs and errors with previous and change), warmed with the rest; its expected values in `data/ground_truth.json` under `series`, written by `scripts/seed.py` with code that shares nothing with the lookup. `make seed` regenerated the file: only `series` was added, and `data/events.jsonl` and the eval files are byte-identical. Frontend: a new frame (sidebar, page header with the window switch and a light/dark toggle, tabs), four key numbers as toggle buttons that open a detail card with a bar chart and the tables behind the number, a sortable people table, change pills coloured by meaning, a restyled Ask panel, the system font, and a rewritten `tokens.css` and `globals.css`. Components `Change`, `Card`, `ShowAll` and `AskAbout` are gone. `docs/DESIGN.md` is rewritten to describe this design.
+
+*Tests.* Existing tests were extended, none weakened: API shape tests expect `trend`; the frontend contract test covers `Bucket` and `ActivityOverTime`; the warm test now counts eighteen warmed results and compares the warmed series with a cold read. New: the series equals ground truth in every window and adds up to `usage_by_tool` and `errors_seen`.
+
+*Review.* Three blocking findings, all fixed: the warm test did not prove the series was warmed (it counted only the five lookups); this phase's rule and gate contradicted the diff (this entry); SPEC still ruled charts out of scope. Non-blocking, fixed: stale text in ARCHITECTURE, Shell comments and the explainer script; the theme toggle now exposes its state (`aria-pressed`); a chosen theme also sets `color-scheme`; phone table labels have a fallback for browsers without alt-text syntax; the detail card is labelled by its heading; unused tokens and a dead class removed.
+
+*Found by looking.* At 1280 with the assistant docked, the two tables in the detail card ran into each other: the rule that put them side by side asked about the screen's width, not the card's. It is now a container query. "Per hour, in today" became "Per hour, today".
+
+*Restated gate for this entry.* `make check` exits 0. No existing test, eval or type check weakened. The assistant's five tools and the eval set unchanged. Every state in DESIGN.md has a screenshot, or DESIGN.md says why not. Contrast passes AA. Every control is reachable by keyboard with a visible focus ring. The detector reports no anti-patterns.
+
+*Evidence.*
+
+```
+$ make check
+All checks passed!
+Success: no issues found in 23 source files
+342 passed in 16.66s
+| all | 40 | 40 | 100% |
+ Test Files  6 passed (6)
+      Tests  58 passed (58)
+$ echo $?
+0
+
+$ git diff --stat main -- data/events.jsonl backend/evals
+(no output)
+```
+
+Screenshots: 174 in demo mode (29 states at 375, 768 and 1280, light and dark); ten kept in `docs/design/`. The live-only state (a tool's name asking the assistant) was not re-photographed, to spend nothing. `npx impeccable detect` on Overview, Reliability and About: 0 anti-patterns; two advisories on the charts, left as they are and explained in DESIGN.md. Behaviour checks in a real browser: every tab stop at 1440 shows a focus ring; pressing a key number marks it pressed and swaps the detail card; sorting sets `aria-sort`; "Show everyone" takes the table from 8 rows to 40; the theme choice survives a reload; no sideways scroll at 320, 375, 768, 1024, 1279, 1280 or 1440 on any view or detail card; below 1280 the assistant is a dialog that keeps Tab inside it, stops the page scrolling, and returns focus to its button on Escape.
+
+Not done, on the human's instruction: the explainer video was not remade. `screenshots/explainer.mp4` shows the previous design.
+
+**Gate (restated): passed.**

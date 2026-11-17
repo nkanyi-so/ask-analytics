@@ -1,0 +1,147 @@
+/* Every colour, size and space the interface uses, for both themes.
+   The reasoning is in docs/DESIGN.md. Light is the default; dark applies when the
+   system asks for it, unless the reader has chosen a theme with the toggle. */
+
+:root {
+  color-scheme: light dark;
+
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter", system-ui, sans-serif;
+
+  /* Surfaces */
+  --bg: #f5f5f7;
+  --glass: rgb(255 255 255 / 72%);
+  --surface: #ffffff;
+  --surface-2: #fafafb;
+  --track: #e9e9ec;
+  --thumb: #ffffff;
+  --pill: rgb(0 0 0 / 5%);
+  --grid: rgb(0 0 0 / 5%);
+  --line: rgb(0 0 0 / 8%);
+  --line-2: rgb(0 0 0 / 5%);
+  --scrim: rgb(0 0 0 / 30%);
+
+  /* Text */
+  --text: #1d1d1f;
+  --text-2: #515154;
+  --text-3: #6e6e73;
+  --on-brand: #ffffff;
+
+  /* One brand colour, and one each for better and worse */
+  --brand: #0a66e4;
+  /* Behind white text (the button, your question): dark enough to read in both themes. */
+  --brand-solid: #0a66e4;
+  --brand-soft: rgb(10 102 228 / 10%);
+  --brand-text: #0a5ad0;
+  --bar-dim: rgb(10 102 228 / 28%);
+  --good: #177541;
+  --good-soft: rgb(52 199 89 / 14%);
+  --bad: #c9271e;
+  --bad-soft: rgb(255 59 48 / 12%);
+
+  /* Depth */
+  --shadow: 0 1px 2px rgb(0 0 0 / 4%), 0 4px 16px rgb(0 0 0 / 4%);
+  --shadow-thumb: 0 1px 3px rgb(0 0 0 / 12%), 0 0 0 0.5px rgb(0 0 0 / 4%);
+  --ring: 0 0 0 1.5px var(--brand);
+  --blur: saturate(180%) blur(20px);
+
+  /* Type */
+  --text-title: 1.75rem;
+  --text-kpi: 2.125rem;
+  --text-hero: 3.25rem;
+  --text-hero-words: 1.375rem;
+  --text-heading: 1.0625rem;
+  --text-lead: 0.9375rem;
+  --text-body: 0.875rem;
+  --text-small: 0.8125rem;
+  --text-caption: 0.75rem;
+  --text-micro: 0.6875rem;
+
+  /* Space: a 4px base */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-7: 2.25rem;
+  --space-9: 4.5rem;
+
+  /* Layout */
+  --sidebar: 4.75rem;
+  --panel: 25rem;
+  --header: 3.5rem;
+  --chart: 12.5rem;
+  --num-column: 5.5rem;
+
+  /* Shape */
+  --radius-card: 16px;
+  --radius-control: 10px;
+  --radius-bubble: 18px;
+  --radius-bar: 7px;
+  --radius-pill: 999px;
+
+  --quick: 140ms ease;
+  --arrive: 260ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #000000;
+    --glass: rgb(28 28 30 / 72%);
+    --surface: #1c1c1e;
+    --surface-2: #232326;
+    --track: #2c2c2e;
+    --thumb: #636366;
+    --pill: rgb(255 255 255 / 8%);
+    --grid: rgb(255 255 255 / 6%);
+    --line: rgb(255 255 255 / 10%);
+    --line-2: rgb(255 255 255 / 6%);
+    --scrim: rgb(0 0 0 / 55%);
+    --text: #f5f5f7;
+    --text-2: #aeaeb2;
+    --text-3: #98989d;
+    --brand: #0a84ff;
+    --brand-soft: rgb(10 132 255 / 18%);
+    --brand-text: #409cff;
+    --bar-dim: rgb(10 132 255 / 32%);
+    --good: #30d158;
+    --good-soft: rgb(48 209 88 / 16%);
+    --bad: #ff6961;
+    --bad-soft: rgb(255 69 58 / 16%);
+    --shadow: 0 0 0 0 transparent;
+    --shadow-thumb: 0 1px 3px rgb(0 0 0 / 30%);
+  }
+}
+
+:root[data-theme="light"] {
+  /* A chosen theme also decides scrollbars and native controls. */
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #000000;
+  --glass: rgb(28 28 30 / 72%);
+  --surface: #1c1c1e;
+  --surface-2: #232326;
+  --track: #2c2c2e;
+  --thumb: #636366;
+  --pill: rgb(255 255 255 / 8%);
+  --grid: rgb(255 255 255 / 6%);
+  --line: rgb(255 255 255 / 10%);
+  --line-2: rgb(255 255 255 / 6%);
+  --scrim: rgb(0 0 0 / 55%);
+  --text: #f5f5f7;
+  --text-2: #aeaeb2;
+  --text-3: #98989d;
+  --brand: #0a84ff;
+  --brand-soft: rgb(10 132 255 / 18%);
+  --brand-text: #409cff;
+  --bar-dim: rgb(10 132 255 / 32%);
+  --good: #30d158;
+  --good-soft: rgb(48 209 88 / 16%);
+  --bad: #ff6961;
+  --bad-soft: rgb(255 69 58 / 16%);
+  --shadow: 0 0 0 0 transparent;
+  --shadow-thumb: 0 1px 3px rgb(0 0 0 / 30%);
+}

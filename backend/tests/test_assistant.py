@@ -468,3 +468,54 @@ def test_a_checked_number_word_reaches_the_reader_as_digits(lookups: Lookups) ->
 
     assert result.answer == "3 people were invited but never logged in."
     assert not result.refused
+
+
+def test_a_span_of_days_is_a_date_only_when_both_ends_are_in_the_results() -> None:
+    # Refused on the sixth live run: "(17 to 23 October 2026)" left a bare 17.
+    # A hand-made result, so the only numbers in it are the ones written here.
+    result = (
+        '{"window_first_day": "2026-10-24", "window_last_day": "2026-10-30", '
+        '"previous_first_day": "2026-10-17", "previous_last_day": "2026-10-23", '
+        '"rows": [{"headline_count": 10, "headline_count_previous": 51}]}'
+    )
+    said = "10 invoices in the last 7 days (24 to 30 October 2026), against 51 in the previous 7 days (17 to 23 October)."
+
+    assert unsupported_numbers(said, [result]) == []
+    assert unsupported_numbers("51 before (October 17 to 23, 2026).", [result]) == []
+    assert unsupported_numbers("51 before (17\u201323 Oct).", [result]) == []
+    # One end that is not a date in the results is a number like any other.
+    assert unsupported_numbers("51 before (18 to 23 October).", [result]) == ["18"]
+    assert unsupported_numbers("51 before (17 to 22 October).", [result]) == ["17", "22"]
+    # And a span is not a way to smuggle a count in front of a real date.
+    assert unsupported_numbers("17 errors to 23 October.", [result]) == ["17"]
+    assert unsupported_numbers("17 and 23 October.", [result]) == ["17"]
+
+
+def test_a_span_is_only_ever_a_windows_own_two_ends() -> None:
+    # Found in review: any two dates in a result used to make a span, so in a list of
+    # people an invented count could sit in front of a real last-seen date and pass.
+    people = (
+        '{"window_first_day": "2026-10-01", "window_last_day": "2026-10-30", "rows": ['
+        '{"name": "A", "logins": 5, "last_seen": "2026-10-28"}, '
+        '{"name": "B", "logins": 7, "last_seen": "2026-10-30"}]}'
+    )
+
+    assert unsupported_numbers("- A: 28 \u2013 30 October", [people]) == ["28"]
+    assert unsupported_numbers("- A: 28 - 30 Oct", [people]) == ["28"]
+    assert unsupported_numbers("Logins rose from 28 to 30 October.", [people]) == ["28"]
+    # The window's own span is still a date.
+    assert (
+        unsupported_numbers(
+            "In the last 30 days (1 to 30 October 2026), A logged in 5 times.", [people]
+        )
+        == []
+    )
+
+
+def test_the_prompt_gives_the_model_no_count_of_its_own_to_repeat() -> None:
+    # On the sixth live run the model wrote "all eight tools", a number from its
+    # instructions and not from a lookup, and the check rightly refused the answer.
+    prompt = system_prompt(date(2026, 10, 30)).lower()
+
+    assert "eight" not in prompt
+    assert "forty" not in prompt

@@ -122,3 +122,31 @@ def test_lookups_are_safe_from_several_threads(database: Database, truth: dict[s
         results = list(pool.map(run, range(400)))
 
     assert all(result == truth["lookups"][name]["30d"] for name, result in results)
+
+
+@pytest.mark.parametrize("window", WINDOWS)
+def test_the_series_behind_the_charts_equals_ground_truth(
+    database: Database, truth: dict[str, Any], window: Window
+) -> None:
+    result = lookups.activity_over_time(database, window)
+
+    assert dump(result) == truth["series"]["activity_over_time"][window]
+
+
+def test_the_series_has_every_bucket_and_adds_up_to_the_other_lookups(database: Database) -> None:
+    week = lookups.activity_over_time(database, "7d")
+    today = lookups.activity_over_time(database, "today")
+    tools = lookups.usage_by_tool(database, "7d", with_previous=True)
+
+    assert (week.unit, len(week.buckets)) == ("day", 7)
+    assert (today.unit, len(today.buckets)) == ("hour", 24)
+    assert week.buckets[0].label == "2026-10-24"
+    assert week.buckets[-1].label == "2026-10-30"
+    # Two independent routes to the same totals: bucket by bucket, and tool by tool.
+    assert week.outputs == sum(bucket.outputs for bucket in week.buckets)
+    assert week.outputs == sum(tool.headline_count for tool in tools)
+    assert week.errors == sum(tool.errors for tool in tools)
+    assert week.outputs_previous == sum(tool.headline_count_previous or 0 for tool in tools)
+    for bucket in week.buckets:
+        assert bucket.outputs == sum(bucket.outputs_by_tool.values())
+        assert len(bucket.outputs_by_tool) == 8

@@ -66,6 +66,7 @@ def test_overview_is_the_lookups_and_nothing_else(
     assert body["window"] == "7d"
     for name in ("usage_by_tool", "activity_by_person", "activity_by_client", "roster"):
         assert body[name] == truth["lookups"][name]["7d"]
+    assert body["trend"] == truth["series"]["activity_over_time"]["7d"]
     assert set(body) == {
         "as_of",
         "window",
@@ -73,6 +74,7 @@ def test_overview_is_the_lookups_and_nothing_else(
         "activity_by_person",
         "activity_by_client",
         "roster",
+        "trend",
     }
 
 
@@ -83,6 +85,7 @@ def test_reliability_is_errors_seen(client: TestClient, truth: dict[str, Any]) -
         "as_of": truth["as_of"],
         "window": "30d",
         "errors": truth["lookups"]["errors_seen"]["30d"],
+        "trend": truth["series"]["activity_over_time"]["30d"],
     }
 
 

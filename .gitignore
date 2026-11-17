@@ -22,3 +22,6 @@ START_HERE.md
 # TypeScript and Next.js generated files
 *.tsbuildinfo
 next-env.d.ts
+
+# The full screenshot set from frontend/scripts/screenshots.mjs. A few are kept in docs/design/.
+/screenshots/

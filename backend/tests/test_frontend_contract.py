@@ -12,7 +12,16 @@ from pydantic import BaseModel
 
 from app.assistant import LookupCalled
 from app.config import REPO_ROOT
-from app.lookups import ClientActivity, ErrorGroup, PersonActivity, Roster, RosterPerson, ToolUsage
+from app.lookups import (
+    ActivityOverTime,
+    Bucket,
+    ClientActivity,
+    ErrorGroup,
+    PersonActivity,
+    Roster,
+    RosterPerson,
+    ToolUsage,
+)
 from app.main import AskResponse, HealthResponse, OverviewResponse, ReliabilityResponse
 from evals import build
 
@@ -26,6 +35,8 @@ MODELS: list[type[BaseModel]] = [
     ErrorGroup,
     RosterPerson,
     Roster,
+    Bucket,
+    ActivityOverTime,
     OverviewResponse,
     ReliabilityResponse,
     LookupCalled,
