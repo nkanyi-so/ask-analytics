@@ -90,31 +90,45 @@ const SCENES = [
     },
   },
   {
-    say: "How many invoices were issued in the last seven days? It says ten.",
+    say: "Ask it how many invoices were issued in the last seven days.",
     act: async (page) => {
       await point(page, null);
       await page.getByRole("button", { name: "How many invoices were issued in the last 7 days?" }).click();
-      await page.locator(".working").waitFor();
     },
+  },
+  {
+    // Spoken only once the answer is on screen.
+    wait: (page) => page.locator(".working").waitFor(),
+    say: "It says ten.",
+    act: (page) => point(page, ".hero-number"),
   },
   {
     say: "It cannot do sums, and it never sees the raw data. It can only pick one of five fixed lookups. The code runs the lookup, and then checks every number in the answer against what came back.",
     act: (page) => point(page, ".steps"),
   },
   {
-    say: "You can also just click a tool, and it asks for you. Invoices are down by forty-one, and the same tool threw eighty-six errors.",
+    say: "You can also just click a tool, and it asks for you.",
     act: async (page) => {
       await point(page, null);
       await page.getByRole("button", { name: "Ask about this tool: Invoice generator" }).click();
-      await page.locator(".entry").nth(1).locator(".working").waitFor();
     },
   },
   {
-    say: "And if you ask something the data cannot answer, like what usage will look like next month, it refuses, rather than guesses.",
+    wait: (page) => page.locator(".entry").nth(1).locator(".working").waitFor(),
+    say: "Invoices are down by forty-one, and the same tool threw eighty-six errors.",
+    act: (page) => point(page, ".entry:nth-child(2) .answer-text"),
+  },
+  {
+    say: "And if you ask something the data cannot answer, like what usage will look like next month?",
     act: async (page) => {
+      await point(page, null);
       await type(page, "What will usage look like next month?");
-      await page.locator(".entry").nth(2).locator(".notice").waitFor();
     },
+  },
+  {
+    wait: (page) => page.locator(".entry").nth(2).locator(".notice").waitFor(),
+    say: "It refuses, rather than guesses.",
+    act: (page) => point(page, ".entry:nth-child(3) .notice"),
   },
   {
     say: "The assistant stays with you as you move around. This second view shows what is failing, and who it reached.",
@@ -153,6 +167,8 @@ const page = await context.newPage();
 const began = Date.now();
 const starts = [];
 for (const [index, scene] of SCENES.entries()) {
+  // Some lines describe an answer: hold them until the answer is on screen.
+  if (scene.wait) await scene.wait(page);
   if (index > 0) await caption(page, scene.show ?? scene.say);
   starts.push((Date.now() - began) / 1000);
   const spoken = pause(lengths[index] * 1000 + 500);

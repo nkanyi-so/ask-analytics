@@ -995,5 +995,6 @@ Screenshots: 156 in demo mode (26 states) and 36 live. `npx impeccable detect` o
 
 An explainer video is produced by `frontend/scripts/explainer.mjs`: it drives the live app, speaks each scene and captions it. It is written to `screenshots/explainer.mp4`, which is not tracked.
 
-**Gate: passed.**
+*What the video caught.* A frame from the first recording showed the answer's headline number as 24. The model had written "the last 7 days (24 to 30 October 2026)" and the page took the first day of that span as the number. The page's answer reader now treats a span of days as a date, with a test built from that sentence; six varied live questions then gave the right headline each time (10, 382, 91, 2, 21, 632). The recording was also changed so that a line describing an answer is spoken only once the answer is on screen.
 
+**Gate: passed.**

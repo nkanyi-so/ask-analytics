@@ -16,6 +16,10 @@ const MONTH =
 const NOT_A_COUNT = new RegExp(
   [
     "\\d{4}-\\d{2}-\\d{2}", // 2026-10-30
+    // A span of days written once: "24 to 30 October 2026", "October 24-30". Before the
+    // single-date forms, so the first day is not left behind as a number.
+    `\\d{1,2}(?:st|nd|rd|th)?\\s*(?:to|until|through|[-\u2013\u2014])\\s*\\d{1,2}(?:st|nd|rd|th)?\\s+(?:of\\s+)?${MONTH}\\b(?:,?\\s+\\d{4})?`,
+    `${MONTH}\\s+\\d{1,2}(?:st|nd|rd|th)?\\s*(?:to|until|through|[-\u2013\u2014])\\s*\\d{1,2}(?:st|nd|rd|th)?(?:,?\\s+\\d{4})?`,
     `\\d{1,2}(?:st|nd|rd|th)?\\s+(?:of\\s+)?${MONTH}\\b(?:,?\\s+\\d{4})?`, // 30 October 2026
     `${MONTH}\\s+\\d{1,2}(?:st|nd|rd|th)?(?:,?\\s+\\d{4})?`, // October 30, 2026
     "\\b(?:7|30)(?:[\\s-]*days?|d)\\b", // the last 7 days, 30d

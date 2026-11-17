@@ -31,6 +31,16 @@ describe("reading an answer for display", () => {
     expect([...numbersOf(segmentsOf("There were 1,234 events."))]).toEqual([1234]);
   });
 
+  it("does not take a day from a span of dates as the hero", () => {
+    // Seen in the explainer video: the hero read 24, the first day of the window.
+    const live = "The Invoice generator is in trouble over the last 7 days (24 to 30 October 2026).\n\n- Invoices issued: 10, down from 51.";
+
+    expect(heroOf(segmentsOf(live))).toBe("10");
+    expect([...numbersOf(segmentsOf(live))]).toEqual([10, 51]);
+    expect([...numbersOf(segmentsOf("Against 51 before (October 17-23, 2026), now 10."))]).toEqual([51, 10]);
+    expect([...numbersOf(segmentsOf("From 17 \u2013 23 Oct it was 51."))]).toEqual([51]);
+  });
+
   it("has no hero when the answer states no number", () => {
     const segments = segmentsOf("Nobody has used Contact enrichment in the last 7 days.");
 
