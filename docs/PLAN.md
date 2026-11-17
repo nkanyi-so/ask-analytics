@@ -769,7 +769,7 @@ Still not done: the MCP config has not been tried in Claude Desktop itself.
 
 - [ ] `main` protected; CI (in place since Phase 0) required to pass before merge.
 - [x] Startup check: a deployed build must refuse to start in demo mode (no `ANTHROPIC_API_KEY`). Demo mode answers from recorded fixtures and is for local use only. Added to the plan in Phase 3, when demo mode was built.
-- [ ] Docker. Backend on Railway, frontend on Vercel. Scheduled cache warm. *Docker and the cache warm are done; the deploy is not.*
+- [x] Docker. Backend on Railway, frontend on Vercel. Scheduled cache warm. *Deployed on 17 Nov 2026; see the entry of that date below.*
 - [ ] README on the seven-section spine from `job-search/portfolio/README.md`, with the live eval table and its date. *Written, with the live rows empty and the "Before" section marked as a draft.*
 
 **Gate:** hosted page loads in under two seconds. CI is green on `main`. No key in the repo or its history.
@@ -788,7 +788,7 @@ Still not done: the MCP config has not been tried in Claude Desktop itself.
 *Not done, and why.*
 
 - [ ] **`main` protected.** GitHub refused: "Upgrade to GitHub Pro or make this repository public to enable this feature." The repo is private on the free plan. Do it when the repo goes public: require the `check`, `secrets` and `image` jobs.
-- [ ] **Deploy** to Railway and Vercel. Needs the human's accounts. `docs/deploy.md` has the steps; none have been run.
+- [x] **Deploy** to Railway and Vercel. Done on 17 Nov 2026; see below.
 - [ ] **README's live eval table.** The live rows say "not run yet". No key, no run.
 - [ ] **README's "Before" section** is a draft written from project notes, marked as such in the file. The human should rewrite it in their own words before the repo is public.
 
@@ -836,7 +836,44 @@ $ echo $?
 
 *Review.* The `reviewer` agent found nothing blocking in the code, the Dockerfile or the CI job, and two false sentences in the README, both corrected: demo mode answers all forty eval questions, not only the three suggested ones; and `make check` does not run CI's image build or secret scan. Also fixed: the deployed check now covers a Railway service built without the Dockerfile; a token of spaces is refused; the test fixture is no longer affected by a `DEPLOYED` left in a developer's shell; the image layer no longer keeps uv's cache.
 
-**Gate: not passed.** Nothing is hosted.
+**Gate: not passed.** Nothing is hosted. *(As of 16 Nov 2026; superseded by the entry below.)*
+
+17 Nov 2026, deploy. The human logged in to both platforms, subscribed to Railway's Hobby plan (the trial had expired and project creation was refused), and put a key from a spend-limited Anthropic workspace in `.env`. Everything else was run from the command line; the commands are in `docs/deploy.md`.
+
+- Frontend: https://ask-analytics-five.vercel.app (Vercel). Backend: a Railway service with a generated domain, reachable only with the admin token.
+- Settings: `claude-haiku-5-5`, the seeded file source, daily budget $1, five questions a minute per visitor. A new admin token was generated for the deployment; the local one was not reused.
+- Neither service is connected to GitHub, so merges do not deploy; redeploying is two commands.
+
+*Evidence.*
+
+```
+$ curl https://<railway-domain>/health
+{"status":"ok","demo_mode":false}
+$ curl -o /dev/null -w "%{http_code}" "https://<railway-domain>/api/overview?window=7d"
+401
+
+$ curl -w "%{http_code} %{time_total}s" https://ask-analytics-five.vercel.app/          200 1.379474s
+$ curl ... /reliability?window=30d                                                      200 0.776219s
+$ curl ... /about                                                                       200 0.908959s
+Browser (Playwright, 1440 wide): load in 726 ms; the panel reads "Live"; no "Demo mode" label.
+Key numbers on the live Overview, 7 days: 35, 344, 94, 3 (equal to ground truth).
+
+$ POST /api/ask "How many invoices were issued in the last 7 days?"
+{"answer":"Invoices issued in the Invoice generator over the last 7 days (24 October 2026 to 30 October 2026): 10, from 22 active people.", ... "refused":false,"latency_ms":3154,"cost_usd":0.0006515,"demo_mode":false}
+$ POST /api/ask "What will usage look like next month?"
+{"answer":"I can't answer that from this dashboard. ...","lookups_called":[],"refused":true,"cost_usd":0.0002453,"demo_mode":false}
+
+Six quick questions: 200 200 200 429 429 429   (two had been asked in the same minute)
+{"detail":"Too many questions. Wait a minute and try again."}
+
+Three pages and the 11 scripts and stylesheets they load (755,455 bytes): the admin token does not appear; the backend's address does not appear.
+```
+
+*Not checked.* That two different networks get separate rate limits (it needs a second network). That the health check path took effect (see `docs/deploy.md`). The daily budget cap was not driven to its limit on the live site; it is covered by tests.
+
+*Still open in this phase.* `main` protection (needs a public repo or GitHub Pro). The README's "Before" section, in the human's words. The Opus eval, not approved.
+
+**Gate: passed.** The hosted page loads in under two seconds, CI is green on `main`, and the `secrets` job scans the full history on every run.
 
 ---
 
