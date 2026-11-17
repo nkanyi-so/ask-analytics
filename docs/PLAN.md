@@ -842,7 +842,7 @@ $ echo $?
 
 - Frontend: https://ask-analytics-five.vercel.app (Vercel). Backend: a Railway service with a generated domain, reachable only with the admin token.
 - Settings: `claude-haiku-5-5`, the seeded file source, daily budget $1, five questions a minute per visitor. A new admin token was generated for the deployment; the local one was not reused.
-- Neither service is connected to GitHub, so merges do not deploy; redeploying is two commands.
+- At first neither service was connected to GitHub. Both were connected later the same day, so a merge to `main` now deploys both; see `docs/deploy.md`.
 
 *Evidence.*
 
