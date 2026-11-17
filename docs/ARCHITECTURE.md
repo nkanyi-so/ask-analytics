@@ -169,7 +169,9 @@ With no `ANTHROPIC_API_KEY` the backend runs the `FixtureClient`. Every `/api/as
 
 ## Frontend
 
-Next.js app router. Pages: `/` (Overview), `/reliability`, plus the Ask panel on Overview. Server components and the route handlers under `/app/api/*` call the backend with the admin token from the server environment; the browser never sees it. Figures and one table per section. A window switch (today, 7 days, 30 days). A "Data to" line. Three suggested questions under the Ask field. The look, the tokens and every screen state are in `docs/DESIGN.md`; all tokens live in `frontend/src/app/tokens.css`.
+Next.js app router. Two views, `/` (Overview) and `/reliability`, inside one frame (`components/Shell.tsx`) that the root layout mounts once: a header with the views and the window switch (today, 7 days, 30 days), the current view, and the assistant (`components/AskPanel.tsx`) as a panel beside it. Because the frame is not rebuilt when the view changes, the assistant keeps its questions and answers across views. It is docked and open where the screen is 1280 wide or more; below that it opens over the page as a dialog, with the page behind it inert. Overview is key values first (one tile per tool), then cards; Reliability is one card. Server components and the route handlers under `/app/api/*` call the backend with the admin token from the server environment; the browser never sees it. The layout itself asks the backend one thing, whether this is demo mode, and passes only that boolean to the frame.
+
+The assistant is a list of separate questions, not a conversation: the backend answers each one with no memory of the last, and the panel says so. The look, the tokens and every screen state are in `docs/DESIGN.md`; all tokens live in `frontend/src/app/tokens.css`.
 
 ### The working under an answer
 

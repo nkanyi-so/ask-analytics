@@ -915,3 +915,50 @@ Non-blocking, fixed: a number could be marked as checked against a different mea
 
 **Gate: passed.**
 
+*Second entry, 17 Nov 2026: recomposed.* The human reviewed the first build and asked for the composition of the product this is rebuilt from: a dashboard of key values, and an assistant in a side panel that is there on every view. Structure only was taken from that product; no names, terms or data. Same branch, same pull request. Still no change under `backend/app` or `backend/evals`, and no existing test edited.
+
+*What changed.* One frame mounted in the root layout (`components/Shell.tsx`) holds the header, the view and the assistant, so the assistant keeps its answers when the view changes. Overview is now eight tiles (one headline number per tool) and three cards; Reliability is one card. The assistant is docked and open at 1280 wide or more, and a dialog over the page below that.
+
+*Two deliberate differences from the original.* Its assistant floats over the dashboard and covers about two fifths of it; this one is docked, so nothing is covered. Its answers show no trace of how they were reached; this one keeps the working.
+
+*Two things given up, with the human's agreement.* The answer is no longer a page-wide headline: its number is still the largest on the screen, but it shares the stage with the dashboard. And the panel looks like a chat but is not one: each question stands alone, because the backend keeps no memory, and the panel says so. Real follow-ups are a later piece of work.
+
+*Evidence.*
+
+```
+$ make check
+All checks passed!
+Success: no issues found in 23 source files
+332 passed
+| all | 40 | 40 | 100% |
+ Test Files  6 passed (6)
+      Tests  53 passed (53)
+$ echo $?
+0
+$ git diff main --stat -- backend/app backend/evals
+$
+```
+
+Screenshots: 144 in demo mode (24 states, three widths, light and dark) and 30 live. Behaviour, driven by Playwright:
+
+```
+1280, docked. Tab order: brand, Overview, Reliability, Today, 7 days, 30 days,
+  Close the Ask panel, three suggested questions, the field, Ask. Every one with a focus ring.
+Enter sends the question: Nobody has used Contact enrichment in the last 7 days.
+After changing view, answers kept: 1
+Escape while docked leaves it open: true
+While waiting, focus stays on: question
+375: nine Tabs land in: panel, browser | role: dialog | page scrolled behind: 0 px
+768: nine Tabs land in: panel, browser | role: dialog | page scrolled behind: 0 px
+768: Escape closes it and focus returns to: Ask a question
+375: Escape closes it and focus returns to: Ask a question
+1280: after Try again, entries: 1 | failure notices left: 0
+No sideways scroll on either view at 320, 375, 768, 1024, 1279, 1280 or 1440 (measured by the reviewer).
+```
+
+`npx impeccable detect` on the source and both pages at 1280 and 390: nothing reported.
+
+*Review.* The `reviewer` agent confirmed the frame at seven widths, that nothing from the token-holding module reaches the browser, and that the server-rendered page contains the dashboard. One blocking finding, fixed: **on a small screen, Tab could move focus to links hidden behind the open assistant.** It is now a dialog there and the page behind it is inert. Non-blocking, fixed: the page scrolled behind the overlay; "Try again" left the failed entry in the list; a tile's number came before its heading for screen readers; the close button was a small touch target; leftover tokens; four claims in DESIGN.md that no longer matched the code.
+
+**Gate: passed.**
+

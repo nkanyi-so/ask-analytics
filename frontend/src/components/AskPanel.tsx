@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 
 import { heroOf, numbersOf, segmentsOf, type Segment } from "@/lib/answer";
 import { figuresIn, isLookup, LOOKUP_NAMES, shownFor, type EvidenceRow, type Shown } from "@/lib/evidence";
@@ -10,12 +10,19 @@ import type { AskResponse, ErrorBody, LookupCalled } from "@/lib/types";
 
 const MAX_LENGTH = 500;
 
-type State =
-  | { kind: "idle" }
-  | { kind: "loading"; question: string }
-  | { kind: "answer"; question: string; body: AskResponse; evidence: (EvidenceRow[] | null)[] }
-  | { kind: "limit"; question: string; message: string; budget: boolean }
-  | { kind: "failed"; question: string; message: string; retry: boolean };
+/** What came back for one question. */
+type Outcome =
+  | { kind: "loading" }
+  | { kind: "answer"; body: AskResponse; evidence: (EvidenceRow[] | null)[] }
+  | { kind: "limit"; message: string; budget: boolean }
+  | { kind: "failed"; message: string; retry: boolean };
+
+/** One question and what came back. Each stands alone: the assistant keeps no memory of the last. */
+interface Entry {
+  id: number;
+  question: string;
+  outcome: Outcome;
+}
 
 const EVIDENCE_WAIT_MS = 4000;
 
@@ -37,7 +44,7 @@ async function evidenceFor(call: LookupCalled): Promise<EvidenceRow[] | null> {
   }
 }
 
-async function ask(question: string): Promise<State> {
+async function ask(question: string): Promise<Outcome> {
   let response: Response;
   let body: unknown;
   try {
@@ -48,19 +55,19 @@ async function ask(question: string): Promise<State> {
     });
     body = await response.json();
   } catch {
-    return { kind: "failed", question, message: "The assistant could not be reached.", retry: true };
+    return { kind: "failed", message: "The assistant could not be reached.", retry: true };
   }
   if (response.ok) {
     const answer = body as AskResponse;
     const evidence = answer.refused ? [] : await Promise.all(answer.lookups_called.map(evidenceFor));
-    return { kind: "answer", question, body: answer, evidence };
+    return { kind: "answer", body: answer, evidence };
   }
   const message = (body as ErrorBody).detail ?? "Something went wrong.";
   if (response.status === 429) {
     // Both limits arrive as a 429; only the backend's wording tells them apart.
-    return { kind: "limit", question, message, budget: message.toLowerCase().includes("budget") };
+    return { kind: "limit", message, budget: message.toLowerCase().includes("budget") };
   }
-  return { kind: "failed", question, message, retry: response.status >= 500 };
+  return { kind: "failed", message, retry: response.status >= 500 };
 }
 
 function Tick(): ReactNode {
@@ -132,9 +139,9 @@ function LookupSteps({ call, shown }: { call: LookupCalled; shown: Shown | null 
         <div>
           <div className="step-title">Got back</div>
           {shown === null ? (
-            <div className="step-detail">The result could not be re-read just now. It is in the tables below.</div>
+            <div className="step-detail">The result could not be re-read just now. It is on the dashboard.</div>
           ) : shown.rows.length === 0 ? (
-            <div className="step-detail">The full result is in the tables below.</div>
+            <div className="step-detail">The full result is on the dashboard.</div>
           ) : (
             <>
               <ul className="rows">
@@ -142,7 +149,7 @@ function LookupSteps({ call, shown }: { call: LookupCalled; shown: Shown | null 
                   <Row key={row.title} row={row} against={beforeLabel(call.window)} />
                 ))}
               </ul>
-              {shown.more ? <div className="step-detail">More rows matched. They are in the tables below.</div> : null}
+              {shown.more ? <div className="step-detail">More rows matched. They are on the dashboard.</div> : null}
             </>
           )}
         </div>
@@ -165,7 +172,7 @@ function Answered({ body, evidence }: { body: AskResponse; evidence: (EvidenceRo
   const anyMarked = [...numbers].some((value) => figures.has(value));
 
   return (
-    <div className="panel-body answered arrive">
+    <div className="answered arrive">
       <div>
         {hero === null ? (
           <p className="hero-words">
@@ -182,8 +189,9 @@ function Answered({ body, evidence }: { body: AskResponse; evidence: (EvidenceRo
           </>
         )}
       </div>
-      <div className="working">
-        <h2>How this was worked out</h2>
+      {/* The answer is announced; the steps are there to be read, not read out. */}
+      <div className="working" aria-live="off">
+        <h3>How this was worked out</h3>
         <ol className="steps">
           {body.lookups_called.map((call, index) => (
             <LookupSteps key={index} call={call} shown={shown[index]} />
@@ -232,11 +240,82 @@ function Refused({ body }: { body: AskResponse }): ReactNode {
   );
 }
 
-export function AskPanel({ demoMode }: { demoMode: boolean }): ReactNode {
+function EntryView({ entry, onRetry }: { entry: Entry; onRetry: () => void }): ReactNode {
+  const { outcome } = entry;
+  return (
+    <li className="entry">
+      <p className="entry-question">
+        <span className="visually-hidden">You asked: </span>
+        {entry.question}
+      </p>
+      {outcome.kind === "loading" ? <p className="entry-wait">Looking it up. This usually takes a few seconds.</p> : null}
+      {outcome.kind === "answer" ? (
+        outcome.body.refused ? (
+          <Refused body={outcome.body} />
+        ) : (
+          <Answered body={outcome.body} evidence={outcome.evidence} />
+        )
+      ) : null}
+      {outcome.kind === "limit" ? (
+        <div className="notice">
+          <p className="hero-words">
+            {outcome.budget ? "The assistant has stopped for today." : "Too many questions for now."}
+          </p>
+          <p>{outcome.message}</p>
+          <p>{outcome.budget ? "The dashboard still works." : "Ask it again in a minute."}</p>
+        </div>
+      ) : null}
+      {outcome.kind === "failed" ? (
+        <div className="notice">
+          <p className="hero-words">
+            {outcome.retry ? "The assistant could not be reached." : "That question could not be sent."}
+          </p>
+          <p>{outcome.message}</p>
+          {outcome.retry ? (
+            <button className="button quiet" type="button" onClick={onRetry}>
+              Try again
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+    </li>
+  );
+}
+
+interface AskPanelProps {
+  /** `null` when the backend could not say: the panel then makes no claim either way. */
+  demoMode: boolean | null;
+  /** Rises each time the panel is opened by hand, to put the cursor in the field. */
+  opened: number;
+  /** True when the panel lies over the page: it is then a dialog, and the page is inert. */
+  modal: boolean;
+  onClose: () => void;
+}
+
+/**
+ * The assistant, mounted once in the layout so its answers survive a change of view.
+ * It is a running list of separate questions, not a conversation: the backend answers
+ * each question with no memory of the one before.
+ */
+export function AskPanel({ demoMode, opened, modal, onClose }: AskPanelProps): ReactNode {
   const [question, setQuestion] = useState("");
-  const [state, setState] = useState<State>({ kind: "idle" });
+  const [entries, setEntries] = useState<Entry[]>([]);
   const field = useRef<HTMLInputElement>(null);
-  const busy = state.kind === "loading";
+  const transcript = useRef<HTMLDivElement>(null);
+  const nextId = useRef(1);
+  const busy = entries.some((entry) => entry.outcome.kind === "loading");
+  const latest = entries.at(-1);
+
+  useEffect(() => {
+    if (opened > 0) field.current?.focus();
+  }, [opened]);
+
+  // Bring the newest question to the top of the list, so its answer has room to arrive.
+  useEffect(() => {
+    const box = transcript.current;
+    const last = box?.querySelector<HTMLElement>(".entry:last-child");
+    if (box && last) box.scrollTo({ top: last.offsetTop - box.offsetTop });
+  }, [latest?.id, latest?.outcome.kind]);
 
   async function submit(text: string): Promise<void> {
     const trimmed = text.trim();
@@ -246,9 +325,25 @@ export function AskPanel({ demoMode }: { demoMode: boolean }): ReactNode {
       field.current?.focus();
       return;
     }
-    setQuestion(trimmed);
-    setState({ kind: "loading", question: trimmed });
-    setState(await ask(trimmed));
+    const id = nextId.current;
+    nextId.current += 1;
+    setQuestion("");
+    setEntries((before) => [...before, { id, question: trimmed, outcome: { kind: "loading" } }]);
+    await run(id, trimmed);
+  }
+
+  async function run(id: number, text: string): Promise<void> {
+    const outcome = await ask(text);
+    setEntries((before) => before.map((entry) => (entry.id === id ? { ...entry, outcome } : entry)));
+  }
+
+  /** Ask a failed question again in place, so no stale failure is left in the list. */
+  function retry(entry: Entry): void {
+    if (busy) return;
+    // The button is about to leave the page; hand focus to the field first.
+    field.current?.focus();
+    setEntries((before) => before.map((each) => (each.id === entry.id ? { ...each, outcome: { kind: "loading" } } : each)));
+    void run(entry.id, entry.question);
   }
 
   function onSubmit(event: FormEvent<HTMLFormElement>): void {
@@ -257,9 +352,58 @@ export function AskPanel({ demoMode }: { demoMode: boolean }): ReactNode {
   }
 
   return (
-    <section className="ask" aria-label="Ask a question">
-      <form onSubmit={onSubmit}>
-        <label className="ask-label" htmlFor="question">
+    <aside
+      className="ask"
+      aria-labelledby="ask-title"
+      role={modal ? "dialog" : undefined}
+      aria-modal={modal ? true : undefined}
+    >
+      <div className="ask-head">
+        <div>
+          <h2 id="ask-title">Ask</h2>
+          <p className="ask-mode">
+            {demoMode === true
+              ? "Demo mode: recorded answers, live model not connected."
+              : "Answers only with numbers the dashboard can derive."}
+          </p>
+        </div>
+        <button className="icon-button" type="button" onClick={onClose} aria-label="Close the Ask panel">
+          <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M3.5 3.5l9 9m0-9l-9 9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+          </svg>
+        </button>
+      </div>
+
+      {/* A log, so a screen reader announces each answer as it arrives. */}
+      <div className="transcript" ref={transcript} role="log" aria-live="polite" tabIndex={entries.length > 0 ? 0 : -1} aria-label="Questions and answers">
+        {entries.length === 0 ? (
+          <div className="ask-empty">
+            <p>
+              Ask about usage, people, clients or errors. Every answer shows which lookup ran, what it
+              returned, and that the number was checked.
+            </p>
+            <h3>Questions to try</h3>
+            <ul className="suggestions">
+              {SUGGESTED_QUESTIONS.map((suggestion) => (
+                <li key={suggestion}>
+                  <button type="button" onClick={() => void submit(suggestion)}>
+                    {suggestion}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          <ol className="entries">
+            {entries.map((entry) => (
+              <EntryView key={entry.id} entry={entry} onRetry={() => retry(entry)} />
+            ))}
+          </ol>
+        )}
+      </div>
+
+      <form className="composer" onSubmit={onSubmit}>
+        <label className="visually-hidden" htmlFor="question">
           Ask about usage, people, clients or errors
         </label>
         <div className="ask-row">
@@ -274,7 +418,7 @@ export function AskPanel({ demoMode }: { demoMode: boolean }): ReactNode {
             autoComplete="off"
             aria-describedby="ask-hint"
             onChange={(event) => setQuestion(event.target.value)}
-            placeholder="How many invoices were issued in the last 7 days?"
+            placeholder="Ask a question"
           />
           <button className="button" type="submit" aria-disabled={busy}>
             {busy ? "Asking" : "Ask"}
@@ -283,81 +427,9 @@ export function AskPanel({ demoMode }: { demoMode: boolean }): ReactNode {
         <p className="ask-hint" id="ask-hint">
           {question.length >= MAX_LENGTH
             ? `A question can be ${MAX_LENGTH} characters at most.`
-            : demoMode
-              ? "Demo mode: recorded answers, live model not connected."
-              : "Covers today, the last 7 days or the last 30 days."}
+            : "Each question stands alone. Covers today, the last 7 days or the last 30 days."}
         </p>
       </form>
-      <ul className="suggestions" aria-label="Questions to try">
-        {SUGGESTED_QUESTIONS.map((suggestion) => (
-          <li key={suggestion}>
-            <button type="button" aria-disabled={busy} onClick={() => void submit(suggestion)}>
-              {suggestion}
-            </button>
-          </li>
-        ))}
-      </ul>
-
-      {/* Always in the page, so a screen reader announces whatever arrives. */}
-      <div className="answer-region" aria-live="polite">
-        {state.kind === "idle" ? null : (
-          <div className="panel">
-            <p className="panel-question">You asked: {state.question}</p>
-            {state.kind === "loading" ? (
-              <div className="panel-body">
-                <p className="answer-text">Looking it up. This usually takes a few seconds.</p>
-              </div>
-            ) : null}
-            {state.kind === "answer" ? (
-              state.body.refused ? (
-                <div className="panel-body">
-                  <Refused body={state.body} />
-                </div>
-              ) : (
-                <Answered body={state.body} evidence={state.evidence} />
-              )
-            ) : null}
-            {state.kind === "limit" ? (
-              <div className="panel-body">
-                <div className="notice">
-                  <p className="hero-words">
-                    {state.budget ? "The assistant has stopped for today." : "Too many questions for now."}
-                  </p>
-                  <p>{state.message}</p>
-                  <p>
-                    {state.budget
-                      ? "The dashboard below still works."
-                      : "Your question is still in the field."}
-                  </p>
-                </div>
-              </div>
-            ) : null}
-            {state.kind === "failed" ? (
-              <div className="panel-body">
-                <div className="notice">
-                  <p className="hero-words">
-                    {state.retry ? "The assistant could not be reached." : "That question could not be sent."}
-                  </p>
-                  <p>{state.message}</p>
-                  {state.retry ? (
-                    <button
-                      className="button quiet"
-                      type="button"
-                      onClick={() => {
-                        // This button is about to leave the page; hand focus to the field first.
-                        field.current?.focus();
-                        void submit(state.question);
-                      }}
-                    >
-                      Try again
-                    </button>
-                  ) : null}
-                </div>
-              </div>
-            ) : null}
-          </div>
-        )}
-      </div>
-    </section>
+    </aside>
   );
 }

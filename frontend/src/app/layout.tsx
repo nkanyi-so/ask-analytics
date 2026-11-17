@@ -1,6 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Hanken_Grotesk } from "next/font/google";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
+
+import { Shell } from "@/components/Shell";
+import { getHealth } from "@/lib/backend";
+
 import "./globals.css";
 
 // One family for everything. Self-hosted at build time: no request leaves the page.
@@ -14,11 +18,26 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = { colorScheme: "light dark" };
 
-export default function RootLayout({ children }: { children: ReactNode }): ReactNode {
+// The frame asks the backend one thing: is this demo mode? Read per request, never at build.
+export const dynamic = "force-dynamic";
+
+async function demoMode(): Promise<boolean | null> {
+  try {
+    return (await getHealth()).demo_mode;
+  } catch {
+    // The view below will say the backend is unreachable; the frame makes no claim.
+    return null;
+  }
+}
+
+export default async function RootLayout({ children }: { children: ReactNode }): Promise<ReactNode> {
   return (
     <html lang="en" className={sans.variable}>
       <body>
-        <div className="page">{children}</div>
+        {/* The frame reads the address bar, which needs a boundary on the server. */}
+        <Suspense>
+          <Shell demoMode={await demoMode()}>{children}</Shell>
+        </Suspense>
       </body>
     </html>
   );

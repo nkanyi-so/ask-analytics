@@ -1,13 +1,13 @@
 # Design: ask-analytics
 
-Status: approved on 16 Nov 2026 and built. Where the build differs from the first proposal, this document was updated to match.
+Status: approved on 16 Nov 2026 and built; recomposed on 17 Nov 2026 as a dashboard with the assistant docked beside it. This document describes what is built.
 
 ## Direction
 
 1. A quiet tool, not a landing page. Near-monochrome, one accent, soft shapes, a lot of air.
-2. The answer is the one loud thing: a very large number, and under it the working in plain words.
+2. The answer is the one loud thing: the largest number on the screen, and under it the working in plain words.
 3. The working is the product's argument. It shows which lookup ran, what came back, and that the number was checked. A visitor should understand the app from one answer, without the README.
-4. Everything else is rows and figures, not cards. The dashboard sits below the answer and stays out of its way.
+4. Two anchored parts, like the product this is rebuilt from: a dashboard you scan (key values first, then detail), and an assistant that stays in the same place whichever view you are on.
 5. Nothing is invented. Every figure on screen is a field from the API, in every state and every screenshot.
 
 Who it is for: a recruiter or engineering lead with two minutes. They should leave thinking the person who built this finishes things.
@@ -31,7 +31,7 @@ Contrast ratios are computed, not estimated. AA needs 4.5 for text and 3 for con
 | Token | Light | Dark | Used for | Lowest contrast (light / dark) |
 |---|---|---|---|---|
 | `--canvas` | `#FAFAF9` | `#121314` | page background | |
-| `--surface` | `#FFFFFF` | `#1A1B1D` | the answer panel, inputs | |
+| `--surface` | `#FFFFFF` | `#1A1B1D` | tiles, cards and the assistant | |
 | `--sunken` | `#F1F1EF` | `#0D0E0F` | the window switch, a suggestion under the pointer | |
 | `--line` | `#E3E3E0` | `#2B2D30` | hairlines between rows (decorative) | |
 | `--control` | `#85898E` | `#6E7379` | borders of inputs and buttons | 3.37 / 3.60 |
@@ -50,10 +50,11 @@ One family, **Hanken Grotesk**, loaded through `next/font` (self-hosted at build
 
 | Token | Size / line height | Weight | Used for |
 |---|---|---|---|
-| `--text-hero` | `clamp(4.5rem, 14vw, 9rem)` / 0.95 | 600, tracking −0.04em | the hero number |
-| `--text-hero-words` | `clamp(1.75rem, 4.5vw, 2.75rem)` / 1.15 | 600, tracking −0.02em | the hero when it is a sentence |
+| `--text-hero` | 4.5rem / 0.95 | 600, tracking −0.04em | the hero number, in the assistant |
+| `--text-hero-words` | 1.75rem / 1.15 | 600, tracking −0.02em | the hero when it is a sentence; notices |
 | `--text-title` | 1.75rem / 1.2 | 600 | page title |
-| `--text-lead` | 1.25rem / 1.45 | 400 | the answer sentence, the intro line |
+| `--text-answer` | 1.125rem / 1.45 | 400 | the answer sentence |
+| `--text-figure` | 2rem / 1.1 | 600, tracking −0.02em | tile values, the People figures |
 | `--text-heading` | 1.125rem / 1.35 | 600 | section headings |
 | `--text-body` | 1rem / 1.55 | 400 | body, table cells |
 | `--text-small` | 0.875rem / 1.45 | 400 | secondary lines, the working |
@@ -63,66 +64,62 @@ All figures use tabular lining numerals. Labels are sentence case. Text lines st
 
 ## Space, shape, motion
 
-- **Spacing** on a 4px base: `--space-1` 4, `-2` 8, `-3` 12, `-4` 16, `-5` 24, `-6` 32, `-7` 48, `-8` 64, `-9` 96. Sections are separated by `--space-8`; the answer has `--space-9` above the dashboard.
-- **Width**: content column 72rem at most, text measure 40rem, side gutter 16px on a phone and 32px above 768.
-- **Radius** by rank, not one value everywhere: `--radius-control` 10px (inputs, buttons), `--radius-panel` 20px (the answer panel only), `--radius-pill` 999px (suggested questions, the window switch).
-- **Elevation**: none. Rank comes from surface and space. No shadows, no gradients.
+- **Spacing** on a 4px base: `--space-1` 4, `-2` 8, `-3` 12, `-4` 16, `-5` 24, `-6` 32, `-7` 48, `-9` 96. Blocks of the dashboard are `--space-7` apart; tiles and cards are `--space-3` apart.
+- **Width**: the dashboard column is 72rem at most; the assistant is 26rem; text measure 40rem; side gutter 16px on a phone and 32px above 768.
+- **Radius** by rank, not one value everywhere: `--radius-control` 10px (inputs, buttons, suggested questions), `--radius-card` 14px (tiles and cards), `--radius-pill` 999px (the window switch, the launcher).
+- **Elevation**: none. Rank comes from surface and space. No shadows, no gradients. When the assistant lies over the page on a small screen, the page behind is dimmed, not shadowed.
 - **Motion**: one moment. When an answer arrives it rises 8px and fades in over 240ms, and the working follows 60ms later. The number does not count up, because a count-up shows numbers that are not in the data. With "reduce motion" on, nothing moves.
 - **Focus**: a 2px accent ring with a 2px offset on every interactive element, visible in both modes.
 
 ## Layout
 
-Left aligned throughout. The answer panel is the only bordered, rounded surface on the page.
+Two parts in one frame, mounted once so neither is rebuilt when the view changes.
+
+- **The dashboard**, left. A header with the two views and the window switch, which drives every figure under it. Then key values first: one tile per tool, eight tiles in two even rows. Then cards: People beside Clients, and Everyone full width. Reliability is one full-width card. One tile style, one card style, one table style, repeated.
+- **The assistant**, right. A full-height column with a title, a running list of questions and answers, and the field at the bottom. Suggested questions sit in its empty state. It is docked and open on arrival where there is room, because a visitor with two minutes will not go looking for a launcher.
 
 ```
-1280
-┌──────────────────────────────────────────────────────────────────────────────┐
-│ ask-analytics                                        Overview   Reliability  │
-│                                                                              │
-│ Usage numbers for a workspace of 8 tools and 40 people.                      │
-│ Ask a question. The assistant can only answer with numbers                   │
-│ this page can derive.                                                        │
-│                                                                              │
-│ ┌──────────────────────────────────────────────────────────────┐ ┌────────┐ │
-│ │ Ask about usage, people, clients or errors                   │ │  Ask   │ │
-│ └──────────────────────────────────────────────────────────────┘ └────────┘ │
-│ (How many invoices…) (Which tool is nobody touching?) (Did email usage…)    │
-│                                                                              │
-│ ╭──────────────────────────────────────────────────────────────────────────╮ │
-│ │                                    │ How this was worked out             │ │
-│ │  10                                │ 1  Looked up usage by tool          │ │
-│ │                                    │    for the last 7 days              │ │
-│ │  In the last 7 days, 10 invoices   │ 2  Got back                         │ │
-│ │  were issued.                      │    Invoice generator   10           │ │
-│ │                                    │    7 days before 51 · change −41    │ │
-│ │                                    │ 3  ✓ Checked: every number in the   │ │
-│ │                                    │    answer is in that result         │ │
-│ ╰──────────────────────────────────────────────────────────────────────────╯ │
-│                                                                              │
-│                                                                              │
-│ Data to 30 Oct 2026. Seeded demo data.          (Today)(7 days)(30 days)     │
-│                                                                              │
-│ People            35 active   2 went quiet   3 never showed up   40 invited  │
-│ ──────────────────────────────────────────────────────────────────────────── │
-│ Tools             Tool                 Output   Change   People   Errors     │
-│                   Call agenda              46       −8       26        1     │
-│                   …                                                          │
-│ Clients           …                                                          │
-│ People            …                                                          │
-└──────────────────────────────────────────────────────────────────────────────┘
+1280 and wider: docked. The dashboard reflows beside it; nothing is covered.
+┌───────────────────────────────────────────────────┬────────────────────────┐
+│ ask-analytics  Overview  Reliability   [T|7d|30d] │ Ask                  × │
+│                                                   │ mode line              │
+│ Overview                                          ├────────────────────────┤
+│ Who is using what … Data to 30 Oct 2026.          │ the question           │
+│                                                   │                        │
+│ One headline number per tool                      │ 10                     │
+│ ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐                   │ In the last 7 days, …  │
+│ │ 46  │ │  0  │ │ 91  │ │ 10  │                   │ ────────────────────── │
+│ └─────┘ └─────┘ └─────┘ └─────┘                   │ How this was worked out│
+│ ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐                   │ 1 Looked up …          │
+│ └─────┘ └─────┘ └─────┘ └─────┘                   │ 2 Got back …           │
+│ ┌ People ─────────┐ ┌ Clients ──────────┐         │ 3 ✓ Checked            │
+│ └─────────────────┘ └───────────────────┘         ├────────────────────────┤
+│ ┌ Everyone ───────────────────────────────┐       │ [ Ask a question ][Ask]│
+└───────────────────────────────────────────────────┴────────────────────────┘
 
-375: one column. The number, then the sentence, then the working, each full width.
-     Tables become one stacked row per item, with the figure on the right.
-768: the working sits under the answer, and each section heading sits above its table, so no table has to fit beside a heading. Both move alongside from 1024.
+Below 1280: the assistant is closed on arrival, behind an "Ask a question" button
+fixed at the bottom right. Opened, it is a dialog over the right of the page (the
+whole screen on a phone): the page behind is dimmed, cannot be scrolled and cannot
+take focus. Escape or the close button closes it, as does a click on the dimmed
+page where any shows, and focus returns to the button.
+
+Closed at any width: the dashboard takes the full width and the button is shown.
+Phone: tiles two across, cards one across, each table row a name and one wrapped
+line of labelled figures.
 ```
 
 The three steps are numbered because they are a real sequence: look up, read the result, check.
 
-The intro line and the Ask field come first on Overview, above the window switch, because the window switch belongs to the dashboard, not to the question. Reliability keeps the same header and tables and has no Ask field, as now.
+**It looks like a chat and is not one.** The backend answers each question with no memory of the last, so "and what about last month?" would not work. The assistant is therefore a list of separate questions and answers, titled "Ask" and not "Chat", and the line under the field says "Each question stands alone." Real follow-ups would need the backend to accept earlier turns; that is a later piece of work.
+
+**What changed from the first build, and why.** The first build was one column: question, a very large answer, then tables. It read like a document. The product this is rebuilt from has a dashboard and an assistant side by side, and that composition is what is borrowed here: structure only, no names, terms or data. Two things differ from the original on purpose. Its assistant floats over the dashboard and covers about two fifths of it; this one is docked, so nothing is covered. And its answers show no trace of how they were reached; this one keeps the working, because the working is the point.
+
+The cost is that the answer no longer fills the page. Its number is still the largest on the screen, but the dashboard and the answer now share the stage.
+
 
 ## Words
 
-- The field label is "Ask about usage, people, clients or errors". The button says "Ask" and, while waiting, "Asking".
+- The assistant is titled "Ask". The field's label is "Ask about usage, people, clients or errors" and its placeholder "Ask a question". The button says "Ask" and, while waiting, "Asking".
 - The working uses the names a reader would use: "usage by tool", "activity by person", "activity by client", "errors by source", "the roster". The lookup's code name is not shown.
 - Messages from the backend (refusal, limits, unavailable) are shown as sent. The page adds one plain line saying what to do next.
 
@@ -132,16 +129,16 @@ Every state below gets a screenshot at 375, 768 and 1280, in light and dark.
 
 **Ask**
 
-1. **First visit.** Intro line, empty field, three suggested questions, no answer panel.
-2. **Demo mode** (no API key). As first visit, with one line under the field: "Demo mode: recorded answers, live model not connected". Asking anything but a recorded question shows the backend's "no recorded answer" message in the refusal layout.
-3. **Loading.** The field and suggestions are disabled, the button reads "Asking", and the panel shows "Looking it up. This usually takes a few seconds." No spinner, no pulsing dots.
+1. **First visit.** On a wide screen: the dashboard, with the assistant docked and showing its empty state (what it does, three questions to try). Below 1280: the dashboard and the "Ask a question" button; the opened assistant is photographed as a state of its own.
+2. **Demo mode** (no API key). The line under the assistant's title reads "Demo mode: recorded answers, live model not connected." Asking anything but a recorded question shows the backend's "no recorded answer" message in the refusal layout.
+3. **Loading.** The field is read-only, the button reads "Asking", and the new entry shows "Looking it up. This usually takes a few seconds." No spinner, no pulsing dots.
 4. **Answer with one number.** Hero number, the sentence, the three steps.
 5. **Answer with a comparison.** Hero is the first number; the other numbers are marked as checked in the sentence; the row shows current, previous and change.
 6. **Answer with no number.** The sentence is the hero ("Nobody has used Contact enrichment in the last 7 days."); the steps are unchanged.
-7. **Answer that used more than one lookup.** Step 1 and step 2 repeat per lookup, in the order called. Built, but not photographed: no recorded answer uses two lookups, and the live model did not use two for any question tried.
+7. **Several questions, and a change of view.** Each question is added under the last, and the list is still there after moving from Overview to Reliability. **An answer that used more than one lookup** repeats steps 1 and 2 per lookup. Step 1 and step 2 repeat per lookup, in the order called. Built, but not photographed: no recorded answer uses two lookups, and the live model did not use two for any question tried.
 8. **Refusal.** No number. The hero is "That can't be answered from this data." Under it, the backend's list of what can be asked, and one line: "No lookup ran. The assistant refuses rather than guesses."
-9. **Rate limit reached** (429). The backend's message, plus "Your question is still in the field."
-10. **Daily budget reached** (429). The backend's message, plus "The dashboard below still works."
+9. **Rate limit reached** (429). The backend's message, plus "Ask it again in a minute."
+10. **Daily budget reached** (429). The backend's message, plus "The dashboard still works."
 11. **Assistant unavailable** (503) and **network failure.** "The assistant could not be reached." plus "Try again", which re-sends the same question.
 12. **Question too long or empty.** Pressing Ask with nothing typed puts the cursor in the field; the button is not greyed out, so the page always shows its one accent. The field stops at 500 characters and says so.
 
@@ -149,9 +146,11 @@ Every state below gets a screenshot at 375, 768 and 1280, in light and dark.
 
 13. **Overview** in each window: today, 7 days, 30 days. The 30-day view includes "no earlier data" where the backend sends no previous value.
 14. **Reliability** with errors (7 days, today). The page with none ("No errors in this window.") is built but cannot be photographed: the seeded data has errors in every window.
-15. **Backend unreachable.** The page-level error: what happened, and a "Try again" button.
+15. **Backend unreachable.** The view shows what happened and a "Try again" button. The frame and the assistant still render.
+16. **Focus**, photographed on the field, a suggested question and the window switch.
+17. **Assistant closed** on a wide screen: the dashboard at full width, with the button to reopen it.
 
-**Every interactive element**: default, hover, focus-visible, waiting. Focus is photographed (three shots). Hover is not: it only darkens a suggestion or lifts the button slightly, and was checked by eye. While an answer is awaited the field is read-only and the buttons are marked `aria-disabled`, not disabled, so keyboard focus stays where it was.
+**Every interactive element**: default, hover, focus-visible, waiting. Focus is photographed (three shots). Hover is not: it only darkens a suggestion or lifts the button slightly, and was checked by eye. While an answer is awaited the field is read-only and the Ask button is marked `aria-disabled`, not disabled, so keyboard focus stays where it was.
 
 ## What I am unsure about
 
@@ -166,12 +165,13 @@ Every state below gets a screenshot at 375, 768 and 1280, in light and dark.
 - **Typeface.** Instrument Sans became Hanken Grotesk, after the `impeccable` detector flagged the first as overused.
 - **No rule beside notices.** Refusals and errors first had a thick rule down the left side. The detector flags that as a generated-UI habit, and it was decoration, so it went.
 - **The Ask button is never greyed out when idle**, so the page always shows its one accent.
+- **Recomposed on 17 Nov 2026** as a dashboard with a docked assistant; see Layout. Tiles and cards came back with it: the first build avoided cards, but key values in a grid are what a dashboard is, and one plain card style without icons is not the generated look the brief warned against.
 - **Phone tables** are a name and one wrapped line of labelled figures per row. One line per figure made the page eleven screens long.
 - **Live answers are the model's words.** It writes things like "the 7d window" and "(email_sent)". The page shows them as written; changing them means changing the prompt, which is backend behaviour and outside this pass.
 
 ## Screenshots
 
-`frontend/scripts/screenshots.mjs` takes every state at 375, 768 and 1280 in light and dark: 126 in demo mode and 18 against the live model (12 real questions, $0.008). A few are kept in `docs/design/`; the full set is written to `screenshots/`, which is not tracked.
+`frontend/scripts/screenshots.mjs` takes every state at 375, 768 and 1280 in light and dark: 144 in demo mode (24 states) and 30 against the live model. Ten are kept in `docs/design/`; the full set is written to `screenshots/`, which is not tracked. Live shots across both builds took 72 real questions, about $0.04.
 
 ## Process, after approval
 

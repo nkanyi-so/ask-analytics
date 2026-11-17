@@ -22,18 +22,29 @@ const SUGGESTED = {
   comparison: "Did email usage go up or down this week, and by how much?",
 };
 
+const FIELD = "Ask about usage, people, clients or errors";
+
 async function home(page) {
   await page.goto(`${BASE}/?window=7d`, { waitUntil: "networkidle" });
 }
 
+/** On a wide screen the assistant is docked open. Below that it is opened by its launcher. */
+async function openPanel(page) {
+  const launcher = page.getByRole("button", { name: "Ask a question" });
+  if (await launcher.isVisible()) await launcher.click();
+  await page.getByLabel(FIELD).waitFor();
+}
+
 async function askByTyping(page, question) {
   await home(page);
-  await page.getByLabel("Ask about usage, people, clients or errors").fill(question);
+  await openPanel(page);
+  await page.getByLabel(FIELD).fill(question);
   await page.getByRole("button", { name: "Ask", exact: true }).click();
 }
 
 async function askSuggested(page, question) {
   await home(page);
+  await openPanel(page);
   await page.getByRole("button", { name: question }).click();
 }
 
@@ -45,9 +56,17 @@ function replyWith(status, detail) {
   };
 }
 
-/** name -> { run, whole }. `whole` captures the full page; otherwise down to the end of the answer. */
+const goto = (path) => (page) => page.goto(`${BASE}${path}`, { waitUntil: "networkidle" });
+
+/** name -> { run, whole }. `whole` captures the full page; otherwise one screen, grown to fit the answer. */
 const STATES = {
   "01-first-visit": { run: home },
+  "01-first-visit-panel-open": {
+    run: async (page) => {
+      await home(page);
+      await openPanel(page);
+    },
+  },
   "02-demo-no-recorded-answer": {
     run: async (page) => {
       await askByTyping(page, "What is the weather like?");
@@ -80,6 +99,22 @@ const STATES = {
       await page.locator(".working").waitFor();
     },
   },
+  "07-two-questions-then-another-view": {
+    // The assistant keeps its answers when the view changes.
+    run: async (page) => {
+      await askSuggested(page, SUGGESTED.oneNumber);
+      await page.locator(".working").waitFor();
+      await page.getByLabel(FIELD).fill(SUGGESTED.noNumber);
+      await page.getByRole("button", { name: "Ask", exact: true }).click();
+      await page.locator(".entry").nth(1).locator(".working").waitFor();
+      // Laid over the page, the assistant has to be closed to reach the links, then reopened.
+      const overlay = await page.locator(".scrim").isVisible();
+      if (overlay) await page.keyboard.press("Escape");
+      await page.getByRole("link", { name: "Reliability" }).click();
+      await page.getByRole("heading", { name: "Reliability" }).waitFor();
+      if (overlay) await openPanel(page);
+    },
+  },
   "08-refusal": {
     run: async (page) => {
       await askByTyping(page, "What will usage look like next month?");
@@ -99,18 +134,18 @@ const STATES = {
   "12-question-at-the-limit": {
     run: async (page) => {
       await home(page);
-      await page.getByLabel("Ask about usage, people, clients or errors").fill("How many ".repeat(60));
+      await openPanel(page);
+      await page.getByLabel(FIELD).fill("How many ".repeat(60));
     },
   },
-  "13-overview-today": { whole: true, run: (page) => page.goto(`${BASE}/?window=today`, { waitUntil: "networkidle" }) },
-  "13-overview-7-days": { whole: true, run: (page) => page.goto(`${BASE}/?window=7d`, { waitUntil: "networkidle" }) },
-  "13-overview-30-days": { whole: true, run: (page) => page.goto(`${BASE}/?window=30d`, { waitUntil: "networkidle" }) },
-  "14-reliability-7-days": { whole: true, run: (page) => page.goto(`${BASE}/reliability?window=7d`, { waitUntil: "networkidle" }) },
-  "14-reliability-today": { whole: true, run: (page) => page.goto(`${BASE}/reliability?window=today`, { waitUntil: "networkidle" }) },
+  "13-overview-today": { whole: true, run: goto("/?window=today") },
+  "13-overview-7-days": { whole: true, run: goto("/?window=7d") },
+  "13-overview-30-days": { whole: true, run: goto("/?window=30d") },
+  "14-reliability-7-days": { whole: true, run: goto("/reliability?window=7d") },
+  "14-reliability-today": { whole: true, run: goto("/reliability?window=today") },
   "15-backend-unreachable": {
     // Needs the frontend started with BACKEND_URL pointing at nothing; skipped otherwise.
     needs: "DOWN",
-    whole: true,
     run: async (page) => {
       await page.goto(`${BASE}/?window=7d`, { waitUntil: "networkidle" });
       await page.getByRole("button", { name: "Try again" }).waitFor();
@@ -119,23 +154,29 @@ const STATES = {
   "16-focus-field": {
     run: async (page) => {
       await home(page);
-      await page.keyboard.press("Tab");
-      await page.keyboard.press("Tab");
-      await page.keyboard.press("Tab");
-      await page.keyboard.press("Tab");
+      await openPanel(page);
+      await page.getByLabel(FIELD).focus();
     },
   },
   "16-focus-suggestion": {
     run: async (page) => {
       await home(page);
-      for (let i = 0; i < 6; i += 1) await page.keyboard.press("Tab");
+      await openPanel(page);
+      await page.getByRole("button", { name: SUGGESTED.noNumber }).focus();
     },
   },
   "16-focus-window-switch": {
-    whole: true,
     run: async (page) => {
       await home(page);
       await page.getByRole("link", { name: "30 days" }).focus();
+    },
+  },
+  "17-panel-closed": {
+    run: async (page) => {
+      await home(page);
+      await openPanel(page);
+      await page.getByRole("button", { name: "Close the Ask panel" }).click();
+      await page.getByRole("button", { name: "Ask a question" }).waitFor();
     },
   },
 };
@@ -162,20 +203,15 @@ for (const [name, state] of Object.entries(STATES)) {
       await page.mouse.move(0, 0);
       const path = `${OUT}/${name}-${width}-${mode}.png`;
       if (state.whole) {
-        // MAXH=1600 keeps only the top of a long page, for a closer look.
-        const cap = Number(process.env.MAXH ?? 0);
-        if (cap > 0) await page.screenshot({ path, clip: { x: 0, y: Number(process.env.FROM ?? 0), width, height: cap }, fullPage: true });
-        else await page.screenshot({ path, fullPage: true });
+        await page.screenshot({ path, fullPage: true });
       } else {
-        // Down to just past the answer (or the suggestions when there is no answer).
-        const bottom = await page.evaluate(() => {
-          const region = document.querySelector(".answer-region");
-          const list = document.querySelector(".suggestions");
-          const end = region && region.childElementCount > 0 ? region : list;
-          return Math.ceil(end.getBoundingClientRect().bottom + window.scrollY) + 48;
+        // One screen. If the answer is taller than the panel, grow the screen until it fits.
+        const extra = await page.evaluate(() => {
+          const box = document.querySelector(".transcript");
+          return box && box.offsetParent !== null ? Math.max(0, box.scrollHeight - box.clientHeight) : 0;
         });
-        await page.setViewportSize({ width, height: Math.max(bottom, 400) });
-        await page.screenshot({ path, clip: { x: 0, y: 0, width, height: Math.max(bottom, 400) } });
+        if (extra > 0) await page.setViewportSize({ width, height: 900 + extra });
+        await page.screenshot({ path });
       }
       await context.close();
       taken += 1;
