@@ -65,11 +65,11 @@ export function BarChart({
 }
 
 /** A row-sized version: the shape of one tool's activity, no labels. */
-export function Spark({ values, label }: { values: number[]; label: string }): ReactNode {
+export function Sparkline({ values, label }: { values: number[]; label: string }): ReactNode {
   const tallest = Math.max(1, ...values);
   const flat = values.every((value) => value === 0);
   return (
-    <span className={flat ? "spark none" : "spark"} role="img" aria-label={label}>
+    <span className={flat ? "sparkline none" : "sparkline"} role="img" aria-label={label}>
       {values.map((value, index) => (
         <i key={index} style={{ height: `${(value / tallest) * 100}%` }} />
       ))}
