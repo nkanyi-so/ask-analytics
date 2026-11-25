@@ -8,7 +8,6 @@ setup:
 # Regenerates data/events.jsonl and data/ground_truth.json from the fixed seed,
 # then the eval questions and fixtures that are derived from ground truth.
 seed:
-	@test -f scripts/seed.py || { echo "seed: scripts/seed.py arrives in Phase 1" >&2; exit 1; }
 	cd backend && uv run python ../scripts/seed.py
 	cd backend && uv run python -m evals.build
 
