@@ -31,7 +31,7 @@ check:
 	cd frontend && npm test
 	cd frontend && npm run build
 
-# Live model run: every question three times, table written to docs/eval-results.md.
+# Live model run: every question three times, table written to docs/EVALS.md.
 # Spends API credits: never run without being asked. `make evals MODEL=claude-opus-5-5`
 # runs another priced model, so two tables can sit side by side.
 evals:

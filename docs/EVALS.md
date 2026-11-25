@@ -1,4 +1,4 @@
-# Eval results
+# Evals
 
 Forty questions, scored by exact match on the number. No AI judge: every expected answer is read from `data/ground_truth.json`, which the seed computes with plain Python.
 
@@ -24,8 +24,6 @@ Three things to keep in mind when reading a table:
 ## Live runs
 
 `make evals` asks every question three times; a question counts as passed only if all three runs pass. `make evals MODEL=claude-opus-5-5` runs a second model, and each model keeps its own section below.
-
-If a first live run scores 100% everywhere, the set is too easy: add harder questions until something fails, fix it, and keep the before and after here.
 
 <!-- begin:claude-haiku-5-5 -->
 ### `claude-haiku-5-5`
@@ -89,7 +87,7 @@ Twelve questions failed. The causes, with the answer that showed each one:
 
 All four failures were correct answers.
 
-- **"Three people were invited but have never logged in"**, three times out of three, after two rounds of telling the model to use digits. The lesson is that the prompt does not control this. And it matters beyond scoring: a number written as a word passed the number check unchecked, which ARCHITECTURE had listed as a known hole. *Fix:* the check now reads number words and holds them to the same rule as digits. "One" is left out, because "no one" and "the one tool" are not counts.
+- **"Three people were invited but have never logged in"**, three times out of three, after two rounds of telling the model to use digits. The lesson is that the prompt does not control this. And it matters beyond scoring: a number written as a word passed the number check unchecked, which was a known hole. *Fix:* the check now reads number words and holds them to the same rule as digits. "One" is left out, because "no one" and "the one tool" are not counts.
 - **Direction read from too wide a window.** "That is an increase of 84. Invoices issued fell over the same period" failed because "fell" was within six words of 84. *Fix:* direction is read from the sentence or clause that holds the number, and a signed number settles it outright.
 
 ### Run 4: 100%, and a review that did not accept it
@@ -126,5 +124,5 @@ The lesson of run 6 is the reason the eval exists: a change that looked like cop
 
 - The refusal behaviour never failed, including the three adversarial questions, in 120 refusal runs.
 - The number check did its job on live answers: it stopped a count the model made itself and a date it derived, and since run 3 it also stops a spelled-out number that no result supports.
-- Loosening a check to fix a false refusal is where the risk is. Both mistakes found by the review came from doing that, and both looked reasonable when made.
+- Loosening a check to fix a false refusal is where the risk is. Both mistakes found by the two reviews, after runs 4 and 7, came from doing that, and both looked reasonable when made.
 - Most of what looked like model failure was missing information: the model was not told which tools exist, which lookup holds a total, or what days a window covers. Each fix gave it the fact rather than a firmer instruction. The one firmer instruction that was tried (use digits) did not work.

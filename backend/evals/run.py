@@ -6,7 +6,7 @@
 
 Fixture mode proves the lookups, the assistant loop, the number check and the scorer
 end to end. It cannot tell whether a model picks the right lookup; only a live run can.
-A live run asks every question three times and writes its table to docs/eval-results.md,
+A live run asks every question three times and writes its table to docs/EVALS.md,
 one section per model, so two models can sit side by side.
 """
 
@@ -34,7 +34,7 @@ from app.sources import build_source
 from evals.scoring import passes
 
 EVALS_DIR = Path(__file__).resolve().parent
-RESULTS_FILE = REPO_ROOT / "docs" / "eval-results.md"
+RESULTS_FILE = REPO_ROOT / "docs" / "EVALS.md"
 TIERS = ("direct", "indirect", "comparison", "refusal")
 LIVE_RUNS = 3
 
@@ -111,7 +111,7 @@ def failures(outcomes: list[Outcome]) -> str:
 
 
 def write_live_section(model: str, outcomes: list[Outcome], runs: int) -> None:
-    """Replace this model's section in docs/eval-results.md, or add it."""
+    """Replace this model's section in docs/EVALS.md, or add it."""
     begin, end = f"<!-- begin:{model} -->", f"<!-- end:{model} -->"
     when = datetime.now(UTC).strftime("%d %b %Y, %H:%M UTC")
     cost = sum(o.cost_usd for o in outcomes)

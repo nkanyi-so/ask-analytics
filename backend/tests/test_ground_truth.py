@@ -1,5 +1,5 @@
-"""Shape checks on the ground-truth file. Its numbers are checked in Phase 2, where the
-SQL lookups must reproduce every one of them."""
+"""Shape checks on the ground-truth file. Its numbers are checked in the lookup
+tests, where the SQL lookups must reproduce every one of them."""
 
 import json
 from typing import Any

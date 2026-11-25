@@ -1,4 +1,6 @@
-# Architecture: ask-analytics
+# Architecture
+
+The system as it is. Eval detail is in [EVALS.md](EVALS.md); deployment in [deploy.md](deploy.md).
 
 ## Shape
 
@@ -43,7 +45,7 @@ backend/
   tests/
   evals/
     questions.json   generated from ground truth (30 answerable, 10 refusals)
-    run.py           fixture mode and live mode, writes docs/eval-results.md
+    run.py           fixture mode and live mode, writes docs/EVALS.md
 scripts/seed.py
 data/                generated; events.jsonl and ground_truth.json are tracked
 frontend/            Next.js, TypeScript strict, app router
@@ -69,7 +71,7 @@ SQL is written to be portable to Postgres. See `docs/decisions/0001-sqlite-for-t
 
 Chosen with `EVENT_SOURCE=mixpanel`; meant for local use, never the hosted demo. `make mixpanel-push` sends the seeded workspace through the import API, and the source reads it back through the raw export API. Both use a service account (basic auth, plus `project_id`).
 
-- **One download per load.** SPEC says "one download per window". Here every window is answered from one in-memory database, so a load is a single export request covering the 30-day window and the 30 days before it. No lookup ever triggers a download, and the export API's limit of 60 queries an hour is never a concern.
+- **One download per load.** Every window is answered from one in-memory database, so a load is a single export request covering the 30-day window and the 30 days before it. No lookup ever triggers a download, and the export API's limit of 60 queries an hour is never a concern.
 - **The roster travels as events.** People who never logged in have no events, and the lookups need clients and tools too. They are sent as `workspace_user`, `workspace_client`, `workspace_tool` and `workspace_meta` events, so one export returns the whole `Workspace`.
 - **The export can hold duplicates.** Mixpanel says so. Every record has a stable `$insert_id`, which makes a repeated push harmless, and the source drops duplicates by the event's own id.
 - **Timezones.** Projects created before 2023 shift `time` and the export's date range into the project's timezone. So each event carries its own timestamp as a property, which is what is read back, and the date range is padded by a day on each side.
@@ -126,7 +128,7 @@ A sixth function in the same file, added for the dashboard's charts. It returns 
 
 It is **not an assistant tool** and is not served over MCP: it is absent from `TOOL_SPECS`, so the model cannot call it and the eval set does not cover it. It is checked the same way as the others: `scripts/seed.py` writes the expected series to `data/ground_truth.json` (under `series`) with code that shares nothing with `lookups.py`, and the tests require the lookup to equal it in every window and to add up to the other lookups. `/api/overview` and `/api/reliability` return it as `trend`.
 
-The frontend draws a bar's height from a bucket's value and the chart's largest value. That ratio positions a shape and is never shown as a number, so rule 1 (no aggregation outside the lookups) holds.
+The frontend draws a bar's height from a bucket's value and the chart's largest value. That ratio positions a shape and is never shown as a number, so the rule that nothing outside the lookups aggregates still holds.
 
 ### Cache and the scheduled warm
 
@@ -136,7 +138,7 @@ Results are cached for ten minutes, keyed by lookup, window and arguments. The b
 
 `ToolId` is a `Literal` of the eight tool ids and `HeadlineEvent` a `Literal` of the eight headline events. `catalog_entry(tool: ToolId) -> CatalogEntry` is a `match` over every id that ends in `assert_never`, and `CatalogEntry.headline_event` is a required field. So the type checker rejects a tool id with no case, a case with no headline event, and a headline event that is not one of the eight.
 
-An earlier draft of this section said a `dict[ToolId, HeadlineEvent]` "must be total" and that the type checker enforces it. It does not: mypy accepts a dict that is missing a key. The exhaustive `match` is what makes the claim true.
+A `dict[ToolId, HeadlineEvent]` would not do this: mypy accepts a dict that is missing a key. The exhaustive `match` is what makes the claim true.
 
 `tests/test_registry.py` copies `registry.py`, adds a ninth tool id without a case (and, separately, removes or falsifies a headline event), runs `mypy --strict` on the copy and asserts that it fails. It also checks that the unaltered copy passes, and that the catalog matches the tools in the data.
 
@@ -148,7 +150,7 @@ All `/api/*` routes require `Authorization: Bearer <ADMIN_TOKEN>`.
 - `GET /api/overview?window=` usage by tool, activity by person and client, roster counts, `as_of`
 - `GET /api/reliability?window=` errors seen
 - `POST /api/ask {question}` → `{answer, window, lookups_called, refused, latency_ms, cost_usd, demo_mode}`
-- `GET /api/summary` the Monday summary as HTML: the `7d` window next to the 7 days before, every number a field of a lookup result. Nothing sends it; sending is optional in SPEC and is not built.
+- `GET /api/summary` the Monday summary as HTML: the `7d` window next to the 7 days before, every number a field of a lookup result. Nothing sends it.
 
 ## MCP server
 
@@ -185,13 +187,13 @@ Next.js app router. Three views, `/` (Overview), `/reliability` and `/about`, in
 
 The assistant is a list of separate questions, not a conversation: the backend answers each one with no memory of the last, and the panel says so.
 
-There is a third view, `/about`, which is prose: the problem, the method, the eval results and a link to the source. Its eval figures are copied by hand into `frontend/src/lib/about.ts` from `docs/eval-results.md`, because no endpoint serves them.
+There is a third view, `/about`, which is prose: the problem, the method, the eval results and a link to the source. Its eval figures are copied by hand into `frontend/src/lib/about.ts` from `docs/EVALS.md`, because no endpoint serves them.
 
-With a live model, each tool's name in an Overview table is a button that hands the assistant a question ("How is the Invoice generator doing in the last 7 days?") through a small context the frame provides (`components/ask-context.tsx`). The question is sent like any typed one, through the same route, rate limit and budget. The look, the tokens and every screen state are in `docs/DESIGN.md`; all tokens live in `frontend/src/app/tokens.css`.
+With a live model, each tool's name in an Overview table is a button that hands the assistant a question ("How is the Invoice generator doing in the last 7 days?") through a small context the frame provides (`components/ask-context.tsx`). The question is sent like any typed one, through the same route, rate limit and budget. All design tokens live in `frontend/src/app/tokens.css`.
 
 ### The working under an answer
 
-An answer is shown with its working: which lookup ran, what it returned, and that it was checked. The API does not send lookup results with an answer, so the page reads the lookup again through `GET /api/evidence`, a route on the frontend's own server that calls the existing `/api/overview` or `/api/reliability` with the token. It returns titled rows of figures and nothing else: no ids, and previous-window values only when the model asked for the comparison. Those previous values are the one thing it serves that the tables do not print (they show the change). `lib/evidence.ts` shapes the rows on the server and, in the browser, picks the ones the answer rests on; `lib/answer.ts` finds the numbers in the answer text. Both select and word; neither adds, counts or compares, so rule 1 holds. "Checked" on the page describes the backend's number check; the page does not re-run it. It marks a number in the answer only when the number is in a row shown and the answer uses that measure's words, and otherwise shows the row unmarked.
+An answer is shown with its working: which lookup ran, what it returned, and that it was checked. The API does not send lookup results with an answer, so the page reads the lookup again through `GET /api/evidence`, a route on the frontend's own server that calls the existing `/api/overview` or `/api/reliability` with the token. It returns titled rows of figures and nothing else: no ids, and previous-window values only when the model asked for the comparison. Those previous values are the one thing it serves that the tables do not print (they show the change). `lib/evidence.ts` shapes the rows on the server and, in the browser, picks the ones the answer rests on; `lib/answer.ts` finds the numbers in the answer text. Both select and word; neither adds, counts or compares. "Checked" on the page describes the backend's number check; the page does not re-run it. It marks a number in the answer only when the number is in a row shown and the answer uses that measure's words, and otherwise shows the row unmarked.
 
 Two things the panel can only tell from the backend's wording, because the API has no field for them: which of the two 429s it got (the word "budget"), and a demo-mode question with no recording (the reply starts "Demo mode"). `backend/tests/test_frontend_wording.py` fails if either wording changes.
 
@@ -204,15 +206,5 @@ Two things the panel can only tell from the backend's wording, because the API h
 - The budget is reserved, not just checked. Before the model is called, a question reserves its worst-case cost (five model calls, each with a large input and the full output allowance); afterwards it settles to what the calls really cost. So a burst of questions cannot pass the check together and overshoot the limit. Cost is recorded per model call, and a call that fails or times out is charged as a worst-case call, since it may still be billed. The price of this safety is that the endpoint stops one worst-case question short of the limit: about $0.02 on `claude-haiku-5-5` and about $0.71 on `claude-opus-5-5`, so a $2 budget is too small to say much with Opus.
 - The admin token keeps strangers off the backend. It does not protect the public demo's spend: anyone who opens the page can ask through the frontend. The rate limit and the daily budget are what stand between a visitor and the API bill.
 - CORS limited to the frontend origin.
-- `.env` ignored, `.env.example` tracked, secret scan in CI from Phase 0.
-- Rate limit and budget counters are in memory, which is enough for one small instance; the README says so and names Redis as the next step.
-
-## How the spine maps
-
-| Spine | Where it lives |
-|---|---|
-| Connect to an existing system securely | `EventSource` seam, Mixpanel service account, MCP server, admin token, server-side proxy |
-| Rules where they suffice, model only for judgment | lookups do all numbers; the model only routes and words |
-| Human in the loop | every answer shows its lookup and window; refusals over guesses |
-| Evals with numbers | 30 exact-match plus 10 refusals, three runs, table in the README |
-| Production survival | cache, timeout and retry, cost and latency log, rate limit, budget cap, health |
+- `.env` ignored, `.env.example` tracked, secret scan in CI over the whole git history.
+- Rate limit and budget counters are in memory, which is enough for one small instance; Redis is the next step.

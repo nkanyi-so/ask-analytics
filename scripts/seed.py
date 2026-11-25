@@ -64,7 +64,7 @@ LAST_NAMES = [
     "Quill", "Rosales", "Sorrel", "Thackeray",
 ]  # fmt: skip
 
-# The patterns the demo and the evals depend on (docs/SPEC.md).
+# The patterns the demo and the evals depend on.
 UNUSED_TOOL = "contact_enrichment"  # nobody touches it in the last 30 days
 SPIKE_TOOL = "invoice_generator"  # errors pile up in the last 7 days...
 SPIKE_SOURCE = "pdf_renderer"  # ...all from this one source

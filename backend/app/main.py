@@ -129,7 +129,7 @@ def visitor_of(request: Request) -> str:
 
 def build_model_client(settings: Settings) -> ModelClient:
     if settings.demo_mode:
-        # No key: recorded answers only. Never for a deployed build (Phase 6 enforces it).
+        # No key: recorded answers only. Never for a deployed build (check_deployable enforces it).
         return FixtureClient(load_fixtures(EVALS_DIR / "fixtures.json"))
     # Raises at startup if the model has no price: a budget cannot count an unpriced model.
     return AnthropicClient(settings.anthropic_api_key, settings.anthropic_model)

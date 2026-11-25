@@ -84,7 +84,7 @@ def test_a_call_in_process_returns_what_the_api_returns(
 def test_the_real_server_over_stdio_lists_five_tools_and_matches_the_api(
     settings: Settings,
 ) -> None:
-    """The Phase 5 gate, end to end: a separate process, spoken to over stdin and stdout."""
+    """The server end to end: a separate process, spoken to over stdin and stdout."""
     server = StdioServerParameters(
         command=sys.executable,
         args=["-m", "app.mcp_server"],

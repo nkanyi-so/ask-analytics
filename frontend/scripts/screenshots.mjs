@@ -1,4 +1,4 @@
-// Screenshots of every screen state in docs/DESIGN.md, at three widths, light and dark.
+// Screenshots of every screen state, at three widths, light and dark.
 //
 //   BASE=http://localhost:3000 OUT=/some/dir node scripts/screenshots.mjs
 //   ONLY=04,08 WIDTHS=1280 MODES=light ...   to take a few
