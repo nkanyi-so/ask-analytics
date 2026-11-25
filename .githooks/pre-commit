@@ -1,5 +1,5 @@
 #!/bin/bash
-# Blocks any commit unless the project gate passes. Enabled with: git config core.hooksPath .githooks
+# Blocks any commit unless `make check` passes. Enabled with: git config core.hooksPath .githooks
 
 # Scan what is about to be committed. CI scans the whole history, so a finding that
 # gets committed cannot be fixed by a later commit: it has to be caught here.

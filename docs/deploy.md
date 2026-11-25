@@ -51,7 +51,7 @@ Then set `FRONTEND_ORIGIN` on Railway to the Vercel URL and click Deploy there t
 
 ## Check after the first deploy
 
-- The page loads in under two seconds (the Phase 6 gate).
+- The page loads in under two seconds.
 - The Ask box shows no "Demo mode" label.
 - Two different networks get separate rate limits. This is the assumption that could not be tested locally: that Vercel sets `x-real-ip` itself, and that `X-Visitor-Address` arrives at Railway unchanged.
 - `curl https://<railway-domain>/api/overview?window=7d` returns 401.
@@ -62,7 +62,7 @@ It needs no platform schedule. The backend warms its cache at startup and every 
 
 ## What was actually run (17 Nov 2026)
 
-Both platforms were set up with their command-line tools, logged in by the owner. The first deploys were uploads from the working copy. Later the same day both services were connected to the GitHub repo, so **a merge to `main` deploys both** (see "Deploying on merge" below).
+Both platforms were set up with their command-line tools. The first deploys were uploads from the working copy. Later the same day both services were connected to the GitHub repo, so **a merge to `main` deploys both** (see "Deploying on merge" below).
 
 ```
 # Backend, from the repo root

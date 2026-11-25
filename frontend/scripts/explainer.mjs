@@ -19,7 +19,7 @@ const WORK = join(OUT, "explainer-work");
 const SIZE = { width: 1280, height: 720 };
 const FIELD = "Ask about usage, people, clients or errors";
 
-// The last line quotes the eval result. Keep it in step with docs/eval-results.md.
+// The last line quotes the eval result. Keep it in step with docs/EVALS.md.
 const OUTRO =
   process.env.OUTRO ??
   "And the About page shows how it is tested. Forty questions with known right answers, asked of the real model. It scored seventy percent the first time, and one hundred after the faults it found were fixed. A number you can trust, and an assistant that cannot invent one.";

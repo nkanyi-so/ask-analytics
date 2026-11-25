@@ -23,5 +23,5 @@ START_HERE.md
 *.tsbuildinfo
 next-env.d.ts
 
-# The full screenshot set from frontend/scripts/screenshots.mjs. A few are kept in docs/design/.
+# The full screenshot set from frontend/scripts/screenshots.mjs. Two are kept in docs/screens/.
 /screenshots/

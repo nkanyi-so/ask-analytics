@@ -1,5 +1,5 @@
 // Facts shown on the About view that the API does not serve. They are copied from
-// docs/eval-results.md and must be updated when a new live run is recorded there.
+// docs/EVALS.md and must be updated when a new live run is recorded there.
 export const REPO_URL = "https://github.com/nkanyi-so/ask-analytics";
 
 export interface EvalRun {

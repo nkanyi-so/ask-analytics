@@ -1,45 +1,39 @@
 # ask-analytics
 
-One trusted number per tool, on a page leadership opens themselves, and a plain-English way to ask about it, where the assistant can only answer with numbers the page can derive.
+A usage dashboard for a company's internal tools, with an assistant that answers questions about it in plain English and can only answer with numbers the dashboard can derive.
 
-A public rebuild of the usage observability I built for a client's internal platform. The platform here is synthetic: a seeded workspace of eight tools and forty people over sixty days of activity. Locally the analytics source can be real (Mixpanel); the hosted demo reads a file-backed source, so the public deployment needs no analytics keys and never breaks.
+**Live demo:** https://ask-analytics-five.vercel.app. A public rebuild of usage reporting I built for a client's internal platform, on a synthetic workspace: eight tools and forty people over sixty days.
 
-> **Status, 17 Nov 2026.** Live at https://ask-analytics-five.vercel.app (frontend on Vercel, backend on Railway). The live eval has been run on `claude-haiku-5-5`. The Mixpanel source has been run against a real Mixpanel project: all five lookups in every window equal ground truth.
+![The Overview for the last 7 days](docs/screens/overview.png)
 
-## Run it
+## The point
 
+There was no way to answer 'who is actually using what?'. A few earlier attempts had tracked one or two metrics in Mixpanel, but the tracking was unreliable and none of it was ever shown inside the platform itself. Nothing measured who logged in at all, so people who had been invited and never showed up appeared nowhere. The request came from the CEO. The platform's tools touched every part of the business, and he needed real numbers, not anecdotes about what people weren't using, to judge whether the platform was paying for itself.
+
+Every number comes from a lookup function: a SQL group-by over the events. The model never does arithmetic and never sees a raw event. It picks a lookup and a window and words the answer. Code then checks that every number in the answer is a number in a lookup result from that turn, and replaces the answer with a refusal if not.
+
+## How it works
+
+```mermaid
+flowchart LR
+  A["Events<br/>file or Mixpanel"] --> B["SQLite<br/>in memory"]
+  B --> C["Lookups<br/>SQL, cached"]
+  C --> D["Dashboard"]
+  C --> E["Model<br/>picks a lookup, words the answer"]
+  E --> F["Number check<br/>answer or refusal"]
 ```
-cp .env.example .env      # then set ADMIN_TOKEN to any long random string
-make setup
-make dev                  # backend on :8000, frontend on :3000
-```
 
-Open http://localhost:3000. With no `ANTHROPIC_API_KEY` the Ask box runs in demo mode: it is labelled as such, answers the questions in the eval set (the three suggested ones among them) from recorded answers, and says the live model is not connected for anything else. `make check` runs what CI's `check` job runs; CI also builds the Docker image and scans the git history for secrets.
+1. At startup the events and the roster load once into SQLite, from a file or from Mixpanel. "Today" is the last day of the data.
+2. The dashboard reads the lookups. Each tool has one headline event in a typed registry, and a tool without one fails the type check.
+3. A question goes to the model with the five lookups as tools. A lookup can return the previous window and the change, so the model has nothing to subtract.
+4. Code checks every number in the reply against that turn's lookup results. A question no lookup covers gets a fixed refusal.
+5. The answer shows its lookup and window, so a reader can check it.
 
-## Before
+The same five lookups are served over MCP ([mcp.md](docs/mcp.md)). More in [ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-<!-- DRAFT: written from the project notes, not from memory of the client. Rewrite in your own words. -->
+## Results
 
-"Who is actually using what?" had no single answer. Usage lived in an analytics tool that leadership did not open, every tool counted success differently, and a question such as "did the invoice tool get used this week?" meant asking an engineer to run a query. People who were invited and never logged in did not appear anywhere, because a person with no events is invisible to an event store.
-
-## Decisions
-
-**1. Where rules end and the model begins.** Every number comes from a lookup function (`backend/app/lookups.py`): SQL group-bys over the events. The assistant can call five of them; a sixth feeds the dashboard's charts only. The model never does arithmetic and never sees a raw event. It picks a lookup and a window, gets the result, and words the answer. "Up or down, and by how much" is answered by the lookup returning the previous window and the change, so the model has nothing to subtract. After the model replies, code checks that every number in the answer is a number in a lookup result from that turn; if not, the answer is replaced with a refusal.
-
-**2. Where the human sits.** Every answer shows which lookup and which window it used, so a reader can check it against the page. A question no lookup covers gets a fixed refusal that names what can be answered. A refusal is treated as a correct result, and the eval set scores it as one.
-
-**3. Data and tools.**
-
-- *One headline event per tool, in a typed registry.* Each tool has a single success event that counts as its number. Adding a tool without one fails the type check, and a test proves that by running the type checker on an altered copy.
-- *Sources behind one interface.* `EventSource` has a file implementation and a Mixpanel one. Nothing outside `backend/app/sources/` knows which is in use. The roster travels with the events, which is how people with no activity stay visible.
-- *SQLite in memory.* The whole workspace is nine thousand events, loaded once at startup. The SQL is written to move to Postgres unchanged (`docs/decisions/0001-sqlite-for-the-demo.md`).
-- *Anthropic tool use, called directly.* One loop, five tools, no framework: there is nothing to orchestrate. The default model is `claude-haiku-5-5`, because the task is routing and wording.
-- *Time is pinned.* "Today" is the last day of the seed, never the wall clock. That is what makes exact-match evals possible.
-- *The same five lookups over MCP.* `docs/mcp.md` has the Claude Desktop config. The server reuses the assistant's tool definitions, so the two cannot drift.
-
-## Evals
-
-Forty questions: twelve direct, ten indirect (the wording names no lookup, window or filter), eight comparisons against the previous window, and ten that must be refused, three of them adversarial. Every expected answer is computed from the seed by plain Python that shares no code with the lookups. Scoring is exact match on the number. There is no AI judge.
+Forty questions, ten of which must be refused. Expected answers are computed from the seed by plain Python that shares no code with the lookups, and scoring is exact match on the number, with no AI judge. A live run asks each question three times, and all three must pass.
 
 | Mode | Model | Date | Direct | Indirect | Comparison | Refusal |
 |---|---|---|---|---|---|---|
@@ -47,28 +41,33 @@ Forty questions: twelve direct, ten indirect (the wording names no lookup, windo
 | Live, first run | `claude-haiku-5-5` | 16 Nov 2026 | 8 of 12 | 9 of 10 | 1 of 8 | 10 of 10 |
 | Live, latest run | `claude-haiku-5-5` | 17 Nov 2026 | 12 of 12 | 10 of 10 | 8 of 8 | 10 of 10 |
 
-Read the fixture row for what it is. The fixture client plays the model from a script, so it proves the lookups, the loop, the number check and the scorer. It says nothing about whether a model picks the right lookup. The live rows do. A live run asks every question three times, and a question passes only if all three runs pass.
+The fixture row plays the model from a script, so it says nothing about whether a model picks the right lookup. The latest live row is the eighth run, after six rounds of fixes. Two reviews of those fixes, after runs 4 and 7, found checks that had been loosened too far, and they were tightened before the next run. The last run is partly fitted to these forty questions, since they are what the fixes were tested on. It does not show how the assistant does on unseen questions. Every run, failure and fix is in [docs/EVALS.md](docs/EVALS.md).
 
-The first live run scored 70%. Getting from there to the eighth run, the 100% in the table, took six rounds of fixes (after runs 1, 2, 3, 4, 6 and 7), and the failures were the useful part: the number check caught the model counting rows by itself; the model refused "how many emails were sent" because the prompt never said which tools exist; and telling it to write digits did not stop it writing "Three people", so the number check now reads number words too. A review of those fixes then found two that had loosened a check too far, which were tightened before the last run. The last run is partly fitted to these forty questions, since they are what the fixes were tested on. Every run, failure and fix is in `docs/eval-results.md`.
+## Run it
 
-How a change is gated: fixture evals run inside `make check`, on every commit and every pull request, and must score 40 of 40. Details and known weak spots are in `docs/eval-results.md`.
+```
+cp .env.example .env      # then set ADMIN_TOKEN to any long random string
+make setup
+make dev                  # backend on :8000, frontend on :3000
+make check                # lint, types, tests, fixture evals (40 of 40), build
+```
 
-## Surviving production
+Open http://localhost:3000. With no `ANTHROPIC_API_KEY` the Ask box runs in demo mode. Deployment: [docs/deploy.md](docs/deploy.md).
 
-- **Cache.** Lookup results are cached for ten minutes. The cache is warmed at startup and every five minutes after, so no visitor pays for a cold read.
-- **Model calls.** A 30-second timeout and one retry. Latency, tokens and cost are logged per call.
-- **Spend.** The Ask endpoint is limited per visitor and stops for the day at a fixed budget. A question reserves its worst-case cost before the model is called, so a burst cannot overshoot. The admin token does not protect spend: anyone who opens the page can ask. The rate limit and the budget do.
-- **Mixpanel.** Checked against a real project, not only a fake. One export request per load, retried with backoff on the statuses Mixpanel says to retry, inside one 60-second deadline. A repeated push is harmless because every record has a stable id.
-- **Secrets and auth.** The admin token lives only on the two servers. Pages are rendered on the server and the Ask box talks to a route handler, so the token never reaches a browser; importing the module that reads it from client code fails the build. CI scans the whole git history for secrets.
-- **A deployed build cannot pretend.** The Docker image refuses to start in demo mode, without a real admin token, or on any source but the file.
-- **Known limit.** Rate-limit and budget counters are in memory, which fits one small instance. Redis is the next step.
+## Production notes
 
-## How this was built
+- **Spend:** the Ask endpoint is limited per visitor and stops for the day at a fixed budget. A question reserves its worst-case cost first, so a burst cannot overshoot.
+- **Auth:** the admin token never reaches a browser. It does not protect spend: the rate limit and the budget do.
+- **Failure handling:** model calls have a 30-second timeout and one retry. Lookup results are cached for ten minutes and warmed every five.
+- **A deployed build cannot pretend:** the Docker image refuses to start in demo mode, without a real admin token, or on any source but the file.
+- **Known limit:** rate-limit and budget counters are in memory, which fits one small instance.
 
-AI-assisted, with Claude Code, under gates I set and checked: a plan reviewed before any code; tests first on the core logic (seed, lookups, registry, refusals); `make check` before every commit; CI and a secret scan on every pull request; a separate review of each phase's diff; one pull request per phase, with its evidence in `docs/PLAN.md`. The reviews found real bugs, and the log says which.
+## How it was built
 
-## What I'd do next
+Built with AI assistance (Claude Code) under checks I set: a plan reviewed before any code, tests first on the core logic, `make check` and CI with a secret scan on every pull request, and an independent review of each phase's diff. The full build record is kept at the [`build-log` tag](https://github.com/nkanyi-so/ask-analytics/tree/build-log).
 
-- Write a second set of questions that is never used for tuning, and run both models on it. The current forty were used to fix the failures they found.
+## Next
+
+- Write a second set of questions that is never used for tuning.
 - Move the rate limit and budget to Redis.
-- Send the Monday summary by email. Today the endpoint only renders it.
+- Send the Monday summary by email.
