@@ -4,13 +4,17 @@ A usage dashboard for a company's internal tools, with an assistant that answers
 
 **Live demo:** https://ask-analytics-five.vercel.app. A public rebuild of usage reporting I built for a client's internal platform, on a synthetic workspace: eight tools and forty people over sixty days.
 
-![The Overview for the last 7 days](docs/screens/overview.png)
+![The Overview](docs/screens/overview.png)
 
 ## The point
 
 There was no way to answer 'who is actually using what?'. A few earlier attempts had tracked one or two metrics in Mixpanel, but the tracking was unreliable and none of it was ever shown inside the platform itself. Nothing measured who logged in at all, so people who had been invited and never showed up appeared nowhere. The request came from the CEO. The platform's tools touched every part of the business, and he needed real numbers, not anecdotes about what people weren't using, to judge whether the platform was paying for itself.
 
 Every number comes from a lookup function: a SQL group-by over the events. The model never does arithmetic and never sees a raw event. It picks a lookup and a window and words the answer. Code then checks that every number in the answer is a number in a lookup result from that turn, and replaces the answer with a refusal if not.
+
+![An answered question](docs/screens/answer.png)
+
+*An answer, with its lookup and the number check.*
 
 ## How it works
 
@@ -29,11 +33,11 @@ flowchart LR
 4. Code checks every number in the reply against that turn's lookup results. A question no lookup covers gets a fixed refusal.
 5. The answer shows its lookup and window, so a reader can check it.
 
-The same five lookups are served over MCP ([mcp.md](docs/mcp.md)). More in [ARCHITECTURE.md](docs/ARCHITECTURE.md).
+Also served over MCP ([mcp.md](docs/mcp.md)). More in [ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Results
 
-Forty questions, ten of which must be refused. Expected answers are computed from the seed by plain Python that shares no code with the lookups, and scoring is exact match on the number, with no AI judge. A live run asks each question three times, and all three must pass.
+Forty questions, ten of which must be refused. Expected answers are computed from the seed by plain Python that shares no code with the lookups, and scoring is exact match on the number, with no AI judge. A live run asks each question three times; all three must pass.
 
 | Mode | Model | Date | Direct | Indirect | Comparison | Refusal |
 |---|---|---|---|---|---|---|

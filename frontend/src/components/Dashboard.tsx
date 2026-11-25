@@ -7,7 +7,7 @@ import type { OverviewResponse, RosterPerson } from "@/lib/types";
 import type { Window } from "@/lib/windows";
 
 import { useAsk } from "./ask-context";
-import { BarChart, Spark } from "./BarChart";
+import { BarChart, Sparkline } from "./BarChart";
 import { ChangePill } from "./ChangePill";
 import { PeopleTable } from "./PeopleTable";
 
@@ -200,7 +200,7 @@ export function Dashboard({ overview }: { overview: OverviewResponse }): ReactNo
                         <small>{tool.headline_event.replaceAll("_", " ")}</small>
                       </th>
                       <td role="cell" data-label={`Per ${per}`}>
-                        <Spark
+                        <Sparkline
                           values={trend.buckets.map((bucket) => bucket.outputs_by_tool[tool.tool_id] ?? 0)}
                           label={`${tool.tool_name}, per ${per}`}
                         />
