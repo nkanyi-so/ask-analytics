@@ -3,6 +3,7 @@
     python -m evals.run                    fixture mode: free, deterministic, part of `make check`
     python -m evals.run --live             live model (spends API credits; ask first)
     python -m evals.run --live --model claude-opus-5-5
+    python -m evals.run --live --heldout   the held-out set, never tuned on
 
 Fixture mode proves the lookups, the assistant loop, the number check and the scorer
 end to end. It cannot tell whether a model picks the right lookup; only a live run can.
@@ -52,14 +53,18 @@ class Outcome:
         return all(self.passed)
 
 
-def load_questions() -> list[dict[str, Any]]:
+def load_questions(heldout: bool = False) -> list[dict[str, Any]]:
+    if heldout:
+        document = json.loads((EVALS_DIR / "questions_heldout.json").read_text())
+        held: list[dict[str, Any]] = document["questions"]
+        return held
     questions: list[dict[str, Any]] = json.loads((EVALS_DIR / "questions.json").read_text())
     return questions
 
 
-def run(client: ModelClient, lookups: Lookups, runs: int) -> list[Outcome]:
+def run(client: ModelClient, lookups: Lookups, runs: int, heldout: bool = False) -> list[Outcome]:
     outcomes = []
-    for question in load_questions():
+    for question in load_questions(heldout):
         answers, passed, cost = [], [], 0.0
         for _ in range(runs):
             try:
@@ -110,13 +115,17 @@ def failures(outcomes: list[Outcome]) -> str:
     return "\n".join(lines) or "None."
 
 
-def write_live_section(model: str, outcomes: list[Outcome], runs: int) -> None:
-    """Replace this model's section in docs/EVALS.md, or add it."""
-    begin, end = f"<!-- begin:{model} -->", f"<!-- end:{model} -->"
+def write_live_section(
+    model: str, outcomes: list[Outcome], runs: int, heldout: bool = False
+) -> None:
+    """Replace this model's section in docs/EVALS.md, or add it. The held-out set has its own."""
+    key = f"heldout:{model}" if heldout else model
+    title = f"`{model}`, held-out set" if heldout else f"`{model}`"
+    begin, end = f"<!-- begin:{key} -->", f"<!-- end:{key} -->"
     when = datetime.now(UTC).strftime("%d %b %Y, %H:%M UTC")
     cost = sum(o.cost_usd for o in outcomes)
     section = (
-        f"{begin}\n### `{model}`\n\nRun on {when}. {len(outcomes)} questions, {runs} runs each. "
+        f"{begin}\n### {title}\n\nRun on {when}. {len(outcomes)} questions, {runs} runs each. "
         f"Cost: ${cost:.4f}.\n\n{table(outcomes, runs)}\n\n"
         f"Failures (any run):\n\n{failures(outcomes)}\n{end}"
     )
@@ -146,8 +155,12 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--live", action="store_true", help="call the live model (spends credits)")
     parser.add_argument("--model", help="model id for a live run (default: ANTHROPIC_MODEL)")
+    parser.add_argument("--heldout", action="store_true", help="the held-out set (live only)")
     arguments = parser.parse_args()
 
+    if arguments.heldout and not arguments.live:
+        print("evals: the held-out set has no fixtures; it only runs with --live.", file=sys.stderr)
+        return 2
     if not arguments.live:
         lookups = build_lookups(fixture_settings())
         client: ModelClient = FixtureClient(load_fixtures(EVALS_DIR / "fixtures.json"))
@@ -166,9 +179,9 @@ def main() -> int:
     model = arguments.model or settings.anthropic_model
     client = AnthropicClient(settings.anthropic_api_key, model)
     lookups = build_lookups(settings)
-    outcomes = run(client, lookups, runs=LIVE_RUNS)
-    write_live_section(model, outcomes, LIVE_RUNS)
-    print(f"Evals, live, {model}:\n")
+    outcomes = run(client, lookups, runs=LIVE_RUNS, heldout=arguments.heldout)
+    write_live_section(model, outcomes, LIVE_RUNS, heldout=arguments.heldout)
+    print(f"Evals, live, {model}{', held-out set' if arguments.heldout else ''}:\n")
     print(table(outcomes, LIVE_RUNS))
     print("\nFailures (any run):\n" + failures(outcomes))
     print(f"\nWritten to {RESULTS_FILE.relative_to(REPO_ROOT)}. A failing question is a finding.")
