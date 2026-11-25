@@ -770,7 +770,7 @@ Still not done: the MCP config has not been tried in Claude Desktop itself.
 - [ ] `main` protected; CI (in place since Phase 0) required to pass before merge.
 - [x] Startup check: a deployed build must refuse to start in demo mode (no `ANTHROPIC_API_KEY`). Demo mode answers from recorded fixtures and is for local use only. Added to the plan in Phase 3, when demo mode was built.
 - [x] Docker. Backend on Railway, frontend on Vercel. Scheduled cache warm. *Deployed on 17 Nov 2026; see the entry of that date below.*
-- [ ] README on the seven-section spine from `job-search/portfolio/README.md`, with the live eval table and its date. *Written, with the live rows empty and the "Before" section marked as a draft.*
+- [ ] README on the seven-section spine from `job-search/portfolio/README.md`, with the live eval table and its date. *Written. The `claude-haiku-5-5` live rows were filled on 17 Nov 2026; the "Before" section is still marked as a draft.*
 
 **Gate:** hosted page loads in under two seconds. CI is green on `main`. No key in the repo or its history.
 
@@ -789,7 +789,7 @@ Still not done: the MCP config has not been tried in Claude Desktop itself.
 
 - [ ] **`main` protected.** GitHub refused: "Upgrade to GitHub Pro or make this repository public to enable this feature." The repo is private on the free plan. Do it when the repo goes public: require the `check`, `secrets` and `image` jobs.
 - [x] **Deploy** to Railway and Vercel. Done on 17 Nov 2026; see below.
-- [ ] **README's live eval table.** The live rows say "not run yet". No key, no run.
+- [x] **README's live eval table.** The `claude-haiku-5-5` rows were filled on 17 Nov 2026, from the runs in `docs/eval-results.md`.
 - [ ] **README's "Before" section** is a draft written from project notes, marked as such in the file. The human should rewrite it in their own words before the repo is public.
 
 *Where the platforms differ from the docs.* PLAN says "Scheduled cache warm" next to the deploy; it is in-process instead (above). Railway's `railway.toml` stops working for existing services on 1 December 2026 and cannot be used for new ones, so no Railway config file is committed and the settings are listed for the dashboard. Docker is not installed on the development machine, so the image has only ever been built by CI.
