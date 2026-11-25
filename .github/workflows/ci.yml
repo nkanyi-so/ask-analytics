@@ -23,6 +23,23 @@ jobs:
       - run: cd frontend && npm ci
       - run: make check
 
+  browser:
+    # One journey in a real Chromium against the app in demo mode: no key, no model call.
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: cd backend && uv sync --locked
+      - run: cd frontend && npm ci
+      - run: cd frontend && npx playwright install --with-deps chromium
+      - run: make browser-test
+
   image:
     # Builds the API image and proves the two things a deployed build must do:
     # refuse to start in demo mode, and serve when fully configured.
