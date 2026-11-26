@@ -127,6 +127,10 @@ export default function AboutPage(): ReactNode {
           </li>
         </ul>
         <p>
+          Questions typed into the Ask box are logged with a request id, the one shown under each answer,
+          so that a wrong or refused answer can be found and studied.
+        </p>
+        <p>
           <a href={REPO_URL}>Source code, tests and the full write-up</a>
         </p>
       </section>
