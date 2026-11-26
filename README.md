@@ -44,8 +44,9 @@ Forty questions, ten of which must be refused. Expected answers are computed fro
 | Fixture | none | 16 Nov 2026 | 12 of 12 | 10 of 10 | 8 of 8 | 10 of 10 |
 | Live, first run | `claude-haiku-5-5` | 16 Nov 2026 | 8 of 12 | 9 of 10 | 1 of 8 | 10 of 10 |
 | Live, latest run | `claude-haiku-5-5` | 17 Nov 2026 | 12 of 12 | 10 of 10 | 8 of 8 | 10 of 10 |
+| Live, held-out | `claude-haiku-5-5` | 25 Nov 2026 | 11 of 12 | 9 of 10 | 7 of 8 | 9 of 10 |
 
-The fixture row plays the model from a script, so it says nothing about whether a model picks the right lookup. The latest live row is the eighth run, after six rounds of fixes. Two reviews of those fixes, after runs 4 and 7, found checks that had been loosened too far, and they were tightened before the next run. The last run is partly fitted to these forty questions, since they are what the fixes were tested on. It does not show how the assistant does on unseen questions. Every run, failure and fix is in [docs/EVALS.md](docs/EVALS.md).
+The fixture row plays the model from a script, so it cannot show whether a model picks the right lookup. The latest live row is the eighth run, after six rounds of fixes and two reviews, so it is partly fitted to those forty questions. On forty held-out questions, run once and never tuned on, it passed 36. Every run and failure: [docs/EVALS.md](docs/EVALS.md).
 
 ## Run it
 
@@ -54,6 +55,7 @@ cp .env.example .env      # then set ADMIN_TOKEN to any long random string
 make setup
 make dev                  # backend on :8000, frontend on :3000
 make check                # lint, types, tests, fixture evals (40 of 40), build
+make browser-test         # real browser, demo mode
 ```
 
 Open http://localhost:3000. With no `ANTHROPIC_API_KEY` the Ask box runs in demo mode. Deployment: [docs/deploy.md](docs/deploy.md).
@@ -72,6 +74,6 @@ Built with AI assistance (Claude Code) under checks I set: a plan reviewed befor
 
 ## Next
 
-- Write a second set of questions that is never used for tuning.
+- Stop the number check dropping right answers when the model adds its own count.
 - Move the rate limit and budget to Redis.
 - Send the Monday summary by email.

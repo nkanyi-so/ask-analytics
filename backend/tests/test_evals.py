@@ -240,3 +240,45 @@ def test_the_scorer_reads_digits_only() -> None:
         "Up over the last 30 days compared with the previous 30, an increase of 50.",
         False,
     )
+
+
+# --- the held-out set ------------------------------------------------------------------
+
+
+def test_the_heldout_file_is_what_its_generator_produces_and_says_what_it_is() -> None:
+    from evals import heldout
+
+    written = (build.EVALS_DIR / "questions_heldout.json").read_text()
+
+    assert written == heldout.build()
+    assert "Never used for tuning" in json.loads(written)["header"]
+
+
+def test_the_heldout_set_has_the_same_shape_as_the_tuning_set() -> None:
+    held = run.load_questions(heldout=True)
+    tiers = Counter(q["tier"] for q in held)
+
+    assert tiers == {"direct": 12, "indirect": 10, "comparison": 8, "refusal": 10}
+    assert sum(q["adversarial"] for q in held) == 3
+    for question in held:
+        if not question["refuse"]:
+            assert question["expect"]["numbers"] or question["expect"]["texts"], question["id"]
+        if question["tier"] == "comparison":
+            assert question["expect"]["direction"] in ("up", "down"), question["id"]
+
+
+def test_no_heldout_question_is_also_a_tuning_question() -> None:
+    tuning = {normalise_question(q["question"]) for q in QUESTIONS}
+    held = [normalise_question(q["question"]) for q in run.load_questions(heldout=True)]
+
+    assert len(set(held)) == 40
+    assert not tuning & set(held)
+
+
+def test_the_heldout_set_has_no_recorded_answers() -> None:
+    # It is never played from a script: a fixture for one would be an answer tuned to it.
+    fixtures = load_fixtures(build.EVALS_DIR / "fixtures.json")
+
+    assert not any(
+        normalise_question(q["question"]) in fixtures for q in run.load_questions(heldout=True)
+    )
