@@ -37,7 +37,7 @@ backend/
     registry.py      tool catalog and typed headline registry
     lookups.py       the five lookups, the chart series and the Window type
     cache.py         TTL cache keyed by (lookup, window, args)
-    assistant.py     tool-use loop, refusal rule, cost and latency log
+    assistant.py     tool-use loop, refusal rule, one log line per question
     llm.py           ModelClient protocol, Anthropic client, fixture client
     limits.py        per-visitor rate limit and daily budget
     mcp_server.py    the five lookups as an MCP server over stdio
@@ -163,7 +163,7 @@ All `/api/*` routes require `Authorization: Bearer <ADMIN_TOKEN>`.
 3. Refusal: if the model answers with no tool call, or the question needs something no lookup returns, the reply is a refusal listing what it can answer.
 4. Check after generation: every number in the answer must appear verbatim in the tool results of that turn (counts, previous-window values and differences all come from the lookups). Dates that appear in the results and the window length are allowed; the exact rule is under "What the API allows" below. If any other number appears, the answer is replaced with a refusal and the miss is logged.
 5. The question is untrusted input. The tools are read-only and scoped to the seeded data, so the worst a hostile question can do is get a refusal; the system prompt still tells the model to ignore instructions inside questions, and one eval covers it.
-6. Each call logs latency, tokens in and out, and cost.
+6. Each question writes one log line, a single JSON object: a request id, the question, the lookups called with their windows, tokens in and out, cost, latency, and the outcome (`answered`, `refused_by_model`, `refused_by_number_check` with the unsupported numbers and the rejected text, `refused_other` with a reason, or `model_unavailable`). The request id is returned in the API response and shown under the answer, so a reader can quote it and the line can be found. No vendor and no dependency: it is the standard logger, written to stderr.
 
 `llm.py` defines `ModelClient`. `AnthropicClient` is the real one; the model id comes from `ANTHROPIC_MODEL` (default `claude-haiku-5-5`). Cost comes from a small price table keyed by model id; a model id that is not in the table fails at startup, because a budget cap over an unpriced model is no cap. The hard timeout and the single retry are the SDK's own settings (`timeout=30`, `max_retries=1`).
 

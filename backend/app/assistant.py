@@ -13,13 +13,14 @@ import logging
 import re
 import time
 import unicodedata
+import uuid
 from collections.abc import Callable
-from datetime import date
-from typing import Any
+from datetime import UTC, date, datetime
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, ValidationError
 
-from app.llm import Message, ModelClient, ModelReply, ToolSpec, cost_usd
+from app.llm import Message, ModelClient, ModelReply, ModelUnavailable, ToolSpec, cost_usd
 from app.lookups import WINDOWS, Lookups, Window
 from app.registry import CATALOG, TOOL_IDS, ToolId
 
@@ -192,6 +193,8 @@ class AskResult(BaseModel):
     refused: bool
     latency_ms: int
     cost_usd: float
+    # Names this question's one log line, so a reader can quote it and it can be found.
+    request_id: str
 
 
 class ToolError(Exception):
@@ -391,50 +394,87 @@ def unsupported_numbers(answer: str, tool_results: list[str]) -> list[str]:
 # --- the loop ------------------------------------------------------------------------
 
 
-class Turn:
-    """What one question has cost and looked up so far."""
+Outcome = Literal[
+    "answered",
+    "refused_by_model",
+    "refused_by_number_check",
+    "refused_other",  # no recorded answer in demo mode, a cut-off reply, too many tool turns
+    "model_unavailable",
+]
 
-    def __init__(self, client: ModelClient, on_cost: Callable[[float], None] | None) -> None:
+
+class Turn:
+    """What one question has cost and looked up so far, and its one log line at the end."""
+
+    def __init__(
+        self, question: str, client: ModelClient, on_cost: Callable[[float], None] | None
+    ) -> None:
+        self._question = question
         self._client = client
         self._on_cost = on_cost
         self._started = time.perf_counter()
+        self.request_id = uuid.uuid4().hex[:12]
         self.cost_usd = 0.0
+        self.model_calls = 0
+        self.input_tokens = 0
+        self.output_tokens = 0
         self.called: list[LookupCalled] = []
         self.results: list[str] = []
 
     def ask_model(self, system: str, messages: list[Message]) -> ModelReply:
-        started = time.perf_counter()
         reply = self._client.complete(system, TOOL_SPECS, messages)
         cost = cost_usd(self._client.model, reply.input_tokens, reply.output_tokens)
         self.cost_usd += cost
+        self.model_calls += 1
+        self.input_tokens += reply.input_tokens
+        self.output_tokens += reply.output_tokens
         if self._on_cost is not None:
             # Reported per call, so a failure on a later call cannot hide what was spent.
             self._on_cost(cost)
-        logger.info(
-            "model_call model=%s latency_ms=%d input_tokens=%d output_tokens=%d cost_usd=%.6f "
-            "stop_reason=%s",
-            self._client.model,
-            (time.perf_counter() - started) * 1000,
-            reply.input_tokens,
-            reply.output_tokens,
-            cost,
-            reply.stop_reason,
-        )
         return reply
 
-    def finish(self, answer: str, refused: bool) -> AskResult:
+    def log(self, outcome: Outcome, **detail: Any) -> int:
+        """The one log line for this question: a single JSON object. Returns the latency.
+
+        `detail` carries what a refusal needs to be studied: the unsupported numbers and
+        the rejected text, or the reason. A number-check refusal is a warning, so it
+        shows even where only warnings are printed (a live eval run).
+        """
+        latency_ms = int((time.perf_counter() - self._started) * 1000)
+        line = {
+            "time": datetime.now(UTC).isoformat(timespec="seconds"),
+            "event": "question",
+            "request_id": self.request_id,
+            "outcome": outcome,
+            "question": self._question,
+            "model": self._client.model,
+            "lookups": [{"name": call.name, "window": call.window} for call in self.called],
+            "model_calls": self.model_calls,
+            "input_tokens": self.input_tokens,
+            "output_tokens": self.output_tokens,
+            "cost_usd": round(self.cost_usd, 6),
+            "latency_ms": latency_ms,
+            **detail,
+        }
+        level = logging.WARNING if outcome == "refused_by_number_check" else logging.INFO
+        logger.log(level, json.dumps(line, ensure_ascii=True))
+        return latency_ms
+
+    def finish(self, answer: str, outcome: Outcome, **detail: Any) -> AskResult:
+        refused = outcome != "answered"
         windows = {call.window for call in self.called}
         return AskResult(
             answer=answer,
             window=windows.pop() if len(windows) == 1 and not refused else None,
             lookups_called=self.called,
             refused=refused,
-            latency_ms=int((time.perf_counter() - self._started) * 1000),
+            latency_ms=self.log(outcome, **detail),
             cost_usd=self.cost_usd,
+            request_id=self.request_id,
         )
 
-    def refuse(self, answer: str = REFUSAL_TEXT) -> AskResult:
-        return self.finish(answer, refused=True)
+    def refuse(self, outcome: Outcome, answer: str = REFUSAL_TEXT, **detail: Any) -> AskResult:
+        return self.finish(answer, outcome, **detail)
 
 
 def tool_results_for(turn: Turn, lookups: Lookups, reply: ModelReply) -> list[dict[str, Any]]:
@@ -464,40 +504,39 @@ def answer_question(
     lookups: Lookups,
     on_cost: Callable[[float], None] | None = None,
 ) -> AskResult:
-    turn = Turn(client, on_cost)
+    turn = Turn(question, client, on_cost)
     unavailable = client.cannot_answer(question)
     if unavailable is not None:
-        return turn.refuse(unavailable)
+        return turn.refuse("refused_other", unavailable, reason="no_recorded_answer")
 
     system = system_prompt(lookups.as_of)
     messages: list[Message] = [{"role": "user", "content": question}]
     for _ in range(MAX_MODEL_TURNS):
-        reply = turn.ask_model(system, messages)
+        try:
+            reply = turn.ask_model(system, messages)
+        except ModelUnavailable as error:
+            # Still one line for the question, with what was spent before the failure.
+            turn.log("model_unavailable", reason=str(error))
+            raise
         if reply.stop_reason != "tool_use" or not reply.tool_calls:
             break
         messages.append({"role": "assistant", "content": reply.content})
         # Every result goes back in one user message, as the API expects.
         messages.append({"role": "user", "content": tool_results_for(turn, lookups, reply)})
     else:
-        logger.warning("refused: the model kept calling tools after %d turns", MAX_MODEL_TURNS)
-        return turn.refuse()
+        return turn.refuse("refused_other", reason="tool_turn_limit")
 
     answer = reply.text.strip()
     if reply.stop_reason != "end_turn":
         # "refusal" from the model's own safeguards, or a reply cut off by max_tokens.
-        logger.warning("refused: stop_reason=%s", reply.stop_reason)
-        return turn.refuse()
+        return turn.refuse("refused_other", reason=f"stop_reason:{reply.stop_reason}")
     if not turn.called or not answer or REFUSE_PATTERN.search(answer):
         # Logged with what led to it, so a refusal of an answerable question can be studied.
-        logger.info(
-            "refused: by the model. tools_called=%d reply=%r", len(turn.results), answer[:300]
-        )
-        return turn.refuse()
+        return turn.refuse("refused_by_model", reply=answer[:300])
     unsupported = unsupported_numbers(answer, turn.results)
     if unsupported:
         # The rejected text is logged, so a wrongly refused answer can be found and studied.
-        logger.warning(
-            "refused: answer had numbers not in any tool result: %s answer=%r", unsupported, answer
+        return turn.refuse(
+            "refused_by_number_check", unsupported_numbers=unsupported, rejected_answer=answer
         )
-        return turn.refuse()
-    return turn.finish(digits_for_words(answer), refused=False)
+    return turn.finish(digits_for_words(answer), "answered")
