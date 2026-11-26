@@ -97,11 +97,12 @@ def get_lookups(request: Request) -> Lookups:
 
 
 def configure_logging() -> None:
-    """Send the app's own log lines (cost and latency per model call) to stderr."""
+    """Send the app's own log lines to stderr: one JSON line per question (app/assistant.py)."""
     logger = logging.getLogger("ask_analytics")
     if not logger.handlers:
         handler = logging.StreamHandler()
-        handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(name)s %(message)s"))
+        # The message alone: a question's line is one JSON object that carries its own time.
+        handler.setFormatter(logging.Formatter("%(message)s"))
         logger.addHandler(handler)
         logger.setLevel(logging.INFO)
 

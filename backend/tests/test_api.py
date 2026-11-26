@@ -193,6 +193,7 @@ def test_demo_mode_answers_a_recorded_question_and_says_it_is_a_demo(
         "refused",
         "latency_ms",
         "cost_usd",
+        "request_id",
         "demo_mode",
     }
 

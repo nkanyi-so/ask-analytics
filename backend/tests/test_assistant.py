@@ -229,20 +229,106 @@ def test_tool_results_go_back_in_one_message_and_the_assistant_turn_is_unchanged
     assert [block["tool_use_id"] for block in messages[2]["content"]] == ["call_0", "call_1"]
 
 
-def test_each_model_call_logs_latency_tokens_and_cost(
+def question_lines(caplog: pytest.LogCaptureFixture) -> list[dict[str, Any]]:
+    """Every log record of the assistant, each of which must be one JSON object."""
+    return [
+        json.loads(r.getMessage()) for r in caplog.records if r.name == "ask_analytics.assistant"
+    ]
+
+
+def test_an_answered_question_logs_one_json_line_with_its_request_id(
     lookups: Lookups, caplog: pytest.LogCaptureFixture
 ) -> None:
     question = "How many invoices were issued in the last 7 days?"
     fixture = Fixture(calls=[USAGE_7D], answer="{0} invoices.", values=[INVOICES_7D])
 
     with caplog.at_level(logging.INFO, logger="ask_analytics.assistant"):
-        answer_question(question, client_for(question, fixture), lookups)
+        result = answer_question(question, client_for(question, fixture), lookups)
 
-    calls = [r.getMessage() for r in caplog.records if r.getMessage().startswith("model_call")]
-    assert len(calls) == 2
-    for line in calls:
-        for field in ("latency_ms=", "input_tokens=", "output_tokens=", "cost_usd="):
-            assert field in line
+    (line,) = question_lines(caplog)
+    assert line["event"] == "question"
+    assert line["outcome"] == "answered"
+    assert line["question"] == question
+    assert line["lookups"] == [{"name": "usage_by_tool", "window": "7d"}]
+    assert line["model_calls"] == 2
+    assert line["request_id"] == result.request_id
+    assert len(result.request_id) == 12
+    assert line["latency_ms"] == result.latency_ms
+    for field in ("time", "model", "input_tokens", "output_tokens", "cost_usd"):
+        assert field in line
+
+
+def test_the_log_line_adds_up_tokens_and_cost_across_model_calls(
+    lookups: Lookups, caplog: pytest.LogCaptureFixture
+) -> None:
+    class Priced(ScriptedClient):
+        model = "claude-haiku-5-5"
+
+    client = Priced(
+        [
+            ModelReply(
+                text="",
+                tool_calls=(ToolCall(id="c0", name="roster", input=dict(USAGE_7D["input"])),),
+                stop_reason="tool_use",
+                input_tokens=1000,
+                output_tokens=100,
+            ),
+            ModelReply(
+                text="REFUSE",
+                tool_calls=(),
+                stop_reason="end_turn",
+                input_tokens=2000,
+                output_tokens=50,
+            ),
+        ]
+    )
+
+    with caplog.at_level(logging.INFO, logger="ask_analytics.assistant"):
+        result = answer_question("anything", client, lookups)
+
+    (line,) = question_lines(caplog)
+    assert (line["input_tokens"], line["output_tokens"]) == (3000, 150)
+    assert line["cost_usd"] == pytest.approx(result.cost_usd)
+    assert result.cost_usd > 0
+    assert line["outcome"] == "refused_by_model"
+    assert line["reply"] == "REFUSE"
+
+
+def test_a_number_check_refusal_logs_the_unsupported_numbers_as_a_warning(
+    lookups: Lookups, caplog: pytest.LogCaptureFixture
+) -> None:
+    question = "How many invoices were issued in the last 7 days?"
+    fixture = Fixture(calls=[USAGE_7D], answer="987654 invoices were issued in the last 7 days.")
+
+    with caplog.at_level(logging.WARNING, logger="ask_analytics.assistant"):
+        result = answer_question(question, client_for(question, fixture), lookups)
+
+    (line,) = question_lines(caplog)
+    assert line["outcome"] == "refused_by_number_check"
+    assert line["unsupported_numbers"] == ["987654"]
+    assert "987654" in line["rejected_answer"]
+    assert line["request_id"] == result.request_id
+    assert result.refused is True
+
+
+def test_other_refusals_and_a_model_outage_each_log_one_line_with_a_reason(
+    lookups: Lookups, caplog: pytest.LogCaptureFixture
+) -> None:
+    from app.llm import ModelUnavailable
+
+    class Down(ScriptedClient):
+        def complete(self, system: str, tools: list[Any], messages: list[Any]) -> ModelReply:
+            raise ModelUnavailable("APITimeoutError")
+
+    with caplog.at_level(logging.INFO, logger="ask_analytics.assistant"):
+        answer_question("Never recorded?", FixtureClient({}), lookups)
+        with pytest.raises(ModelUnavailable):
+            answer_question("anything", Down([]), lookups)
+
+    unrecorded, outage = question_lines(caplog)
+    assert (unrecorded["outcome"], unrecorded["reason"]) == ("refused_other", "no_recorded_answer")
+    assert (outage["outcome"], outage["reason"]) == ("model_unavailable", "APITimeoutError")
+    assert unrecorded["request_id"] != outage["request_id"]
 
 
 def test_a_question_the_fixture_client_has_no_recording_for_says_so(lookups: Lookups) -> None:

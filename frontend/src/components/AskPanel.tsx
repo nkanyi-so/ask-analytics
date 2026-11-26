@@ -150,6 +150,15 @@ function LookupSteps({ call, shown }: { call: LookupCalled; shown: Shown | null 
   );
 }
 
+/** The id of this question's log line, small, so a reader can quote it. */
+function RequestId({ id }: { id: string }): ReactNode {
+  return (
+    <p className="cost">
+      Request <code>{id}</code>
+    </p>
+  );
+}
+
 function Answered({ body, evidence }: { body: AskResponse; evidence: (EvidenceRow[] | null)[] }): ReactNode {
   // The model sometimes writes Markdown bold. This page renders plain text only.
   const text = body.answer.replaceAll("**", "");
@@ -205,6 +214,7 @@ function Answered({ body, evidence }: { body: AskResponse; evidence: (EvidenceRo
             : `Answered in ${formatCount(body.latency_ms)} ms for $${body.cost_usd.toFixed(4)}.`}
         </p>
       </div>
+      <RequestId id={body.request_id} />
     </div>
   );
 }
@@ -225,6 +235,7 @@ function Refused({ body }: { body: AskResponse }): ReactNode {
             : "A lookup ran, but it did not lead to an answer that could be shown."}
         </p>
       )}
+      <RequestId id={body.request_id} />
     </div>
   );
 }

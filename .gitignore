@@ -25,3 +25,6 @@ next-env.d.ts
 
 # The full screenshot set from frontend/scripts/screenshots.mjs. Two are kept in docs/screens/.
 /screenshots/
+
+# Written by `next dev` (Next.js agent rules). Generated, not ours.
+frontend/AGENTS.md

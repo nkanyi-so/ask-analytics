@@ -41,6 +41,7 @@ try {
   check(/\d/.test(await answer.locator(".answer-top").innerText()), "the answer holds no number");
   await answer.getByText(/^Looked up /).waitFor();
   await answer.getByText("Recorded answer. No model was called.").waitFor();
+  await answer.getByText(/^Request [0-9a-f]{12}$/).waitFor();
   console.log("pass  a suggested question is answered, with its lookup shown");
 
   await page.getByLabel("Ask about usage, people, clients or errors").fill(OUT_OF_SCOPE);

@@ -128,6 +128,8 @@ export interface AskResponse {
   refused: boolean;
   latency_ms: number;
   cost_usd: number;
+  /** Names this question's log line on the backend; shown so a reader can quote it. */
+  request_id: string;
   demo_mode: boolean;
 }
 

@@ -40,12 +40,14 @@ evals:
 # Live run of the held-out set (backend/evals/questions_heldout.json) on claude-haiku-5-5:
 # every question three times, same scorer. Spends API credits: never run without being asked.
 # It refuses to run while the prompt, the tool descriptions or the number check (all in
-# app/assistant.py; the tool catalog in app/registry.py) differ from the last commit, so a
-# score always belongs to a committed assistant. Never tune on its result.
-HELDOUT_GUARDED := backend/app/assistant.py backend/app/registry.py
+# app/assistant.py; the tool catalog in app/registry.py), the scorer, or the held-out
+# questions and their generator differ from the last commit, so a score always belongs to
+# a committed assistant, scorer and question set. Never tune on its result.
+HELDOUT_GUARDED := backend/app/assistant.py backend/app/registry.py backend/evals/scoring.py \
+	backend/evals/questions_heldout.json backend/evals/heldout.py
 evals-heldout:
 	@test -z "$$(git status --porcelain -- $(HELDOUT_GUARDED))" || { \
-		echo "evals-heldout: uncommitted changes to the prompt, the tool descriptions or the number check ($(HELDOUT_GUARDED)). Commit or revert them first." >&2; exit 1; }
+		echo "evals-heldout: uncommitted changes to the prompt, the tool descriptions, the number check, the scorer or the held-out questions ($(HELDOUT_GUARDED)). Commit or revert them first." >&2; exit 1; }
 	cd backend && uv run python -m evals.run --live --heldout --model claude-haiku-5-5
 
 # One journey in a real Chromium against the app in demo mode: no key, no model call.

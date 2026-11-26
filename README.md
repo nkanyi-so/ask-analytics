@@ -14,8 +14,6 @@ Every number comes from a lookup function: a SQL group-by over the events. The m
 
 ![An answered question](docs/screens/answer.png)
 
-*An answer, with its lookup and the number check.*
-
 ## How it works
 
 ```mermaid
@@ -46,7 +44,7 @@ Forty questions, ten of which must be refused. Expected answers are computed fro
 | Live, latest run | `claude-haiku-5-5` | 17 Nov 2026 | 12 of 12 | 10 of 10 | 8 of 8 | 10 of 10 |
 | Live, held-out | `claude-haiku-5-5` | 25 Nov 2026 | 11 of 12 | 9 of 10 | 7 of 8 | 9 of 10 |
 
-The fixture row plays the model from a script, so it cannot show whether a model picks the right lookup. The latest live row is the eighth run, after six rounds of fixes and two reviews, so it is partly fitted to those forty questions. On forty held-out questions, run once and never tuned on, it passed 36. Every run and failure: [docs/EVALS.md](docs/EVALS.md).
+The fixture row plays the model from a script, so it tests no model. The latest live row is the eighth run, after six rounds of fixes, so it is partly fitted to those forty questions. On forty held-out questions, run once, never tuned on, it passed 36. In the four failures, no number absent from the lookups reached a reader. Detail: [docs/EVALS.md](docs/EVALS.md).
 
 ## Run it
 
@@ -54,7 +52,7 @@ The fixture row plays the model from a script, so it cannot show whether a model
 cp .env.example .env      # then set ADMIN_TOKEN to any long random string
 make setup
 make dev                  # backend on :8000, frontend on :3000
-make check                # lint, types, tests, fixture evals (40 of 40), build
+make check                # lint, types, tests, fixture evals, build
 make browser-test         # real browser, demo mode
 ```
 
@@ -64,7 +62,8 @@ Open http://localhost:3000. With no `ANTHROPIC_API_KEY` the Ask box runs in demo
 
 - **Spend:** the Ask endpoint is limited per visitor and stops for the day at a fixed budget. A question reserves its worst-case cost first, so a burst cannot overshoot.
 - **Auth:** the admin token never reaches a browser. It does not protect spend: the rate limit and the budget do.
-- **Failure handling:** model calls have a 30-second timeout and one retry. Lookup results are cached for ten minutes and warmed every five.
+- **Failure handling:** model calls have a 30-second timeout and one retry. Lookups are cached for ten minutes, warmed every five.
+- **Tracing:** one JSON log line per question: request id, lookups, tokens, cost, latency, outcome.
 - **A deployed build cannot pretend:** the Docker image refuses to start in demo mode, without a real admin token, or on any source but the file.
 - **Known limit:** rate-limit and budget counters are in memory, which fits one small instance.
 
